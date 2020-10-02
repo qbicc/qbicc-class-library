@@ -68,6 +68,13 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <id>qcc-packages</id>
+            <name>GitHub Repository for QCC artifacts</name>
+            <url>https://maven.pkg.github.com/quarkuscc/qcc</url>
+        </repository>
+    </repositories>
     <distributionManagement>
         <repository>
             <id>github</id>
