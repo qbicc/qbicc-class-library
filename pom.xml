@@ -9,25 +9,30 @@
     <artifactId>qccrt-parent</artifactId>
     <version>11.0.1-SNAPSHOT</version>
 
-    <parent>
-        <!-- for now at least -->
-        <groupId>org.jboss</groupId>
-        <artifactId>jboss-parent</artifactId>
-        <version>36</version>
-    </parent>
-
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <maven.compiler.release>11</maven.compiler.release>
         <sh>/bin/sh</sh>
         <make>/usr/bin/make</make>
+        <version.qcc>1.0.0-SNAPSHOT</version.qcc>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.testTarget>${maven.compiler.target}</maven.compiler.testTarget>
+        <maven.compiler.testSource>${maven.compiler.source}</maven.compiler.testSource>
     </properties>
 
     <packaging>pom</packaging>
 
     <modules>
-        <module>openjdk-setup</module>
+        <!-- tool modules -->
+        <module>plugin</module>
+
+        <!-- general setup & utils -->
+        <module>annotation</module>
+
+        <!-- actual JDK modules -->
         <module>java.base</module>
     </modules>
 
@@ -40,41 +45,70 @@
                 <artifactId>qccrt-java.base</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>openjdk-setup</artifactId>
+                <artifactId>qccrt-annotation</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <!-- QCC -->
+
+            <dependency>
+                <groupId>cc.quarkus</groupId>
+                <artifactId>qcc-runtime-posix</artifactId>
+                <version>${version.qcc}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>1.8</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.1</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>2.8.2</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.2.1</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.22.2</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default-compile</id>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <release>${maven.compiler.release}</release>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
 
-    <repositories>
-        <repository>
-            <id>qcc-packages</id>
-            <name>GitHub Repository for QCC artifacts</name>
-            <url>https://maven.pkg.github.com/quarkuscc/qcc</url>
-        </repository>
-    </repositories>
+<!--    <repositories>-->
+<!--        <repository>-->
+<!--            <id>qcc-packages</id>-->
+<!--            <name>GitHub Repository for QCC artifacts</name>-->
+<!--            <url>https://maven.pkg.github.com/quarkuscc/qcc</url>-->
+<!--        </repository>-->
+<!--    </repositories>-->
     <distributionManagement>
         <repository>
             <id>github</id>
