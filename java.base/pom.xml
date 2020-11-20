@@ -14,57 +14,270 @@
 
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>openjdk-setup</artifactId>
-            <scope>provided</scope>
+            <groupId>cc.quarkus</groupId>
+            <artifactId>qcc-runtime-posix</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cc.quarkus</groupId>
+            <artifactId>qccrt-annotation</artifactId>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>qccrt-openjdk-build-tools-maven-plugin</artifactId>
+                <version>${project.version}</version>
                 <executions>
                     <execution>
-                        <id>make</id>
-                        <phase>generate-resources</phase>
+                        <id>gensrc-buffer</id>
                         <goals>
-                            <goal>exec</goal>
+                            <goal>generate-buffers</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>gensrc-charset-coder</id>
+                        <goals>
+                            <goal>generate-charset-coder</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>gensrc-misc</id>
+                        <goals>
+                            <goal>generate-misc</goal>
                         </goals>
                         <configuration>
-                            <executable>${make}</executable>
-                            <workingDirectory>${project.basedir}/../openjdk</workingDirectory>
-                            <arguments>
-                                <argument>java.base-java</argument>
-                            </arguments>
+                            <vendor>QCC Community</vendor>
+                            <vendorUrl>https://github.com/quarkuscc</vendorUrl>
+                            <vendorUrlBug>https://github.com/quarkuscc/qcc-class-library/issues</vendorUrlBug>
+                            <vendorUrlVmBug>https://github.com/quarkuscc/qcc/issues</vendorUrlVmBug>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gensrc-exceptions</id>
+                        <goals>
+                            <goal>generate-exceptions</goal>
+                        </goals>
+                        <configuration>
+                            <scriptsDir>${project.basedir}/../openjdk/make/scripts</scriptsDir>
+                            <basePath>${project.basedir}/../openjdk/src/java.base/share/classes/java/nio</basePath>
+                            <outputDirectory>${project.build.directory}/generated-sources/exceptions/java/nio</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gensrc-cldr</id>
+                        <goals>
+                            <goal>generate-cldr</goal>
+                        </goals>
+                        <configuration>
+                            <base>${project.basedir}/../openjdk/src/jdk.localedata/share/classes/sun/util/cldr/resources/common</base>
+                            <baseLocales>en-US</baseLocales>
+                            <output>${project.build.directory}/generated-sources/cldr</output>
+                            <baseModule>true</baseModule>
+                            <znTemplateFile>${project.basedir}/../openjdk/src/java.base/share/classes/java/time/format/ZoneName.java.template</znTemplateFile>
+                            <tzDataDir>${project.basedir}/../openjdk/make/data/tzdata</tzDataDir>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gensrc-locale-data</id>
+                        <goals>
+                            <goal>generate-locale-data</goal>
+                        </goals>
+                        <configuration>
+                            <templateFile>${project.basedir}/../openjdk/src/java.base/share/classes/sun/util/locale/provider/LocaleDataMetaInfo-XLocales.java.template</templateFile>
+                            <baseLocaleDataFile>${project.build.directory}/generated-sources/locales/sun/util/locale/provider/BaseLocaleDataMetaInfo.java</baseLocaleDataFile>
+                            <baseLocales>
+                                <baseLocale>en</baseLocale>
+                                <baseLocale>en-US</baseLocale>
+                            </baseLocales>
+                            <nonBaseLocales>
+                                <!-- "Locales that don't have any resource files should be included here." -->
+                                <!-- See openjdk/make/gensrc/GensrcLocaleData.gmk -->
+                                <nonBaseLocale>ja-JP-JP</nonBaseLocale>
+                                <nonBaseLocale>th-TH-TH</nonBaseLocale>
+                            </nonBaseLocales>
+                            <sourcePaths>
+                                <sourcePath>${project.basedir}/../openjdk/src/java.base/share/classes/sun/text/resources</sourcePath>
+                                <sourcePath>${project.basedir}/../openjdk/src/java.base/share/classes/sun/util/resources</sourcePath>
+                            </sourcePaths>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gensrc-character-data</id>
+                        <goals>
+                            <goal>generate-character-data</goal>
+                        </goals>
+                        <configuration>
+                            <characterData>${project.basedir}/../openjdk/make/data/characterdata</characterData>
+                            <unicodeData>${project.basedir}/../openjdk/make/data/unicodedata</unicodeData>
+                            <output>${project.build.directory}/generated-sources/character-data</output>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gensrc-var-handles</id>
+                        <goals>
+                            <goal>generate-var-handles</goal>
+                        </goals>
+                        <configuration>
+                            <varHandleTemplateFile>${project.basedir}/../openjdk/src/java.base/share/classes/java/lang/invoke/X-VarHandle.java.template</varHandleTemplateFile>
+                            <varHandleByteArrayViewTemplateFile>${project.basedir}/../openjdk/src/java.base/share/classes/java/lang/invoke/X-VarHandleByteArrayView.java.template</varHandleByteArrayViewTemplateFile>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gensrc-charset-mapping</id>
+                        <goals>
+                            <goal>generate-charset-mapping</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/generated-sources/charset-mapping/sun/nio/cs</outputDirectory>
+                            <charsetTemplates>
+                                <charsetTemplate>${project.basedir}/../openjdk/make/data/charsetmapping/SingleByte-X.java.template</charsetTemplate>
+                                <charsetTemplate>${project.basedir}/../openjdk/make/data/charsetmapping/DoubleByte-X.java.template</charsetTemplate>
+                            </charsetTemplates>
+                            <javaTemplates>
+                                <javaTemplate>${project.basedir}/../openjdk/src/java.base/share/classes/sun/nio/cs/StandardCharsets.java.template</javaTemplate>
+                            </javaTemplates>
+                            <copyrightHeader>${project.basedir}/../openjdk/make/jdk/src/classes/build/tools/charsetmapping</copyrightHeader>
+                            <extSrcDirectory>${project.basedir}/../openjdk/src/jdk.charsets/share/classes/sun/nio/cs/ext</extSrcDirectory>
+                            <dataDirectory>${project.basedir}/../openjdk/make/data/charsetmapping</dataDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gensrc-module-info</id>
+                        <goals>
+                            <goal>generate-module-info</goal>
+                        </goals>
+                        <configuration>
+                            <output>${project.build.directory}/generated-sources/module-info/module-info.java</output>
+                            <sourceFile>${project.basedir}/../openjdk/src/java.base/share/classes/module-info.java</sourceFile>
+                            <moduleFiles>
+                                <moduleFile>${project.basedir}/../openjdk/src/java.base/macosx/classes/module-info.java.extra</moduleFile>
+                                <moduleFile>${project.basedir}/../openjdk/src/java.base/unix/classes/module-info.java.extra</moduleFile>
+                                <moduleFile>${project.basedir}/../openjdk/src/java.base/windows/classes/module-info.java.extra</moduleFile>
+                            </moduleFiles>
+                            <openJdkSrc>${project.basedir}/../openjdk/src</openJdkSrc>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gensrc-locale-equiv-maps</id>
+                        <goals>
+                            <goal>generate-locale-equiv-maps</goal>
+                        </goals>
+                        <configuration>
+                            <languageSubtagRegistry>${project.basedir}/../openjdk/make/data/lsrdata/language-subtag-registry.txt</languageSubtagRegistry>
+                            <outputFile>${project.build.directory}/generated-sources/lsr/sun/util/locale/LocaleEquivalentMaps.java</outputFile>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Copy our sources in preferred order to a single source path -->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>copy-classes</id>
-                        <phase>process-resources</phase>
+                        <id>copy-sources</id>
+                        <phase>generate-sources</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                            <outputDirectory>${project.build.directory}/combined-sources</outputDirectory>
+                            <overwrite>true</overwrite>
                             <resources>
+                                <!-- Order these in *reverse preference*; last write is best write -->
+                                <!-- share is least significant  -->
                                 <resource>
-                                    <directory>${project.basedir}/../openjdk/build/qccrt/jdk/modules/java.base</directory>
+                                    <directory>${project.basedir}/../openjdk/src/java.base/share/classes</directory>
                                     <excludes>
-                                        <exclude>_the.*</exclude>
+                                        <exclude>module-info.java</exclude>
                                     </excludes>
+                                </resource>
+
+                                <!-- OS-specific is next, alpha by OS name -->
+                                <resource>
+                                    <directory>${project.basedir}/../openjdk/src/java.base/aix/classes</directory>
+                                </resource>
+                                <resource>
+                                    <directory>${project.basedir}/../openjdk/src/java.base/linux/classes</directory>
+                                </resource>
+                                <resource>
+                                    <directory>${project.basedir}/../openjdk/src/java.base/macosx/classes</directory>
+                                </resource>
+                                <!-- skip solaris -->
+                                <resource>
+                                    <directory>${project.basedir}/../openjdk/src/java.base/unix/classes</directory>
+                                </resource>
+                                <resource>
+                                    <directory>${project.basedir}/../openjdk/src/java.base/windows/classes</directory>
+                                </resource>
+
+                                <!-- gen sources are next, alpha by name -->
+                                <resource>
+                                    <directory>${project.build.directory}/generated-sources/character-data</directory>
+                                </resource>
+                                <resource>
+                                    <directory>${project.build.directory}/generated-sources/charset-mapping</directory>
+                                </resource>
+                                <resource>
+                                    <directory>${project.build.directory}/generated-sources/cldr</directory>
+                                </resource>
+                                <resource>
+                                    <directory>${project.build.directory}/generated-sources/exceptions</directory>
+                                </resource>
+                                <resource>
+                                    <directory>${project.build.directory}/generated-sources/locales</directory>
+                                </resource>
+                                <resource>
+                                    <directory>${project.build.directory}/generated-sources/lsr</directory>
+                                </resource>
+                                <resource>
+                                    <directory>${project.build.directory}/generated-sources/misc</directory>
+                                </resource>
+                                <resource>
+                                    <directory>${project.build.directory}/generated-sources/module-info</directory>
+                                </resource>
+                                <resource>
+                                    <directory>${project.build.directory}/generated-sources/spp</directory>
+                                </resource>
+
+                                <!-- our sources take precedence -->
+                                <resource>
+                                    <directory>${project.build.sourceDirectory}</directory>
                                 </resource>
                             </resources>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <compileSourceRoots>
+                                <compileSourceRoot>${project.build.directory}/combined-sources</compileSourceRoot>
+                            </compileSourceRoots>
+                            <compilerArgs>
+                                <arg>--system</arg>
+                                <arg>none</arg>
+                                <arg>--add-reads</arg>
+                                <arg>java.base=cc.quarkus.qcc.runtime.posix,ALL-UNNAMED</arg>
+                                <arg>--add-reads</arg>
+                                <arg>cc.quarkus.qcc.runtime.posix=ALL-UNNAMED</arg>
+                            </compilerArgs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
         </plugins>
     </build>
 </project>
