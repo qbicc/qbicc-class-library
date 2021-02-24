@@ -38,7 +38,9 @@ public class Object {
 
     public final native Class<?> getClass();
 
-    public native int hashCode();
+    public int hashCode() {
+        return System.identityHashCode(this);
+    }
 
     public boolean equals(Object other) {
         return this == other;
