@@ -5,21 +5,21 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>cc.quarkus</groupId>
-        <artifactId>qccrt-parent</artifactId>
+        <groupId>org.qbicc.rt</groupId>
+        <artifactId>qbicc-rt-parent</artifactId>
         <version>11.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>qccrt-java.base</artifactId>
+    <artifactId>qbicc-rt-java.base</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>cc.quarkus</groupId>
-            <artifactId>qcc-runtime-posix</artifactId>
+            <groupId>org.qbicc</groupId>
+            <artifactId>qbicc-runtime-posix</artifactId>
         </dependency>
         <dependency>
-            <groupId>cc.quarkus</groupId>
-            <artifactId>qccrt-annotation</artifactId>
+            <groupId>org.qbicc.rt</groupId>
+            <artifactId>qbicc-rt-annotation</artifactId>
         </dependency>
     </dependencies>
 
@@ -27,7 +27,7 @@
         <plugins>
             <plugin>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>qccrt-openjdk-build-tools-maven-plugin</artifactId>
+                <artifactId>qbicc-rt-openjdk-build-tools-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <executions>
                     <execution>
@@ -48,10 +48,10 @@
                             <goal>generate-misc</goal>
                         </goals>
                         <configuration>
-                            <vendor>QCC Community</vendor>
-                            <vendorUrl>https://github.com/quarkuscc</vendorUrl>
-                            <vendorUrlBug>https://github.com/quarkuscc/qcc-class-library/issues</vendorUrlBug>
-                            <vendorUrlVmBug>https://github.com/quarkuscc/qcc/issues</vendorUrlVmBug>
+                            <vendor>qbicc community</vendor>
+                            <vendorUrl>https://github.com/qbicc</vendorUrl>
+                            <vendorUrlBug>https://github.com/qbicc/qbicc-class-library/issues</vendorUrlBug>
+                            <vendorUrlVmBug>https://github.com/qbicc/qbicc/issues</vendorUrlVmBug>
                         </configuration>
                     </execution>
                     <execution>

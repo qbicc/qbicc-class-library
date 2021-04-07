@@ -5,14 +5,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>cc.quarkus</groupId>
-    <artifactId>qccrt-parent</artifactId>
+    <groupId>org.qbicc.rt</groupId>
+    <artifactId>qbicc-rt-parent</artifactId>
     <version>11.0.1-SNAPSHOT</version>
 
     <properties>
         <sh>/bin/sh</sh>
         <make>/usr/bin/make</make>
-        <version.qcc>1.0.0-SNAPSHOT</version.qcc>
+        <version.qbicc>0.1.0-SNAPSHOT</version.qbicc>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -34,13 +34,13 @@
     </licenses>
 
     <scm>
-        <url>https://github.com/quarkuscc/qcc-class-library</url>
-        <connection>scm:git:git://github.com/quarkuscc/qcc-class-library</connection>
-        <developerConnection>scm:git:git@github.com:quarkuscc/qcc-class-library</developerConnection>
+        <url>https://github.com/qbicc/qbicc-class-library</url>
+        <connection>scm:git:git://github.com/qbicc/qbicc-class-library</connection>
+        <developerConnection>scm:git:git@github.com:qbicc/qbicc-class-library</developerConnection>
     </scm>
 
     <issueManagement>
-        <url>https://github.com/quarkuscc/qcc-class-library/issues</url>
+        <url>https://github.com/qbicc/qbicc-class-library/issues</url>
         <system>GitHub Issues</system>
     </issueManagement>
 
@@ -61,21 +61,21 @@
 
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>qccrt-java.base</artifactId>
+                <artifactId>qbicc-rt-java.base</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>qccrt-annotation</artifactId>
+                <artifactId>qbicc-rt-annotation</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- QCC -->
+            <!-- qbicc -->
 
             <dependency>
-                <groupId>cc.quarkus</groupId>
-                <artifactId>qcc-runtime-posix</artifactId>
-                <version>${version.qcc}</version>
+                <groupId>org.qbicc</groupId>
+                <artifactId>qbicc-runtime-posix</artifactId>
+                <version>${version.qbicc}</version>
             </dependency>
 
         </dependencies>
@@ -120,19 +120,4 @@
             </plugin>
         </plugins>
     </build>
-
-<!--    <repositories>-->
-<!--        <repository>-->
-<!--            <id>qcc-packages</id>-->
-<!--            <name>GitHub Repository for QCC artifacts</name>-->
-<!--            <url>https://maven.pkg.github.com/quarkuscc/qcc</url>-->
-<!--        </repository>-->
-<!--    </repositories>-->
-    <distributionManagement>
-        <repository>
-            <id>github</id>
-            <name>GitHub Repository</name>
-            <url>https://maven.pkg.github.com/quarkuscc/qcc-class-library</url>
-        </repository>
-    </distributionManagement>
 </project>

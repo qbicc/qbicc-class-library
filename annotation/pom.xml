@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>cc.quarkus</groupId>
-        <artifactId>qccrt-parent</artifactId>
+        <groupId>org.qbicc.rt</groupId>
+        <artifactId>qbicc-rt-parent</artifactId>
         <version>11.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>qccrt-annotation</artifactId>
+    <artifactId>qbicc-rt-annotation</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
