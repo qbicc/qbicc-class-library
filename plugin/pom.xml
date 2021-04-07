@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>cc.quarkus</groupId>
-        <artifactId>qccrt-parent</artifactId>
+        <groupId>org.qbicc.rt</groupId>
+        <artifactId>qbicc-rt-parent</artifactId>
         <version>11.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>qccrt-openjdk-build-tools-maven-plugin</artifactId>
+    <artifactId>qbicc-rt-openjdk-build-tools-maven-plugin</artifactId>
 
     <packaging>maven-plugin</packaging>
 
@@ -205,7 +205,7 @@
 
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>qccrt-annotation</artifactId>
+            <artifactId>qbicc-rt-annotation</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
