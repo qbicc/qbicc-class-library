@@ -1,9 +1,9 @@
 /*
- * This code is based on the OpenJDK build process defined in `make/gensrc/Gensrc-java.base.gmk`, which contains the following
+ * This code is based on the OpenJDK build process defined in `make/gensrc/GensrcCLDR.gmk`, which contains the following
  * copyright notice:
  *
  * #
- * # Copyright (c) 2011, 2017, Oracle and/or its affiliates. All rights reserved.
+ * # Copyright (c) 2012, 2018, Oracle and/or its affiliates. All rights reserved.
  * # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  * #
  * # This code is free software; you can redistribute it and/or modify it
@@ -31,7 +31,7 @@
  * contributors.
  */
 
-package cc.quarkus.qccrt.mojo;
+package org.qbicc.mojo;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,8 +45,8 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import build.tools.generatelsrequivmaps.EquivMapsGenerator;
-import cc.quarkus.qccrt.annotation.Tracking;
+import build.tools.cldrconverter.CLDRConverter;
+import org.qbicc.rt.annotation.Tracking;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -58,16 +58,28 @@ import org.codehaus.plexus.classworlds.realm.ClassRealm;
 /**
  *
  */
-@Mojo(name = "generate-locale-equiv-maps", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
-@Tracking("make/gensrc/Gensrc-java.base.gmk")
-public class GenerateEquivMapsMojo extends AbstractMojo {
+@Mojo(name = "generate-cldr", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
+@Tracking("make/gensrc/GensrcCLDR.gmk")
+public class GenerateCldrMojo extends AbstractMojo {
     static final String JAVA = System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("windows") ? "java.exe" : "java";
 
     @Parameter(required = true)
-    File languageSubtagRegistry;
+    String base;
+
+    @Parameter(required = true)
+    String baseLocales;
+
+    @Parameter(required = true)
+    File output;
+
+    @Parameter(defaultValue = "false")
+    boolean baseModule;
 
     @Parameter
-    File outputFile;
+    File znTemplateFile;
+
+    @Parameter
+    File tzDataDir;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
@@ -75,8 +87,8 @@ public class GenerateEquivMapsMojo extends AbstractMojo {
             if (! (Files.isRegularFile(java) && Files.isExecutable(java))) {
                 throw new MojoFailureException("Cannot locate java executable");
             }
-            Path outputPath = outputFile.toPath();
-            Files.createDirectories(outputPath.getParent());
+            Path outputPath = output.toPath();
+            Files.createDirectories(outputPath);
             ProcessBuilder pb = new ProcessBuilder();
             List<String> command = new ArrayList<>();
             command.add(java.toString());
@@ -86,11 +98,26 @@ public class GenerateEquivMapsMojo extends AbstractMojo {
             URL[] urls = realm.getURLs();
             command.add(Arrays.stream(urls).map(Objects::toString).collect(Collectors.joining(File.pathSeparator)));
             // the tool class
-            command.add(EquivMapsGenerator.class.getName());
+            command.add(CLDRConverter.class.getName());
 
             // args
-            command.add(languageSubtagRegistry.toString());
-            command.add(outputFile.toString());
+            command.add("-base");
+            command.add(base);
+            command.add("-baselocales");
+            command.add(baseLocales);
+            command.add("-o");
+            command.add(output.toString());
+            if (baseModule) {
+                command.add("-basemodule");
+            }
+            if (znTemplateFile != null) {
+                command.add("-zntempfile");
+                command.add(znTemplateFile.toString());
+            }
+            if (tzDataDir != null) {
+                command.add("-tzdatadir");
+                command.add(tzDataDir.toString());
+            }
 
             pb.command(command);
             MojoUtil.runAndWaitForProcessNoInput(pb);

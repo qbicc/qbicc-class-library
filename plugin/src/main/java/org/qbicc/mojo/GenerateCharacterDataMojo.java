@@ -1,9 +1,9 @@
 /*
- * This code is based on the OpenJDK build process defined in `make/gensrc/GensrcModuleInfo.gmk`, which contains the following
+ * This code is based on the OpenJDK build process defined in `make/gensrc/GensrcCharacterData.gmk`, which contains the following
  * copyright notice:
  *
  * #
- * # Copyright (c) 2015, 2016, Oracle and/or its affiliates. All rights reserved.
+ * # Copyright (c) 2011, 2017, Oracle and/or its affiliates. All rights reserved.
  * # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  * #
  * # This code is free software; you can redistribute it and/or modify it
@@ -31,14 +31,14 @@
  * contributors.
  */
 
-package cc.quarkus.qccrt.mojo;
+package org.qbicc.mojo;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,8 +46,8 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import build.tools.module.GenModuleInfoSource;
-import cc.quarkus.qccrt.annotation.Tracking;
+import build.tools.generatecharacter.GenerateCharacter;
+import org.qbicc.rt.annotation.Tracking;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -59,34 +59,44 @@ import org.codehaus.plexus.classworlds.realm.ClassRealm;
 /**
  *
  */
-@Mojo(name = "generate-module-info", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
-@Tracking("make/gensrc/GensrcModuleInfo.gmk")
-public class GenerateModuleInfo extends AbstractMojo {
+@Mojo(name = "generate-character-data", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
+@Tracking("make/gensrc/GensrcCharacterData.gmk")
+public class GenerateCharacterDataMojo extends AbstractMojo {
     static final String JAVA = System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("windows") ? "java.exe" : "java";
+
+    @Parameter(required = true)
+    File characterData;
+
+    @Parameter(required = true)
+    File unicodeData;
 
     @Parameter(required = true)
     File output;
 
-    @Parameter(required = true)
-    File sourceFile;
-
-    @Parameter
-    List<String> allModules;
-
-    @Parameter
-    File openJdkSrc;
-
-    @Parameter(required = true)
-    List<File> moduleFiles;
-
     public void execute() throws MojoExecutionException, MojoFailureException {
+        try {
+            Path javaLangTarget = output.toPath().resolve("java").resolve("lang");
+            Files.createDirectories(javaLangTarget);
+            generateCharacterData("CharacterDataLatin1", false, -1, true, 8);
+            generateCharacterData("CharacterData00", true, 0, false, 11, 4, 1);
+            generateCharacterData("CharacterData01", true, 1, false, 11, 4, 1);
+            generateCharacterData("CharacterData02", true, 2, false, 11, 4, 1);
+            generateCharacterData("CharacterData0E", true, 14, false, 11, 4, 1);
+            Files.copy(characterData.toPath().resolve("CharacterDataUndefined.java.template"), javaLangTarget.resolve("CharacterDataUndefined.java"), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(characterData.toPath().resolve("CharacterDataPrivateUse.java.template"), javaLangTarget.resolve("CharacterDataPrivateUse.java"), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new MojoExecutionException("Mojo failed: " + e, e);
+        }
+    }
+
+    void generateCharacterData(String name, boolean string, int plane, boolean latin1, int... bits) throws MojoFailureException, MojoExecutionException {
         try {
             Path java = Path.of(System.getProperty("java.home"), "bin", JAVA);
             if (! (Files.isRegularFile(java) && Files.isExecutable(java))) {
                 throw new MojoFailureException("Cannot locate java executable");
             }
             Path outputPath = output.toPath();
-            Files.createDirectories(outputPath.getParent());
+            Files.createDirectories(outputPath);
             ProcessBuilder pb = new ProcessBuilder();
             List<String> command = new ArrayList<>();
             command.add(java.toString());
@@ -96,36 +106,40 @@ public class GenerateModuleInfo extends AbstractMojo {
             URL[] urls = realm.getURLs();
             command.add(Arrays.stream(urls).map(Objects::toString).collect(Collectors.joining(File.pathSeparator)));
             // the tool class
-            command.add(GenModuleInfoSource.class.getName());
+            command.add(GenerateCharacter.class.getName());
 
             // args
-            command.add("-o");
-            command.add(output.toString());
-            command.add("--source-file");
-            command.add(sourceFile.toString());
-            command.add("--modules");
-            List<String> modules;
-            if (allModules == null) {
-                // this is a temporary sort of hack, I guess...
-                if (openJdkSrc == null) {
-                    throw new MojoExecutionException("One of either allModules or openJdkSrc must be given");
-                }
-                modules = new ArrayList<>();
-                try (DirectoryStream<Path> stream = Files.newDirectoryStream(openJdkSrc.toPath())) {
-                    for (Path path : stream) {
-                        if (Files.isDirectory(path)) {
-                            String simpleName = path.getFileName().toString();
-                            if (simpleName.startsWith("java.") || simpleName.startsWith("jdk.")) {
-                                modules.add(simpleName);
-                            }
-                        }
-                    }
-                }
-            } else {
-                modules = allModules;
+            if (latin1) {
+                command.add("-latin1");
             }
-            command.add(String.join(",", modules));
-            moduleFiles.stream().map(File::toString).forEach(command::add);
+            if (string) {
+                command.add("-string");
+            }
+            if (plane >= 0) {
+                command.add("-plane");
+                command.add(Integer.toString(plane));
+            }
+
+            command.add("-template");
+            command.add(characterData.toPath().resolve(name + ".java.template").toString());
+
+            command.add("-spec");
+            command.add(unicodeData.toPath().resolve("UnicodeData.txt").toString());
+
+            command.add("-specialcasing");
+            command.add(unicodeData.toPath().resolve("SpecialCasing.txt").toString());
+
+            command.add("-proplist");
+            command.add(unicodeData.toPath().resolve("PropList.txt").toString());
+
+            command.add("-o");
+            command.add(output.toPath().resolve("java").resolve("lang").resolve(name + ".java").toString());
+
+            command.add("-usecharforbyte");
+
+            for (int bit : bits) {
+                command.add(Integer.toString(bit));
+            }
 
             pb.command(command);
             MojoUtil.runAndWaitForProcessNoInput(pb);

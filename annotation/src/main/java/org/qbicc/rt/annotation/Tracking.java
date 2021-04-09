@@ -1,4 +1,4 @@
-package cc.quarkus.qccrt.annotation;
+package org.qbicc.rt.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;

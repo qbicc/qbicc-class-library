@@ -37,7 +37,7 @@ import java.net.InetAddress;
 import java.security.AccessController;
 import java.security.Permission;
 
-import cc.quarkus.qccrt.annotation.Tracking;
+import org.qbicc.rt.annotation.Tracking;
 
 @Tracking("java.base/share/java/lang/SecurityManager.java")
 public class SecurityManager {

@@ -32,11 +32,11 @@
 
 package sun.nio.fs;
 
-import cc.quarkus.qcc.runtime.posix.Errno;
-import cc.quarkus.qcc.runtime.posix.Fcntl;
-import cc.quarkus.qcc.runtime.posix.SysStat;
-import cc.quarkus.qcc.runtime.posix.Unistd;
-import cc.quarkus.qccrt.annotation.Tracking;
+import org.qbicc.runtime.posix.Errno;
+import org.qbicc.runtime.posix.Fcntl;
+import org.qbicc.runtime.posix.SysStat;
+import org.qbicc.runtime.posix.Unistd;
+import org.qbicc.rt.annotation.Tracking;
 
 @Tracking("java.base/unix/classes/sun/nio/fs/UnixConstants.java.template")
 final class UnixConstants {

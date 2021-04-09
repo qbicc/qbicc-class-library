@@ -268,9 +268,9 @@
                                 <arg>--system</arg>
                                 <arg>none</arg>
                                 <arg>--add-reads</arg>
-                                <arg>java.base=cc.quarkus.qcc.runtime.posix,ALL-UNNAMED</arg>
+                                <arg>java.base=org.qbicc.runtime.posix,ALL-UNNAMED</arg>
                                 <arg>--add-reads</arg>
-                                <arg>cc.quarkus.qcc.runtime.posix=ALL-UNNAMED</arg>
+                                <arg>org.qbicc.runtime.posix=ALL-UNNAMED</arg>
                                 <arg>-XDstringConcat=inline</arg>
                             </compilerArgs>
                         </configuration>

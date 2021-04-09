@@ -35,8 +35,8 @@ package sun.nio.fs;
 import java.nio.file.FileSystem;
 import java.nio.file.spi.FileSystemProvider;
 
-import cc.quarkus.qcc.runtime.Build;
-import cc.quarkus.qccrt.annotation.Tracking;
+import org.qbicc.runtime.Build;
+import org.qbicc.rt.annotation.Tracking;
 
 /**
  *

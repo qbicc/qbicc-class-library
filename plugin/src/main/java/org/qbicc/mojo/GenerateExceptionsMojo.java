@@ -31,7 +31,7 @@
  * contributors.
  */
 
-package cc.quarkus.qccrt.mojo;
+package org.qbicc.mojo;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import cc.quarkus.qccrt.annotation.Tracking;
+import org.qbicc.rt.annotation.Tracking;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;

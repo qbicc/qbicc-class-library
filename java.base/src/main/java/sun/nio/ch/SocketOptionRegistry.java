@@ -31,10 +31,10 @@
  */
 package sun.nio.ch;
 
-import static cc.quarkus.qcc.runtime.CNative.*;
-import static cc.quarkus.qcc.runtime.posix.NetinetTcp.*;
-import static cc.quarkus.qcc.runtime.posix.SysSocket.*;
-import static cc.quarkus.qcc.runtime.posix.NetinetIn.*;
+import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.NetinetTcp.*;
+import static org.qbicc.runtime.posix.SysSocket.*;
+import static org.qbicc.runtime.posix.NetinetIn.*;
 
 import java.net.ProtocolFamily;
 import java.net.SocketOption;
@@ -43,7 +43,7 @@ import java.net.StandardSocketOptions;
 import java.util.HashMap;
 import java.util.Map;
 
-import cc.quarkus.qccrt.annotation.Tracking;
+import org.qbicc.rt.annotation.Tracking;
 
 /**
  *

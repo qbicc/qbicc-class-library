@@ -31,14 +31,14 @@
  */
 package sun.nio.ch;
 
-import static cc.quarkus.qcc.runtime.CNative.*;
-import static cc.quarkus.qcc.runtime.posix.Fcntl.*;
-import static cc.quarkus.qcc.runtime.posix.Unistd.*;
-import static cc.quarkus.qcc.runtime.stdc.Limits.*;
+import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.Fcntl.*;
+import static org.qbicc.runtime.posix.Unistd.*;
+import static org.qbicc.runtime.stdc.Limits.*;
 
 import java.io.IOException;
 
-import cc.quarkus.qccrt.annotation.Tracking;
+import org.qbicc.rt.annotation.Tracking;
 
 /**
  *

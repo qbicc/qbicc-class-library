@@ -36,8 +36,8 @@ import java.net.InetAddress;
 import java.io.FileDescriptor;
 import java.io.IOException;
 
-import cc.quarkus.qcc.runtime.Build;
-import cc.quarkus.qccrt.annotation.Tracking;
+import org.qbicc.runtime.Build;
+import org.qbicc.rt.annotation.Tracking;
 
 /**
  * Defines static methods to be invoked prior to binding or connecting TCP sockets.

@@ -37,8 +37,8 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.CharBuffer;
 
-import cc.quarkus.qcc.runtime.Build;
-import cc.quarkus.qccrt.annotation.Tracking;
+import org.qbicc.runtime.Build;
+import org.qbicc.rt.annotation.Tracking;
 import jdk.internal.misc.JavaIOFileDescriptorAccess;
 import jdk.internal.misc.SharedSecrets;
 import sun.security.action.GetPropertyAction;
