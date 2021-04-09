@@ -32,7 +32,7 @@
 
 package java.security;
 
-import cc.quarkus.qccrt.annotation.Tracking;
+import org.qbicc.rt.annotation.Tracking;
 
 @Tracking("java.base/share/java/security/AccessController.java")
 public final class AccessController {

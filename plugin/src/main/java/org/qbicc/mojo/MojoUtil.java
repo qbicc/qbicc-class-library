@@ -1,4 +1,4 @@
-package cc.quarkus.qccrt.mojo;
+package org.qbicc.mojo;
 
 import java.io.File;
 import java.io.IOException;

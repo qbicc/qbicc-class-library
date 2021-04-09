@@ -1,9 +1,9 @@
 /*
- * This code is based on the OpenJDK build process defined in `make/gensrc/GensrcCLDR.gmk`, which contains the following
+ * This code is based on the OpenJDK build process defined in `make/gensrc/GensrcCharsetMapping.gmk`, which contains the following
  * copyright notice:
  *
  * #
- * # Copyright (c) 2012, 2018, Oracle and/or its affiliates. All rights reserved.
+ * # Copyright (c) 2011, 2014, Oracle and/or its affiliates. All rights reserved.
  * # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  * #
  * # This code is free software; you can redistribute it and/or modify it
@@ -31,7 +31,7 @@
  * contributors.
  */
 
-package cc.quarkus.qccrt.mojo;
+package org.qbicc.mojo;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,8 +45,8 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import build.tools.cldrconverter.CLDRConverter;
-import cc.quarkus.qccrt.annotation.Tracking;
+import build.tools.charsetmapping.Main;
+import org.qbicc.rt.annotation.Tracking;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -58,28 +58,28 @@ import org.codehaus.plexus.classworlds.realm.ClassRealm;
 /**
  *
  */
-@Mojo(name = "generate-cldr", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
-@Tracking("make/gensrc/GensrcCLDR.gmk")
-public class GenerateCldrMojo extends AbstractMojo {
+@Mojo(name = "generate-charset-mapping", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
+@Tracking("make/gensrc/GensrcCharsetMapping.gmk")
+public class GenerateCharsetMappingMojo extends AbstractMojo {
     static final String JAVA = System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("windows") ? "java.exe" : "java";
 
     @Parameter(required = true)
-    String base;
+    File dataDirectory;
 
     @Parameter(required = true)
-    String baseLocales;
+    File extSrcDirectory;
 
     @Parameter(required = true)
-    File output;
+    File outputDirectory;
 
-    @Parameter(defaultValue = "false")
-    boolean baseModule;
+    @Parameter(required = true)
+    File copyrightHeader;
 
-    @Parameter
-    File znTemplateFile;
+    @Parameter(required = true)
+    List<File> javaTemplates;
 
-    @Parameter
-    File tzDataDir;
+    @Parameter(required = true)
+    List<File> charsetTemplates;
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
@@ -87,8 +87,7 @@ public class GenerateCldrMojo extends AbstractMojo {
             if (! (Files.isRegularFile(java) && Files.isExecutable(java))) {
                 throw new MojoFailureException("Cannot locate java executable");
             }
-            Path outputPath = output.toPath();
-            Files.createDirectories(outputPath);
+            Files.createDirectories(outputDirectory.toPath());
             ProcessBuilder pb = new ProcessBuilder();
             List<String> command = new ArrayList<>();
             command.add(java.toString());
@@ -98,26 +97,17 @@ public class GenerateCldrMojo extends AbstractMojo {
             URL[] urls = realm.getURLs();
             command.add(Arrays.stream(urls).map(Objects::toString).collect(Collectors.joining(File.pathSeparator)));
             // the tool class
-            command.add(CLDRConverter.class.getName());
+            command.add(Main.class.getName());
 
             // args
-            command.add("-base");
-            command.add(base);
-            command.add("-baselocales");
-            command.add(baseLocales);
-            command.add("-o");
-            command.add(output.toString());
-            if (baseModule) {
-                command.add("-basemodule");
-            }
-            if (znTemplateFile != null) {
-                command.add("-zntempfile");
-                command.add(znTemplateFile.toString());
-            }
-            if (tzDataDir != null) {
-                command.add("-tzdatadir");
-                command.add(tzDataDir.toString());
-            }
+            command.add(dataDirectory.toString());
+            command.add(outputDirectory.toString());
+            command.add("stdcs");
+            command.add("charsets");
+            command.add("stdcs-all");
+            javaTemplates.stream().map(Objects::toString).forEach(command::add);
+            command.add(extSrcDirectory.toString());
+            command.add(copyrightHeader.toString());
 
             pb.command(command);
             MojoUtil.runAndWaitForProcessNoInput(pb);

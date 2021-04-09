@@ -1,14 +1,14 @@
-The run time class library for QCC-based images.
+The run time class library for qbicc-based images.
 
 This repo contains a sub-module of openjdk so clone with:
 ```
-git clone --recurse-submodules git@github.com:quarkuscc/qcc-class-library.git
+git clone --recurse-submodules git@github.com:qbicc/qbicc-class-library.git
 ```
 
 You must clone this repository on a case-sensitive file system.
 If you are on MacOS, the default volume is case-insensitive.
 You can use Disk Utility to create a case-sensitive volume, clone
-the repo there, and then symlink it to be a sibling of your `qcc` clone.
+the repo there, and then symlink it to be a sibling of your `qbicc` clone.
 
 OSX steps to create case-sensitive file system:
 * open Disk Utility
@@ -24,7 +24,7 @@ Mount it where you want it placed, in this case `pwd/development` using:
 ```
 $ hdiutil attach -mountpoint `pwd`/development development.sparseimage
 ```
-and then symlink it beside `qcc`:
+and then symlink it beside `qbicc`:
 ```
 $ ln -s <source> <dest>
 ```

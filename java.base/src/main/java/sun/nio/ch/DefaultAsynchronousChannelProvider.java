@@ -34,8 +34,8 @@ package sun.nio.ch;
 
 import java.nio.channels.spi.AsynchronousChannelProvider;
 
-import cc.quarkus.qcc.runtime.Build;
-import cc.quarkus.qccrt.annotation.Tracking;
+import org.qbicc.runtime.Build;
+import org.qbicc.rt.annotation.Tracking;
 
 @Tracking("java.base/aix/classes/sun/nio/ch/DefaultAsynchronousChannelProvider.java")
 @Tracking("java.base/linux/classes/sun/nio/ch/DefaultAsynchronousChannelProvider.java")

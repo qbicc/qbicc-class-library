@@ -33,8 +33,8 @@ package sun.nio.ch;
 
 import java.nio.channels.spi.SelectorProvider;
 
-import cc.quarkus.qcc.runtime.Build;
-import cc.quarkus.qccrt.annotation.Tracking;
+import org.qbicc.runtime.Build;
+import org.qbicc.rt.annotation.Tracking;
 
 /**
  *
