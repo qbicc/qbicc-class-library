@@ -48,7 +48,9 @@ public class Object {
 
     public final native void notifyAll();
 
-    public native String toString();
+    public String toString() {
+        return getClass().getName() + "@" + Integer.toHexString(hashCode());
+    }
 
     public final void wait() throws InterruptedException {
         wait(0L);
