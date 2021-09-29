@@ -4,6 +4,7 @@ import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.stdc.Time.*;
 import static org.qbicc.runtime.posix.Time.*;
 
+import java.util.Properties;
 import org.qbicc.runtime.Build;
 
 /**
@@ -31,5 +32,10 @@ public final class System$_native {
         } else {
             throw new UnsupportedOperationException("nanoTime");
         }
+    }
+
+    // This has to be an empty method rather than an intrinsic, so that interpreter can intercept it.
+    public static Properties initProperties(Properties properties) {
+        return properties;
     }
 }
