@@ -62,11 +62,11 @@
                             <goal>run</goal>
                         </goals>
                         <configuration>
-                            <tasks>
+                            <target>
                                 <replace token="package java.time.zone" value="package build.tools.tzdb" dir="${project.build.directory}/generated-sources/interim-tzdb">
                                     <include name="**/*.java"/>
                                 </replace>
-                            </tasks>
+                            </target>
                         </configuration>
                     </execution>
                 </executions>
