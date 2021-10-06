@@ -53,6 +53,9 @@
 
         <!-- actual JDK modules -->
         <module>java.base</module>
+
+        <!-- aggregate module -->
+        <module>aggregate</module>
     </modules>
 
     <dependencyManagement>
