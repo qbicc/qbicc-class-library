@@ -96,6 +96,8 @@
                                 <arg>java.desktop/sun.awt=ALL-UNNAMED</arg>
                                 <arg>--add-exports</arg>
                                 <arg>jdk.jdeps/com.sun.tools.jdeps=ALL-UNNAMED</arg>
+                                <arg>--add-exports</arg>
+                                <arg>java.base/sun.security.util=ALL-UNNAMED</arg>
                             </compilerArgs>
                         </configuration>
                     </execution>
