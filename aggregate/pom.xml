@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.qbicc.rt</groupId>
+        <artifactId>qbicc-rt-parent</artifactId>
+        <version>11.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>qbicc-rt</artifactId>
+
+    <name>Qbicc Class Libraries aggregate</name>
+    <description>Qbicc Class Libraries aggregate artifact</description>
+
+    <packaging>pom</packaging>
+
+    <dependencies>
+        <!-- Aggregated modules -->
+
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>qbicc-rt-java.base</artifactId>
+        </dependency>
+
+        <!-- Qbicc run time libraries -->
+
+        <dependency>
+            <groupId>org.qbicc</groupId>
+            <artifactId>qbicc-runtime-linux</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.qbicc</groupId>
+            <artifactId>qbicc-runtime-posix</artifactId>
+        </dependency>
+    </dependencies>
+</project>
