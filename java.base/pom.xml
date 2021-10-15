@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.qbicc.rt</groupId>
         <artifactId>qbicc-rt-parent</artifactId>
-        <version>11.alpha.0.2-SNAPSHOT</version>
+        <version>17.alpha.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>qbicc-rt-java.base</artifactId>
@@ -84,7 +84,7 @@
                             <goal>generate-cldr</goal>
                         </goals>
                         <configuration>
-                            <base>${project.basedir}/../openjdk/src/jdk.localedata/share/classes/sun/util/cldr/resources/common</base>
+                            <base>${project.basedir}/../openjdk/make/data/cldr/common</base>
                             <baseLocales>en-US</baseLocales>
                             <output>${project.build.directory}/generated-sources/cldr</output>
                             <baseModule>true</baseModule>
@@ -135,6 +135,7 @@
                         <configuration>
                             <varHandleTemplateFile>${project.basedir}/../openjdk/src/java.base/share/classes/java/lang/invoke/X-VarHandle.java.template</varHandleTemplateFile>
                             <varHandleByteArrayViewTemplateFile>${project.basedir}/../openjdk/src/java.base/share/classes/java/lang/invoke/X-VarHandleByteArrayView.java.template</varHandleByteArrayViewTemplateFile>
+                            <varHandleMemoryAccessHelperTemplateFile>${project.basedir}/../openjdk/src/java.base/share/classes/java/lang/invoke/X-VarHandleMemoryAccess.java.template</varHandleMemoryAccessHelperTemplateFile>
                         </configuration>
                     </execution>
                     <execution>
@@ -165,7 +166,6 @@
                             <output>${project.build.directory}/generated-sources/module-info/module-info.java</output>
                             <sourceFile>${project.basedir}/../openjdk/src/java.base/share/classes/module-info.java</sourceFile>
                             <moduleFiles>
-                                <moduleFile>${project.basedir}/../openjdk/src/java.base/macosx/classes/module-info.java.extra</moduleFile>
                                 <moduleFile>${project.basedir}/../openjdk/src/java.base/unix/classes/module-info.java.extra</moduleFile>
                                 <moduleFile>${project.basedir}/../openjdk/src/java.base/windows/classes/module-info.java.extra</moduleFile>
                             </moduleFiles>
@@ -181,6 +181,18 @@
                             <languageSubtagRegistry>${project.basedir}/../openjdk/make/data/lsrdata/language-subtag-registry.txt</languageSubtagRegistry>
                             <outputFile>${project.build.directory}/generated-sources/lsr/sun/util/locale/LocaleEquivalentMaps.java</outputFile>
                         </configuration>
+                    </execution>
+                    <execution>
+                        <id>gensrc-scoped-memory-access</id>
+                        <goals>
+                            <goal>generate-scoped-memory-access</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>gensrc-emoji-data</id>
+                        <goals>
+                            <goal>generate-emoji-data</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

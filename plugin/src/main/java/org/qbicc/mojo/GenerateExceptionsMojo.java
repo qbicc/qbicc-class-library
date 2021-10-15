@@ -49,7 +49,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 @Mojo(name = "generate-exceptions", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
-@Tracking("make/gensrc/GensrcExceptions.gmk")
+@Tracking("make/modules/java.base/gensrc/GensrcExceptions.gmk")
 public class GenerateExceptionsMojo extends AbstractMojo {
     @Parameter(required = true)
     File scriptsDir;
@@ -67,7 +67,7 @@ public class GenerateExceptionsMojo extends AbstractMojo {
         ProcessBuilder pb = new ProcessBuilder();
         Map<String, String> env = pb.environment();
         env.put("SCRIPTS", scriptsDir.toString());
-        env.put("NAWK", MojoUtil.findExec("nawk", "gawk", "awk").toString());
+        env.put("AWK", MojoUtil.findExec("nawk", "gawk", "awk").toString());
         Path sh = MojoUtil.findExec("sh");
         env.put("SH", sh.toString());
         // add each input file

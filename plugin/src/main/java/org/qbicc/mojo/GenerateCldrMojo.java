@@ -59,7 +59,7 @@ import org.codehaus.plexus.classworlds.realm.ClassRealm;
  *
  */
 @Mojo(name = "generate-cldr", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
-@Tracking("make/gensrc/GensrcCLDR.gmk")
+@Tracking("make/modules/java.base/Gensrc.gmk")
 public class GenerateCldrMojo extends AbstractMojo {
     static final String JAVA = System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("windows") ? "java.exe" : "java";
 
