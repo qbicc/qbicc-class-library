@@ -58,7 +58,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 @Mojo(name = "generate-misc", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
-@Tracking("make/gensrc/GensrcMisc.gmk")
+@Tracking("make/modules/java.base/gensrc/GensrcMisc.gmk")
 public class GenerateMiscMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.baseDir}/../../openjdk/src/java.base/share/classes")
     File inputDirectory;
@@ -92,6 +92,15 @@ public class GenerateMiscMojo extends AbstractMojo {
 
     @Parameter
     String versionDate;
+
+    @Parameter
+    String versionClassFileMajor;
+
+    @Parameter
+    String versionClassFileMinor;
+
+    @Parameter
+    String versionSpec;
 
     @Parameter
     String vendorVersionString;
@@ -130,6 +139,9 @@ public class GenerateMiscMojo extends AbstractMojo {
                     entry("@@VERSION_BUILD@@", versionBuild),
                     entry("@@VERSION_OPT@@", versionOpt == null ? "" : versionOpt),
                     entry("@@VERSION_DATE@@", versionDate == null ? LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) : versionDate),
+                    entry("@@VERSION_CLASSFILE_MAJOR@@", versionClassFileMajor),
+                    entry("@@VERSION_CLASSFILE_MINOR@@", versionClassFileMinor),
+                    entry("@@VERSION_SPECIFICATION@@", versionSpec),
                     entry("@@VENDOR_VERSION_STRING@@", vendorVersionString == null ? "" : vendorVersionString),
                     entry("@@VENDOR@@", vendor),
                     entry("@@VENDOR_URL@@", vendorUrl),
