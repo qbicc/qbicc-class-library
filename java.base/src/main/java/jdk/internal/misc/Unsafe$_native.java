@@ -6,6 +6,8 @@ import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
 import static org.qbicc.runtime.stdc.Time.*;
 import static org.qbicc.runtime.linux.Stdlib.*;
+import static org.qbicc.runtime.posix.PThread.*;
+import static org.qbicc.runtime.posix.Time.*;
 
 import java.security.ProtectionDomain;
 
@@ -97,9 +99,79 @@ public final class Unsafe$_native {
         }
     }
 
+    static final class Posix {
+        // We need a lot of heavyweight stuff to park with POSIX conditions.
+
+        static void unpark(Unsafe theUnsafe, Object thread) {
+            long parkFlagOffset = theUnsafe.objectFieldOffset(Thread.class, "parkFlag");
+            if (theUnsafe.compareAndSetInt(thread, parkFlagOffset, 0, 1)) {
+                // wake
+                pthread_mutex_t_ptr mutexPtr = word(theUnsafe.getAddress(thread, theUnsafe.objectFieldOffset(Thread.class, "mutex")));
+                if (pthread_mutex_lock(mutexPtr).intValue() == -1) {
+                    throw new InternalError("mutex operation failed with errno " + errno);
+                }
+                try {
+                    pthread_cond_t_ptr condPtr = word(theUnsafe.getAddress(thread, theUnsafe.objectFieldOffset(Thread.class, "condition")));
+                    if (pthread_cond_broadcast(condPtr).intValue() == -1) {
+                        throw new InternalError("mutex condition operation failed with errno " + errno);
+                    }
+                } finally {
+                    pthread_mutex_unlock(mutexPtr);
+                }
+            }
+        }
+
+        static void park(Unsafe theUnsafe, boolean isAbsolute, long time) {
+            struct_timespec timespec = auto();
+            Thread thread = Thread.currentThread();
+            long parkFlagOffset = theUnsafe.objectFieldOffset(Thread.class, "parkFlag");
+            // if we have a pending unpark, the wait value will be 1 and we will not block.
+            if (theUnsafe.compareAndSetInt(thread, parkFlagOffset, 1, 0)) {
+                return;
+            }
+            pthread_mutex_t_ptr mutexPtr = word(theUnsafe.getAddress(thread, theUnsafe.objectFieldOffset(Thread.class, "mutex")));
+            if (pthread_mutex_lock(mutexPtr).intValue() == -1) {
+                throw new InternalError("mutex operation failed with errno " + errno);
+            }
+            try {
+                pthread_cond_t_ptr condPtr = word(theUnsafe.getAddress(thread, theUnsafe.objectFieldOffset(Thread.class, "condition")));
+                c_int result;
+                if (isAbsolute) {
+                    // time is in milliseconds since epoch
+                    timespec.tv_sec = word(time / 1_000L);
+                    timespec.tv_nsec = word(time * 1_000_000L);
+                    result = pthread_cond_timedwait(condPtr, mutexPtr, addr_of(timespec));
+                } else if (time == 0) {
+                    // relative time of zero means wait indefinitely
+                    result = pthread_cond_wait(condPtr, mutexPtr);
+                } else {
+                    // time is in relative nanoseconds; we have to add it to the wall clock
+                    clock_gettime(CLOCK_REALTIME, addr_of(timespec));
+                    long sec = timespec.tv_sec.longValue() + time / 1_000_000_000L;
+                    long nsec = timespec.tv_nsec.longValue() + time % 1_000_000_000L;
+                    if (nsec > 1_000_000_000L) {
+                        // plus one second
+                        sec++;
+                        nsec -= 1_000_000_000L;
+                    }
+                    timespec.tv_sec = word(sec);
+                    timespec.tv_nsec = word(nsec);
+                    result = pthread_cond_timedwait(condPtr, mutexPtr, addr_of(timespec));
+                }
+                if (result.intValue() == -1) {
+                    throw new InternalError("mutex condition operation failed with errno " + errno);
+                }
+            } finally {
+                pthread_mutex_unlock(mutexPtr);
+            }
+        }
+    }
+
     public void park(boolean isAbsolute, long time) {
         if (Build.Target.isLinux()) {
             Linux.park(asUnsafe(), isAbsolute, time);
+        } else if (Build.Target.isPosix()) {
+            Posix.park(asUnsafe(), isAbsolute, time);
         } else {
             throw new UnsupportedOperationException("park() not implemented for this platform");
         }
@@ -108,6 +180,8 @@ public final class Unsafe$_native {
     public void unpark(Object thread) {
         if (Build.Target.isLinux()) {
             Linux.unpark(asUnsafe(), thread);
+        } else if (Build.Target.isPosix()) {
+            Posix.unpark(asUnsafe(), thread);
         } else {
             throw new UnsupportedOperationException("unpark() not implemented for this platform");
         }
