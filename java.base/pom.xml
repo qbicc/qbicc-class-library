@@ -19,6 +19,10 @@
         </dependency>
         <dependency>
             <groupId>org.qbicc</groupId>
+            <artifactId>qbicc-runtime-llvm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.qbicc</groupId>
             <artifactId>qbicc-runtime-posix</artifactId>
         </dependency>
         <dependency>
