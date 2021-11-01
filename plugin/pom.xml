@@ -7,10 +7,13 @@
     <parent>
         <groupId>org.qbicc.rt</groupId>
         <artifactId>qbicc-rt-parent</artifactId>
-        <version>11.0.1-SNAPSHOT</version>
+        <version>11.alpha.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>qbicc-rt-openjdk-build-tools-maven-plugin</artifactId>
+
+    <name>Qbicc Build Tools Maven Plugin</name>
+    <description>Maven plugin adapter for JDK build tools</description>
 
     <packaging>maven-plugin</packaging>
 
