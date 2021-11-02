@@ -39,7 +39,7 @@ import java.security.Permission;
 
 import org.qbicc.rt.annotation.Tracking;
 
-@Tracking("java.base/share/java/lang/SecurityManager.java")
+@Tracking("src/java.base/share/java/lang/SecurityManager.java")
 public class SecurityManager {
 
     public SecurityManager() {

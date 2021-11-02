@@ -34,7 +34,7 @@ package java.security;
 
 import org.qbicc.rt.annotation.Tracking;
 
-@Tracking("java.base/share/java/security/AccessController.java")
+@Tracking("src/java.base/share/java/security/AccessController.java")
 public final class AccessController {
     private AccessController() { }
 

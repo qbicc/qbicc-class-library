@@ -39,10 +39,10 @@ import org.qbicc.rt.annotation.Tracking;
 /**
  *
  */
-@Tracking("openjdk/src/java.base/aix/classes/sun/nio/ch/DefaultSelectorProvider.java")
-@Tracking("openjdk/src/java.base/linux/classes/sun/nio/ch/DefaultSelectorProvider.java")
-@Tracking("openjdk/src/java.base/macosx/classes/sun/nio/ch/DefaultSelectorProvider.java")
-@Tracking("openjdk/src/java.base/windows/classes/sun/nio/ch/DefaultSelectorProvider.java")
+@Tracking("src/java.base/aix/classes/sun/nio/ch/DefaultSelectorProvider.java")
+@Tracking("src/java.base/linux/classes/sun/nio/ch/DefaultSelectorProvider.java")
+@Tracking("src/java.base/macosx/classes/sun/nio/ch/DefaultSelectorProvider.java")
+@Tracking("src/java.base/windows/classes/sun/nio/ch/DefaultSelectorProvider.java")
 public class DefaultSelectorProvider {
 
     /**

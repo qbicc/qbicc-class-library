@@ -42,8 +42,8 @@ import org.qbicc.rt.annotation.Tracking;
 /**
  * Defines static methods to be invoked prior to binding or connecting TCP sockets.
  */
-@Tracking("java.base/unix/classes/sun/net/NetHooks.java")
-@Tracking("java.base/windows/classes/sun/net/NetHooks.java")
+@Tracking("src/java.base/unix/classes/sun/net/NetHooks.java")
+@Tracking("src/java.base/windows/classes/sun/net/NetHooks.java")
 public final class NetHooks {
 
     /**
