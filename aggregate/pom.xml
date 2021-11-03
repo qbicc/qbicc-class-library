@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.qbicc.rt</groupId>
         <artifactId>qbicc-rt-parent</artifactId>
-        <version>11.0.1-SNAPSHOT</version>
+        <version>11.alpha.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>qbicc-rt</artifactId>
@@ -18,22 +18,10 @@
     <packaging>pom</packaging>
 
     <dependencies>
-        <!-- Aggregated modules -->
-
+        <!-- Aggregated modules from this project -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>qbicc-rt-java.base</artifactId>
-        </dependency>
-
-        <!-- Qbicc run time libraries -->
-
-        <dependency>
-            <groupId>org.qbicc</groupId>
-            <artifactId>qbicc-runtime-linux</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.qbicc</groupId>
-            <artifactId>qbicc-runtime-posix</artifactId>
         </dependency>
     </dependencies>
 </project>

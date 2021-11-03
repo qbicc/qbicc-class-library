@@ -41,10 +41,10 @@ import org.qbicc.rt.annotation.Tracking;
 /**
  *
  */
-@Tracking("openjdk/src/java.base/aix/classes/sun/nio/fs/DefaultFileSystemProvider.java")
-@Tracking("openjdk/src/java.base/linux/classes/sun/nio/fs/DefaultFileSystemProvider.java")
-@Tracking("openjdk/src/java.base/macosx/classes/sun/nio/fs/DefaultFileSystemProvider.java")
-@Tracking("openjdk/src/java.base/windows/classes/sun/nio/fs/DefaultFileSystemProvider.java")
+@Tracking("src/java.base/aix/classes/sun/nio/fs/DefaultFileSystemProvider.java")
+@Tracking("src/java.base/linux/classes/sun/nio/fs/DefaultFileSystemProvider.java")
+@Tracking("src/java.base/macosx/classes/sun/nio/fs/DefaultFileSystemProvider.java")
+@Tracking("src/java.base/windows/classes/sun/nio/fs/DefaultFileSystemProvider.java")
 public class DefaultFileSystemProvider {
     private static final FileSystemProvider INSTANCE;
     private static final FileSystem THE_FILE_SYSTEM;

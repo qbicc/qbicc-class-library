@@ -7,10 +7,13 @@
     <parent>
         <groupId>org.qbicc.rt</groupId>
         <artifactId>qbicc-rt-parent</artifactId>
-        <version>11.0.1-SNAPSHOT</version>
+        <version>11.alpha.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>qbicc-rt-java.base</artifactId>
+
+    <name>Qbicc Run Time: java.base</name>
+    <description>The Qbicc builder for the java.base JDK module</description>
 
     <dependencies>
         <dependency>
@@ -32,6 +35,8 @@
     </dependencies>
 
     <build>
+        <sourceDirectory>target/combined-sources</sourceDirectory>
+
         <plugins>
             <plugin>
                 <groupId>${project.groupId}</groupId>
@@ -252,7 +257,7 @@
 
                                 <!-- our sources take precedence -->
                                 <resource>
-                                    <directory>${project.build.sourceDirectory}</directory>
+                                    <directory>${project.basedir}/src/main/java</directory>
                                 </resource>
                             </resources>
                         </configuration>
@@ -286,7 +291,40 @@
                 </executions>
             </plugin>
 
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
 
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <sourcepath>${project.build.directory}/combined-sources</sourcepath>
+                            <additionalOptions>
+                                <additionalOption>--add-reads</additionalOption>
+                                <additionalOption>java.base=ALL-UNNAMED</additionalOption>
+                            </additionalOptions>
+                            <failOnError>false</failOnError>
+                            <failOnWarnings>false</failOnWarnings>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

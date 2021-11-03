@@ -37,10 +37,10 @@ import java.nio.channels.spi.AsynchronousChannelProvider;
 import org.qbicc.runtime.Build;
 import org.qbicc.rt.annotation.Tracking;
 
-@Tracking("java.base/aix/classes/sun/nio/ch/DefaultAsynchronousChannelProvider.java")
-@Tracking("java.base/linux/classes/sun/nio/ch/DefaultAsynchronousChannelProvider.java")
-@Tracking("java.base/macosx/classes/sun/nio/ch/DefaultAsynchronousChannelProvider.java")
-@Tracking("java.base/windows/classes/sun/nio/ch/DefaultAsynchronousChannelProvider.java")
+@Tracking("src/java.base/aix/classes/sun/nio/ch/DefaultAsynchronousChannelProvider.java")
+@Tracking("src/java.base/linux/classes/sun/nio/ch/DefaultAsynchronousChannelProvider.java")
+@Tracking("src/java.base/macosx/classes/sun/nio/ch/DefaultAsynchronousChannelProvider.java")
+@Tracking("src/java.base/windows/classes/sun/nio/ch/DefaultAsynchronousChannelProvider.java")
 public class DefaultAsynchronousChannelProvider {
     /**
      * Prevent instantiation.

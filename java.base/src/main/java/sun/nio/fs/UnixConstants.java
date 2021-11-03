@@ -38,7 +38,7 @@ import org.qbicc.runtime.posix.SysStat;
 import org.qbicc.runtime.posix.Unistd;
 import org.qbicc.rt.annotation.Tracking;
 
-@Tracking("java.base/unix/classes/sun/nio/fs/UnixConstants.java.template")
+@Tracking("src/java.base/unix/classes/sun/nio/fs/UnixConstants.java.template")
 final class UnixConstants {
     private UnixConstants() {}
 

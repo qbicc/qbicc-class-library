@@ -48,7 +48,7 @@ import org.qbicc.rt.annotation.Tracking;
 /**
  *
  */
-@Tracking("java.base/share/classes/sun/nio/ch/SocketOptionRegistry.java.template")
+@Tracking("src/java.base/share/classes/sun/nio/ch/SocketOptionRegistry.java.template")
 public class SocketOptionRegistry {
     private SocketOptionRegistry() { }
 

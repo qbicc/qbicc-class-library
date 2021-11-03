@@ -34,7 +34,7 @@ package java.security;
 
 import org.qbicc.rt.annotation.Tracking;
 
-@Tracking("java.base/share/java/security/AccessControlContext.java")
+@Tracking("src/java.base/share/java/security/AccessControlContext.java")
 public final class AccessControlContext {
     static final ProtectionDomain[] FAKE_CONTEXT = new ProtectionDomain[0];
 

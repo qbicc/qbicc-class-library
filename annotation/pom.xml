@@ -7,10 +7,13 @@
     <parent>
         <groupId>org.qbicc.rt</groupId>
         <artifactId>qbicc-rt-parent</artifactId>
-        <version>11.0.1-SNAPSHOT</version>
+        <version>11.alpha.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>qbicc-rt-annotation</artifactId>
+
+    <name>Qbicc Run Time: Annotation</name>
+    <description>Qbicc JDK run time annotation library</description>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
