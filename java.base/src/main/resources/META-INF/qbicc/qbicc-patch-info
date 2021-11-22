@@ -1,0 +1,3 @@
+# Patcher classes. Please keep sorted.
+
+jdk.internal.misc.Unsafe$_runtime
