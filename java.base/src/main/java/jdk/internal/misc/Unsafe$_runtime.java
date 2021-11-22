@@ -3,12 +3,17 @@ package jdk.internal.misc;
 import static org.qbicc.runtime.posix.Unistd.*;
 
 import org.qbicc.runtime.Build;
+import org.qbicc.runtime.patcher.Add;
+import org.qbicc.runtime.patcher.PatchClass;
+import org.qbicc.runtime.patcher.RunTimeAspect;
 
 /**
  * Runtime-initialized Unsafe constants.
  */
-public final class Unsafe$_runtime {
-    static final int PAGE_SIZE;
+@RunTimeAspect
+@PatchClass(Unsafe.class)
+final class Unsafe$_runtime {
+    @Add static final int PAGE_SIZE;
 
     static {
         int pageSize;
