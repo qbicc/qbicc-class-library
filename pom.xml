@@ -12,6 +12,8 @@
     <name>Qbicc Run Time: Parent POM</name>
     <description>Parent POM of Qbicc run time libraries</description>
 
+    <url>http://qbicc.org</url>
+
     <properties>
         <sh>/bin/sh</sh>
         <make>/usr/bin/make</make>
