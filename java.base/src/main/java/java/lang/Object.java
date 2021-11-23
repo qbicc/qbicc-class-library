@@ -32,11 +32,19 @@
 
 package java.lang;
 
+import static org.qbicc.runtime.CNative.*;
+
 import java.lang.reflect.Array;
 
+import org.qbicc.runtime.Hidden;
+import org.qbicc.runtime.NoReflect;
 import org.qbicc.runtime.main.CompilerIntrinsics;
+import org.qbicc.runtime.main.Monitor;
 
 public class Object {
+
+    @NoReflect
+    private Monitor monitor;
 
     public Object() {}
 
@@ -50,21 +58,61 @@ public class Object {
         return this == other;
     }
 
-    public final native void notify();
+    public final void notify() {
+        getMonitor().signal();
+    }
 
-    public final native void notifyAll();
+    public final void notifyAll() {
+        getMonitor().signalAll();
+    }
 
     public String toString() {
         return getClass().getName() + "@" + Integer.toHexString(hashCode());
     }
 
     public final void wait() throws InterruptedException {
-        wait(0L);
+        getMonitor().await();
     }
 
-    public final native void wait(long millis) throws InterruptedException;
+    public final void wait(long millis) throws InterruptedException {
+        getMonitor().await(millis);
+    }
 
-    public final native void wait(long millis, int nanos) throws InterruptedException;
+    public final void wait(long millis, int nanos) throws InterruptedException {
+        getMonitor().await(millis, nanos);
+    }
+
+    @NoReflect
+    @Hidden
+    private void monitorEnter() {
+        getMonitor().enter();
+    }
+
+    @NoReflect
+    @Hidden
+    private void monitorExit() {
+        getMonitor().exit();
+    }
+
+    @NoReflect
+    @Hidden
+    private boolean holdsLock() {
+        Monitor monitor = addr_of(refToPtr(this).sel().monitor).loadSingleAcquire();
+        return monitor != null && monitor.isHeldByCurrentThread();
+    }
+
+    @NoReflect
+    private Monitor getMonitor() {
+        Monitor monitor = addr_of(refToPtr(this).sel().monitor).loadSingleAcquire();
+        if (monitor == null) {
+            monitor = new Monitor();
+            Monitor appearing = addr_of(refToPtr(this).sel().monitor).compareAndSwapRelease(null, monitor);
+            if (appearing != null) {
+                monitor = appearing;
+            }
+        }
+        return monitor;
+    }
 
     protected Object clone() throws CloneNotSupportedException {
         Class<?> clazz = this.getClass();
@@ -80,6 +128,7 @@ public class Object {
             }
             Object cloned = CompilerIntrinsics.emitNew(clazz);
             CompilerIntrinsics.copyInstanceFields(clazz, this, cloned);
+            cloned.monitor = null;
             return cloned;
         }
     }
