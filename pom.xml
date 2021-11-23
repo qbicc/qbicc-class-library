@@ -42,6 +42,15 @@
         <developerConnection>scm:git:git@github.com:qbicc/qbicc-class-library</developerConnection>
     </scm>
 
+    <developers>
+        <developer>
+            <name>The Qbicc team</name>
+            <email>david.lloyd@redhat.com</email>
+            <organization>The Qbicc project team</organization>
+            <organizationUrl>https://qbicc.org</organizationUrl>
+        </developer>
+    </developers>
+
     <issueManagement>
         <url>https://github.com/qbicc/qbicc-class-library/issues</url>
         <system>GitHub Issues</system>
