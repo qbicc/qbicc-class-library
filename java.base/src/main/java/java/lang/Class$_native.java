@@ -1,6 +1,8 @@
 package java.lang;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 // TODO: These are all stubs so we don't turn them into
 //       an UnsatisfiedLinkError before the interpreter can
@@ -12,7 +14,19 @@ public final class Class$_native<T> {
     }
 
     private Field[] getDeclaredFields0(boolean publicOnly) {
-        throw new UnsupportedOperationException();
+        return new Field[0];
+    }
+
+    private Method[] getDeclaredMethods0(boolean publicOnly) {
+        return new Method[0];
+    }
+
+    private Constructor<T>[] getDeclaredConstructors0(boolean publicOnly) {
+        return new Constructor[0];
+    }
+
+    private Class<?>[] getDeclaredClasses0() {
+        return new Class[0];
     }
 
     public Class<?> getSuperclass() {
