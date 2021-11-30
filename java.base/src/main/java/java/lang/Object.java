@@ -32,6 +32,10 @@
 
 package java.lang;
 
+import java.lang.reflect.Array;
+
+import org.qbicc.runtime.main.CompilerIntrinsics;
+
 public class Object {
 
     public Object() {}
@@ -62,7 +66,23 @@ public class Object {
 
     public final native void wait(long millis, int nanos) throws InterruptedException;
 
-    protected native Object clone() throws CloneNotSupportedException;
+    protected Object clone() throws CloneNotSupportedException {
+        Class<?> clazz = this.getClass();
+        if (clazz.isArray()) {
+            Class<?> elemType = clazz.getComponentType();
+            int length = Array.getLength(this);
+            Object cloned = Array.newInstance(elemType, length);
+            System.arraycopy(this, 0, cloned, 0, length);
+            return cloned;
+        } else {
+            if (!Cloneable.class.isAssignableFrom(clazz)) {
+                throw new CloneNotSupportedException();
+            }
+            Object cloned = CompilerIntrinsics.emitNew(clazz);
+            CompilerIntrinsics.copyInstanceFields(clazz, this, cloned);
+            return cloned;
+        }
+    }
 
     @Deprecated
     protected void finalize() throws Throwable {}
