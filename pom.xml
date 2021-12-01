@@ -7,6 +7,7 @@
 
     <groupId>org.qbicc.rt</groupId>
     <artifactId>qbicc-rt-parent</artifactId>
+    <!-- IMPORTANT: when updating this value, also update .github/workflows/maven.yml -->
     <version>11.alpha.0.2-SNAPSHOT</version>
 
     <name>Qbicc Run Time: Parent POM</name>
@@ -17,6 +18,7 @@
     <properties>
         <sh>/bin/sh</sh>
         <make>/usr/bin/make</make>
+        <!-- IMPORTANT: when updating this value, also update .github/workflows/maven.yml -->
         <version.qbicc>0.1.0</version.qbicc>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
