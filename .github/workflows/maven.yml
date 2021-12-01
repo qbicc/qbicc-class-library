@@ -38,16 +38,24 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: qbicc-class-library
+          submodules: recursive
 
       - name: Build class libraries
         run: |
           mvn --batch-mode install
         working-directory: qbicc-class-library
 
+      - name: Clone qbicc
+        uses: actions/checkout@v2
+        with:
+          repository: qbicc/qbicc
+          ref: 0.1.0
+          path: qbicc
+
       - name: Run qbicc tests
         run: |
           mvn --batch-mode install -Dversion.qbicc.classlib=11.alpha.0.2-SNAPSHOT
-        working-directory: ./myqbicc
+        working-directory: qbicc
 
       - name: Prepare failure archive (if maven failed)
         if: failure()
