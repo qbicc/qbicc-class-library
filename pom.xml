@@ -69,6 +69,7 @@
 
         <!-- actual JDK modules -->
         <module>java.base</module>
+        <module>jdk.unsupported</module>
 
         <!-- aggregate module -->
         <module>aggregate</module>
@@ -81,6 +82,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>qbicc-rt-java.base</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>qbicc-rt-jdk.unsupported</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
