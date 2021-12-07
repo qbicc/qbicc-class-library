@@ -65,6 +65,9 @@
                             <vendorUrl>https://github.com/qbicc</vendorUrl>
                             <vendorUrlBug>https://github.com/qbicc/qbicc-class-library/issues</vendorUrlBug>
                             <vendorUrlVmBug>https://github.com/qbicc/qbicc/issues</vendorUrlVmBug>
+                            <versionClassFileMajor>61</versionClassFileMajor>
+                            <versionClassFileMinor>0</versionClassFileMinor>
+                            <versionSpec>${maven.compiler.target}</versionSpec>
                         </configuration>
                     </execution>
                     <execution>

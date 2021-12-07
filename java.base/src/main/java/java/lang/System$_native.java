@@ -38,4 +38,14 @@ public final class System$_native {
     public static Properties initProperties(Properties properties) {
         return properties;
     }
+
+    public static String mapLibraryName(String libname) {
+        if (Build.Target.isMacOs()) {
+            return "lib" + libname + ".dylib";
+        } else {
+            return "lib" + libname + ".so";
+        }
+        // todo: windows
+    }
+
 }
