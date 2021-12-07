@@ -50,13 +50,16 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 @Mojo(name = "generate-var-handles", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
-@Tracking("make/gensrc/GensrcVarHandles.gmk")
+@Tracking("make/modules/java.base/gensrc/GensrcVarHandles.gmk")
 public class GenerateVarHandlesMojo extends AbstractSppMojo {
     @Parameter(required = true)
     File varHandleTemplateFile;
 
     @Parameter(required = true)
     File varHandleByteArrayViewTemplateFile;
+
+    @Parameter(required = true)
+    File varHandleMemoryAccessHelperTemplateFile;
 
     @Parameter(defaultValue = "${project.build.directory}/generated-sources/spp")
     File outputDirectory;
@@ -73,7 +76,7 @@ public class GenerateVarHandlesMojo extends AbstractSppMojo {
             generateVarHandle("Long", outputPath);
             generateVarHandle("Float", outputPath);
             generateVarHandle("Double", outputPath);
-            generateVarHandle("Object", outputPath);
+            generateVarHandle("Reference", outputPath);
 
             generateVarHandleByteArray("Short", outputPath);
             generateVarHandleByteArray("Char", outputPath);
@@ -81,6 +84,14 @@ public class GenerateVarHandlesMojo extends AbstractSppMojo {
             generateVarHandleByteArray("Long", outputPath);
             generateVarHandleByteArray("Float", outputPath);
             generateVarHandleByteArray("Double", outputPath);
+
+            generateVarHandleMemoryAccess("Byte", outputPath);
+            generateVarHandleMemoryAccess("Short", outputPath);
+            generateVarHandleMemoryAccess("Char", outputPath);
+            generateVarHandleMemoryAccess("Int", outputPath);
+            generateVarHandleMemoryAccess("Long", outputPath);
+            generateVarHandleMemoryAccess("Float", outputPath);
+            generateVarHandleMemoryAccess("Double", outputPath);
         } catch (IOException e) {
             throw new MojoFailureException("Failed to process one or more file(s)", e);
         }
@@ -102,7 +113,7 @@ public class GenerateVarHandlesMojo extends AbstractSppMojo {
         if (shorterThanIntTypes.contains(type)) {
             keys.add("ShorterThanInt");
         }
-        String littleType = type.equals("Object") ? type : type.toLowerCase(Locale.ROOT);
+        String littleType = type.equals("Reference") ? "Object" : type.toLowerCase(Locale.ROOT);
         keys.add(littleType);
         doSpp(varHandleTemplateFile.toPath(), outputDirectory.resolve("VarHandle" + type + "s.java"), keys, Map.of(
             "type", littleType,
@@ -111,6 +122,7 @@ public class GenerateVarHandlesMojo extends AbstractSppMojo {
     }
 
     static final Map<String, String> rawTypes = Map.of(
+        "Byte",   "Byte",
         "Short",  "Short",
         "Char",   "Char",
         "Int",    "Int",
@@ -120,6 +132,7 @@ public class GenerateVarHandlesMojo extends AbstractSppMojo {
     );
 
     static final Map<String, String> boxTypes = Map.of(
+        "Byte", "Byte",
         "Short", "Short",
         "Char", "Character",
         "Int", "Integer",
@@ -176,4 +189,38 @@ public class GenerateVarHandlesMojo extends AbstractSppMojo {
             "RawBoxType", rawBoxType
         ), false, false);
     }
+
+    void generateVarHandleMemoryAccess(final String type, final Path outputDirectory) throws IOException {
+        String rawType = rawTypes.get(type);
+        String boxType = boxTypes.get(type);
+        String rawBoxType = boxTypes.get(rawType);
+        String littleType = type.toLowerCase(Locale.ROOT);
+        String littleRawType = rawType.toLowerCase(Locale.ROOT);
+        Set<String> keys = new HashSet<>();
+        if (fpTypes.contains(type)) {
+            keys.add("floatingPoint");
+        }
+        if (arrayCasTypes.contains(type)) {
+            keys.add("CAS");
+        }
+        if (arrayAtomicAddTypes.contains(type)) {
+            keys.add("AtomicAdd");
+        }
+        if (arrayBitwiseTypes.contains(type)) {
+            keys.add("Bitwise");
+        }
+        if (type.equals("Byte")) {
+            keys.add("byte");
+        }
+        keys.add(type);
+        doSpp(varHandleMemoryAccessHelperTemplateFile.toPath(), outputDirectory.resolve("MemoryAccessVarHandle" + type + "Helper.java"), keys, Map.of(
+            "type", littleType,
+            "Type", type,
+            "BoxType", boxType,
+            "rawType", littleRawType,
+            "RawType", rawType,
+            "RawBoxType", rawBoxType
+        ), false, false);
+    }
+
 }

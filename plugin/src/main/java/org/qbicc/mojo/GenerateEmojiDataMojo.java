@@ -1,9 +1,9 @@
 /*
- * This code is based on the OpenJDK build process defined in `make/gensrc/GensrcCharacterData.gmk`, which contains the following
+ * This code is based on the OpenJDK build process defined in `make/gensrc/GensrcBuffer.gmk`, which contains the following
  * copyright notice:
  *
  * #
- * # Copyright (c) 2011, 2017, Oracle and/or its affiliates. All rights reserved.
+ * # Copyright (c) 2011, 2014, Oracle and/or its affiliates. All rights reserved.
  * # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  * #
  * # This code is free software; you can redistribute it and/or modify it
@@ -45,56 +45,39 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import build.tools.generatecharacter.GenerateCharacter;
-import org.qbicc.rt.annotation.Tracking;
-import org.apache.maven.plugin.AbstractMojo;
+import build.tools.spp.AbstractSppMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.classworlds.realm.ClassRealm;
+import org.qbicc.rt.annotation.Tracking;
 
-/**
- *
- */
-@Mojo(name = "generate-character-data", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
-@Tracking("make/modules/java.base/gensrc/GensrcCharacterData.gmk")
-public class GenerateCharacterDataMojo extends AbstractMojo {
+@Mojo(name = "generate-emoji-data", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
+@Tracking("make/modules/java.base/gensrc/GensrcEmojiData.gmk")
+public class GenerateEmojiDataMojo extends AbstractSppMojo {
     static final String JAVA = System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("windows") ? "java.exe" : "java";
 
-    @Parameter(required = true)
-    File characterData;
+    @Parameter(defaultValue = "${project.baseDir}/../../openjdk/src/java.base/share/classes")
+    File inputDirectory;
 
-    @Parameter(required = true)
+    @Parameter(defaultValue = "${project.baseDir}/../../openjdk/make/data/unicodedata")
     File unicodeData;
 
-    @Parameter(required = true)
-    File output;
+    @Parameter(defaultValue = "${project.build.directory}/generated-sources/spp")
+    File outputDirectory;
 
-    public void execute() throws MojoExecutionException, MojoFailureException {
-        try {
-            Path javaLangTarget = output.toPath().resolve("java").resolve("lang");
-            Files.createDirectories(javaLangTarget);
-            generateCharacterData("CharacterDataLatin1", false, -1, true, 8);
-            generateCharacterData("CharacterData00", true, 0, false, 11, 4, 1);
-            generateCharacterData("CharacterData01", true, 1, false, 11, 4, 1);
-            generateCharacterData("CharacterData02", true, 2, false, 11, 4, 1);
-            generateCharacterData("CharacterData03", true, 3, false, 11, 4, 1);
-            generateCharacterData("CharacterData0E", true, 14, false, 11, 4, 1);
-        } catch (IOException e) {
-            throw new MojoExecutionException("Mojo failed: " + e, e);
-        }
-    }
-
-    void generateCharacterData(String name, boolean string, int plane, boolean latin1, int... bits) throws MojoFailureException, MojoExecutionException {
+    public void execute() throws MojoFailureException, MojoExecutionException {
         try {
             Path java = Path.of(System.getProperty("java.home"), "bin", JAVA);
             if (! (Files.isRegularFile(java) && Files.isExecutable(java))) {
                 throw new MojoFailureException("Cannot locate java executable");
             }
-            Path outputPath = output.toPath();
-            Files.createDirectories(outputPath);
+            Path template = inputDirectory.toPath().resolve("java").resolve("util").resolve("regex").resolve("EmojiData.java.template");
+            Path parent = outputDirectory.toPath().resolve("java").resolve("util").resolve("regex");
+            Path outputFile = parent.resolve("EmojiData.java");
+            Files.createDirectories(parent);
             ProcessBuilder pb = new ProcessBuilder();
             List<String> command = new ArrayList<>();
             command.add(java.toString());
@@ -104,43 +87,12 @@ public class GenerateCharacterDataMojo extends AbstractMojo {
             URL[] urls = realm.getURLs();
             command.add(Arrays.stream(urls).map(Objects::toString).collect(Collectors.joining(File.pathSeparator)));
             // the tool class
-            command.add(GenerateCharacter.class.getName());
+            command.add(build.tools.generateemojidata.GenerateEmojiData.class.getName());
 
             // args
-            if (latin1) {
-                command.add("-latin1");
-            }
-            if (string) {
-                command.add("-string");
-            }
-            if (plane >= 0) {
-                command.add("-plane");
-                command.add(Integer.toString(plane));
-            }
-
-            command.add("-template");
-            command.add(characterData.toPath().resolve(name + ".java.template").toString());
-
-            command.add("-spec");
-            command.add(unicodeData.toPath().resolve("UnicodeData.txt").toString());
-
-            command.add("-specialcasing");
-            command.add(unicodeData.toPath().resolve("SpecialCasing.txt").toString());
-
-            command.add("-proplist");
-            command.add(unicodeData.toPath().resolve("PropList.txt").toString());
-
-            command.add("-derivedprops");
-            command.add(unicodeData.toPath().resolve("DerivedCoreProperties.txt").toString());
-
-            command.add("-o");
-            command.add(output.toPath().resolve("java").resolve("lang").resolve(name + ".java").toString());
-
-            command.add("-usecharforbyte");
-
-            for (int bit : bits) {
-                command.add(Integer.toString(bit));
-            }
+            command.add(template.toString());
+            command.add(unicodeData.toString());
+            command.add(outputFile.toString());
 
             pb.command(command);
             MojoUtil.runAndWaitForProcessNoInput(pb);

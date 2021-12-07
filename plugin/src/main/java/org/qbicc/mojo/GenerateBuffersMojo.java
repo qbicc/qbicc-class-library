@@ -56,7 +56,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 @Mojo(name = "generate-buffers", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
-@Tracking("make/gensrc/GensrcBuffer.gmk")
+@Tracking("make/modules/java.base/gensrc/GensrcBuffer.gmk")
 public class GenerateBuffersMojo extends AbstractSppMojo {
     // todo: change this to records someday
     static final Map<String, Map<String, String>> argsByType = Map.of(

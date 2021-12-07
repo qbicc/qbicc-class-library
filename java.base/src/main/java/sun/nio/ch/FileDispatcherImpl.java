@@ -39,8 +39,8 @@ import java.nio.CharBuffer;
 
 import org.qbicc.runtime.Build;
 import org.qbicc.rt.annotation.Tracking;
-import jdk.internal.misc.JavaIOFileDescriptorAccess;
-import jdk.internal.misc.SharedSecrets;
+import jdk.internal.access.JavaIOFileDescriptorAccess;
+import jdk.internal.access.SharedSecrets;
 import sun.security.action.GetPropertyAction;
 
 @Tracking("src/java.base/unix/sun/nio/ch/FileDispatcherImpl.java")

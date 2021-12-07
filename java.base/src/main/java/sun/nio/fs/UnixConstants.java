@@ -32,6 +32,9 @@
 
 package sun.nio.fs;
 
+import static org.qbicc.runtime.CNative.defined;
+
+import org.qbicc.runtime.Build;
 import org.qbicc.runtime.posix.Errno;
 import org.qbicc.runtime.posix.Fcntl;
 import org.qbicc.runtime.posix.SysStat;
@@ -93,11 +96,16 @@ final class UnixConstants {
     static final int ENOSYS = Errno.ENOSYS.intValue();
     static final int ELOOP = Errno.ELOOP.intValue();
     static final int EROFS = Errno.EROFS.intValue();
-    static final int ENODATA = Errno.ENODATA.intValue();
+
+    static final int ENODATA = defined(Errno.ENODATA) ? Errno.ENODATA.intValue() : 0;
+
+    // todo: ENOATTR when _ALLBSD_SOURCE is set
+    // todo: 93 is the value of ENOATTR on Mac OS X
+    static final int XATTR_NOT_FOUND = Build.Target.isLinux() ? ENODATA : Build.Target.isMacOs() ? 93 : 0;
+
     static final int ERANGE = Errno.ERANGE.intValue();
     static final int EMFILE = Errno.EMFILE.intValue();
 
-    static final int AT_SYMLINK_NOFOLLOW = Fcntl.AT_SYMLINK_NOFOLLOW.intValue();
-    static final int AT_REMOVEDIR = Fcntl.AT_REMOVEDIR.intValue();
-
+    static final int AT_SYMLINK_NOFOLLOW = defined(Fcntl.AT_SYMLINK_NOFOLLOW) ? Fcntl.AT_SYMLINK_NOFOLLOW.intValue() : 0;
+    static final int AT_REMOVEDIR = defined(Fcntl.AT_REMOVEDIR) ? Fcntl.AT_REMOVEDIR.intValue() : 0;
 }

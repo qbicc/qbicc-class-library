@@ -2,7 +2,7 @@
  * This code is based on OpenJDK source file(s) which contain the following copyright notice:
  *
  * ------
- * Copyright (c) 2001, 2002, 2011, 2015, 2017, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2002, 2011, 2015, 2017, 2021 Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -31,8 +31,6 @@
  */
 package sun.nio.ch;
 
-import java.nio.channels.spi.SelectorProvider;
-
 import org.qbicc.runtime.Build;
 import org.qbicc.rt.annotation.Tracking;
 
@@ -45,6 +43,8 @@ import org.qbicc.rt.annotation.Tracking;
 @Tracking("src/java.base/windows/classes/sun/nio/ch/DefaultSelectorProvider.java")
 public class DefaultSelectorProvider {
 
+    private static final SelectorProviderImpl INSTANCE = create();
+
     /**
      * Prevent instantiation.
      */
@@ -53,7 +53,7 @@ public class DefaultSelectorProvider {
     /**
      * Returns the default SelectorProvider.
      */
-    public static SelectorProvider create() {
+    private static SelectorProviderImpl create() {
         if (Build.Target.isLinux()) {
             return new EPollSelectorProvider();
         } else if (Build.Target.isMacOs()) {
@@ -63,5 +63,9 @@ public class DefaultSelectorProvider {
         } else {
             return new PollSelectorProvider();
         }
+    }
+
+    public static SelectorProviderImpl get() {
+        return INSTANCE;
     }
 }
