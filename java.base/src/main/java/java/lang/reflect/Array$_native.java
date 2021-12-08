@@ -1,5 +1,7 @@
 package java.lang.reflect;
 
+import org.qbicc.runtime.main.CompilerIntrinsics;
+
 public final class Array$_native {
 
     private static Object newArray(Class<?> componentType, int length) throws NegativeArraySizeException {
@@ -25,8 +27,15 @@ public final class Array$_native {
             if (componentType == null) {
                 throw new NullPointerException();
             }
-            // Needs updated qbicc RT API
-            throw new UnsupportedOperationException();
+            int dimensions = 1;
+            while (componentType.isArray()) {
+                dimensions += 1;
+                componentType = componentType.getComponentType();
+            }
+            if (dimensions > 255) {
+                throw new IllegalArgumentException();
+            }
+            return CompilerIntrinsics.emitNewReferenceArray(componentType, dimensions, length);
         }
     }
 }
