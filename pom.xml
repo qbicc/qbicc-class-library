@@ -99,6 +99,11 @@
 
             <dependency>
                 <groupId>org.qbicc</groupId>
+                <artifactId>qbicc-runtime-bsd</artifactId>
+                <version>${version.qbicc}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.qbicc</groupId>
                 <artifactId>qbicc-runtime-linux</artifactId>
                 <version>${version.qbicc}</version>
             </dependency>
