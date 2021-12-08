@@ -1,4 +1,4 @@
 [submodule "openjdk"]
 	path = openjdk
-	url = git@github.com:openjdk/jdk11u.git
+	url = git@github.com:openjdk/jdk17u.git
 	ignore = dirty
