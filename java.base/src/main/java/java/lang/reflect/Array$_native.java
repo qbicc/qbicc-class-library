@@ -1,5 +1,9 @@
 package java.lang.reflect;
 
+import org.qbicc.runtime.main.CompilerIntrinsics;
+import org.qbicc.runtime.CNative;
+import org.qbicc.runtime.CNative.*;
+
 public final class Array$_native {
 
     private static Object newArray(Class<?> componentType, int length) throws NegativeArraySizeException {
@@ -25,8 +29,16 @@ public final class Array$_native {
             if (componentType == null) {
                 throw new NullPointerException();
             }
-            // Needs updated qbicc RT API
-            throw new UnsupportedOperationException();
+            int dimensions = 1;
+            while (componentType.isArray()) {
+                dimensions += 1;
+                componentType = componentType.getComponentType();
+            }
+            if (dimensions > 255) {
+                throw new IllegalArgumentException();
+            }
+            type_id typeId = CompilerIntrinsics.getTypeIdFromClass(componentType);
+            return CompilerIntrinsics.emitNewReferenceArray(typeId, CNative.word(dimensions), length);
         }
     }
 }
