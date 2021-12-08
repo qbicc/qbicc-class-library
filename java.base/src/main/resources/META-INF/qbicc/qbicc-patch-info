@@ -1,3 +1,4 @@
 # Patcher classes. Please keep sorted.
 
+jdk.internal.loader.BootLoader$_patch
 jdk.internal.misc.Unsafe$_runtime
