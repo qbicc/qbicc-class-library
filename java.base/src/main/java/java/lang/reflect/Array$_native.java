@@ -38,4 +38,36 @@ public final class Array$_native {
             return CompilerIntrinsics.emitNewReferenceArray(componentType, dimensions, length);
         }
     }
+
+    private static Object multiNewArray(Class<?> componentType, int[] dimensions) throws IllegalArgumentException, NegativeArraySizeException {
+        int dimCount = dimensions.length;
+        if (componentType.isPrimitive()) {
+            dimCount -= 1;
+        } else {
+            while (componentType.isArray()) {
+                dimCount += 1;
+                componentType = componentType.getComponentType();
+            }
+        }
+        if (dimensions.length == 0 || dimCount > 255 || void.class == componentType) {
+            throw new IllegalArgumentException();
+        }
+        return multiNewArrayHelper(componentType, dimCount, 0, dimensions);
+    }
+
+    private static Object multiNewArrayHelper(Class<?> leafElemType, int dimCount, int dimIdx, int[] dimensions) throws NegativeArraySizeException {
+        if (dimIdx == dimensions.length - 1) {
+            if (dimCount > 0) {
+                return CompilerIntrinsics.emitNewReferenceArray(leafElemType, dimCount, dimensions[dimIdx]);
+            } else {
+                return newArray(leafElemType, dimensions[dimIdx]);
+            }
+        }
+        Object[] spine = (Object[])CompilerIntrinsics.emitNewReferenceArray(leafElemType, dimCount, dimensions[dimIdx]);
+        for (int i=0; i<dimensions[dimIdx]; i++) {
+            spine[i] = multiNewArrayHelper(leafElemType, dimCount-1, dimIdx+1, dimensions);
+        }
+        return spine;
+    }
+
 }
