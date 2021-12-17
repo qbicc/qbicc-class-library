@@ -1,25 +1,17 @@
 package java.lang;
 
-import java.lang.reflect.Field;
+import org.qbicc.runtime.main.CompilerIntrinsics;
+import org.qbicc.runtime.main.VMHelpers;
 
-// TODO: These are all stubs so we don't turn them into
-//       an UnsatisfiedLinkError before the interpreter can
-//       intercept them at build time.
-//       Eventually we need a real runtime implementation too...
+import static org.qbicc.runtime.CNative.*;
+
 public final class Class$_native<T> {
     public boolean isAssignableFrom(Class<?> cls) {
-        throw new UnsupportedOperationException();
-    }
-
-    private Field[] getDeclaredFields0(boolean publicOnly) {
-        throw new UnsupportedOperationException();
-    }
-
-    public Class<?> getSuperclass() {
-        throw new UnsupportedOperationException();
-    }
-
-    public int getModifiers() {
-        throw new UnsupportedOperationException();
+        Object pun = this;
+        Class<?> thisAsClass = (Class<?>) pun;
+        return VMHelpers.isTypeIdAssignableTo(CompilerIntrinsics.getTypeIdFromClass(cls),
+                CompilerIntrinsics.getDimensionsFromClass(cls),
+                CompilerIntrinsics.getTypeIdFromClass(thisAsClass),
+                CompilerIntrinsics.getDimensionsFromClass(thisAsClass));
     }
 }
