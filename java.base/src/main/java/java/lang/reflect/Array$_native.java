@@ -6,6 +6,18 @@ import static org.qbicc.runtime.CNative.*;
 
 public final class Array$_native {
 
+    public static int getLength(Object array) throws IllegalArgumentException {
+        if (array == null) {
+            throw new NullPointerException();
+        }
+        type_id typeId = CompilerIntrinsics.typeIdOf(array);
+        if (CompilerIntrinsics.isReferenceArray(typeId) || CompilerIntrinsics.isPrimArray(typeId)) {
+            return CompilerIntrinsics.lengthOf(array);
+        } else {
+            throw new IllegalArgumentException();
+        }
+    }
+
     private static Object newArray(Class<?> componentType, int length) throws NegativeArraySizeException {
         if (componentType.isPrimitive()) {
             if (componentType == byte.class) {
