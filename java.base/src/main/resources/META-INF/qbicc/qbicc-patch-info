@@ -1,5 +1,7 @@
 # Patcher classes. Please keep sorted.
 
+java.lang.System$_aliases
+java.lang.System$_runtime
 jdk.internal.loader.BootLoader$_patch
 java.lang.Runtime$_runtime
 java.lang.Thread$_patch
