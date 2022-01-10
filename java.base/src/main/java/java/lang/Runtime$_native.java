@@ -1,7 +1,5 @@
 package java.lang;
 
-import org.qbicc.runtime.Build;
-
 /**
  *
  */
@@ -14,5 +12,10 @@ class Runtime$_native {
 
     public void gc() {
         // do nothing
+    }
+
+    public int availableProcessors() {
+        // todo: containers
+        return Runtime$_runtime.CONFIGURED_CPUS;
     }
 }

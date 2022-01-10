@@ -18,6 +18,10 @@
     <dependencies>
         <dependency>
             <groupId>org.qbicc</groupId>
+            <artifactId>qbicc-runtime-bsd</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.qbicc</groupId>
             <artifactId>qbicc-runtime-linux</artifactId>
         </dependency>
         <dependency>
