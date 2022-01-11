@@ -2,4 +2,5 @@
 
 jdk.internal.loader.BootLoader$_patch
 java.lang.Runtime$_runtime
+java.io.FileDescriptor$_runtime
 jdk.internal.misc.Unsafe$_runtime
