@@ -69,9 +69,10 @@ public class Thread$_patch {
     static native long nextThreadID();
 
     // used only by non-Linux
-    @Add(unless = Build.Target.IsLinux.class)
+    // TODO: predicate class cannot be loaded before java.lang.Thread is loaded
+    // @Add(unless = Build.Target.IsLinux.class)
     pthread_mutex_t mutex;
-    @Add(unless = Build.Target.IsLinux.class)
+    // @Add(unless = Build.Target.IsLinux.class)
     pthread_cond_t cond;
     // used by Linux & POSIX
     @Add
