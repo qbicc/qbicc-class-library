@@ -40,6 +40,7 @@ import static org.qbicc.runtime.stdc.Stdint.*;
 import static org.qbicc.runtime.stdc.Time.*;
 
 import java.security.AccessControlContext;
+import java.util.concurrent.locks.LockSupport;
 
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.patcher.Add;
@@ -124,12 +125,54 @@ public class Thread$_patch {
         return contextClassLoader;
     }
 
-    private static final int STATE_ALIVE = 1 << 0;
-    private static final int STATE_TERMINATED = 1 << 1;
-    private static final int STATE_RUNNABLE = 1 << 2;
-    private static final int STATE_WAITING = 1 << 4;
-    private static final int STATE_WAITING_WITH_TIMEOUT = 1 << 5;
-    private static final int STATE_BLOCKED = 1 << 10;
+    @Add
+    private static final long MAX_NANOS_PER_MS_TIME = (Long.MAX_VALUE / 1_000_000L) - 1L;
+
+    @Replace
+    public static void sleep(long millis, int nanos) throws InterruptedException {
+        long start, end;
+        if (millis < 0 || millis == 0 && nanos <= 0) {
+            return;
+        }
+        while (nanos > 1_000_000) {
+            if (millis < Long.MAX_VALUE) {
+                millis ++;
+            } else {
+                // max possible time
+                nanos = 999_999;
+                break;
+            }
+            nanos -= 1_000_000;
+        }
+        end = System.nanoTime();
+        for (;;) {
+            start = end;
+            if (Thread.interrupted()) {
+                throw new InterruptedException();
+            }
+            // we can only fit MAX_NANOS_PER_MS_TIME milliseconds into a long as nanos; so that's the max we can wait
+            LockSupport.parkNanos(Math.min(millis, MAX_NANOS_PER_MS_TIME) * 1_000_000L + nanos);
+            end = System.nanoTime();
+            // subtract the elapsed milliseconds
+            millis -= Long.divideUnsigned(end - start, 1_000_000L);
+            // subtract the elapsed nanoseconds
+            nanos -= (int) Long.remainderUnsigned(end - start, 1_000_000L);
+            while (nanos < 0) {
+                millis -= 1;
+                nanos += 1_000_000L;
+            }
+            if (millis < 0 || millis == 0 && nanos <= 0) {
+                return;
+            }
+        }
+    }
+
+    static final int STATE_ALIVE = 1 << 0;
+    static final int STATE_TERMINATED = 1 << 1;
+    static final int STATE_RUNNABLE = 1 << 2;
+    static final int STATE_WAITING = 1 << 4;
+    static final int STATE_WAITING_WITH_TIMEOUT = 1 << 5;
+    static final int STATE_BLOCKED = 1 << 10;
 
     @Add
     void blocked() {
