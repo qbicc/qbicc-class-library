@@ -71,9 +71,9 @@ public class Thread$_patch {
 
     // used only by non-Linux
     // TODO: predicate class cannot be loaded before java.lang.Thread is loaded
-    // @Add(unless = Build.Target.IsLinux.class)
+    @Add //(unless = Build.Target.IsLinux.class)
     pthread_mutex_t mutex;
-    // @Add(unless = Build.Target.IsLinux.class)
+    @Add // (unless = Build.Target.IsLinux.class)
     pthread_cond_t cond;
     // used by Linux & POSIX
     @Add
@@ -106,7 +106,7 @@ public class Thread$_patch {
         this.tid = nextThreadID();
         // initialize native fields
         parkFlag = zero();
-        if (! Build.Target.isLinux()) {
+        if (Build.isTarget() && ! Build.Target.isLinux()) {
             // mutex type does not matter
             c_int res = pthread_mutex_init(addr_of(refToPtr(this).sel().mutex), zero());
             if (res.isNonNull()) {
