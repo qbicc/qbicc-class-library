@@ -1,8 +1,21 @@
 package java.io;
 
+import static java.io.FileSystem.*;
+import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.SysStat.*;
+import static org.qbicc.runtime.posix.SysTypes.*;
+import static org.qbicc.runtime.posix.Unistd.*;
+import static org.qbicc.runtime.stdc.Stdlib.*;
+
+import java.nio.charset.StandardCharsets;
+
+import org.qbicc.rt.annotation.Tracking;
+
 /**
  *
  */
+@Tracking("src/java.base/unix/classes/java/io/UnixFileSystem.java")
+@Tracking("src/java.base/unix/native/libjava/UnixFileSystem_md.c")
 class UnixFileSystem$_native {
     /**
      * Canonicalize the given path.  Removes all {@code .} and {@code ..} segments from the path.
@@ -96,4 +109,48 @@ class UnixFileSystem$_native {
         return new String(targetBuf, a + 1, length - a - 1);
     }
 
+    private static char_ptr mallocPath(File f) {
+        byte[] bytes = f.getPath().getBytes(StandardCharsets.UTF_8);
+        int len = bytes.length + 1;
+        char_ptr ptr = malloc(uword(len + 1));
+        if (ptr.isNull()) {
+            throw new OutOfMemoryError("malloc");
+        }
+        copy(ptr.cast(), bytes, 0, len);
+        ptr.asArray()[len] = zero();
+        return ptr;
+    }
+
+    public int getBooleanAttributes0(File f) {
+        final struct_stat statBuf = auto();
+        final char_ptr pathPtr = mallocPath(f);
+        c_int statResult = stat(pathPtr.cast(), addr_of(statBuf));
+        free(pathPtr);
+        int res = 0;
+        if (statResult.isZero()) {
+            mode_t mode = addr_of(statBuf.st_mode).loadUnshared();
+            mode_t fmt = wordAnd(mode, S_IFMT);
+            res = BA_EXISTS;
+            if (fmt == S_IFREG) {
+                res |= BA_REGULAR;
+            } else if (fmt == S_IFDIR) {
+                res |= BA_DIRECTORY;
+            }
+        }
+        return res;
+    }
+
+    public boolean checkAccess(File f, int chkAccess) {
+        final c_int mode = switch (chkAccess) {
+            case ACCESS_READ -> R_OK;
+            case ACCESS_WRITE -> W_OK;
+            case ACCESS_EXECUTE -> X_OK;
+            default -> throw new IllegalArgumentException();
+        };
+        final char_ptr pathPtr = mallocPath(f);
+        c_int accessRes = access(pathPtr.cast(), mode);
+        free(pathPtr);
+        return accessRes.isNonZero();
+    }
 }
+
