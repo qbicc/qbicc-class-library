@@ -40,6 +40,7 @@ import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.NoReflect;
 import org.qbicc.runtime.main.CompilerIntrinsics;
 import org.qbicc.runtime.main.Monitor;
+import org.qbicc.runtime.main.VMHelpers;
 
 public class Object {
 
@@ -48,7 +49,9 @@ public class Object {
 
     public Object() {}
 
-    public final native Class<?> getClass();
+    public final Class<?> getClass() {
+        return VMHelpers.getClassFromObject(this);
+    }
 
     public int hashCode() {
         return System.identityHashCode(this);

@@ -3,6 +3,7 @@
 jdk.internal.loader.BootLoader$_patch
 java.lang.Object$_aliases
 java.lang.Runtime$_runtime
+java.lang.System$_patch
 java.lang.Thread$_patch
 java.io.FileDescriptor$_runtime
 jdk.internal.misc.Unsafe$_runtime
