@@ -1,27 +1,16 @@
 package java.lang;
 
-import org.qbicc.runtime.Build;
-import org.qbicc.runtime.llvm.LLVM;
-
 /**
  *
  */
 @SuppressWarnings("SpellCheckingInspection")
 public class StrictMath$_native {
     public static double sin(double val) {
-        if (Build.Target.isLlvm()) {
-            return LLVM.sin(val);
-        } else {
-            return org.qbicc.runtime.stdc.Math.sin(val);
-        }
+        return org.qbicc.runtime.stdc.Math.sin(val);
     }
 
     public static double cos(double val) {
-        if (Build.Target.isLlvm()) {
-            return LLVM.cos(val);
-        } else {
-            return org.qbicc.runtime.stdc.Math.cos(val);
-        }
+        return org.qbicc.runtime.stdc.Math.cos(val);
     }
 
     public static double tan(double val) {
@@ -41,19 +30,11 @@ public class StrictMath$_native {
     }
 
     public static double log(double val) {
-        if (Build.Target.isLlvm()) {
-            return LLVM.log(val);
-        } else {
-            return org.qbicc.runtime.stdc.Math.log(val);
-        }
+        return org.qbicc.runtime.stdc.Math.log(val);
     }
 
     public static double log10(double val) {
-        if (Build.Target.isLlvm()) {
-            return LLVM.log10(val);
-        } else {
-            return org.qbicc.runtime.stdc.Math.log10(val);
-        }
+        return org.qbicc.runtime.stdc.Math.log10(val);
     }
 
     public static double sqrt(double val) {
