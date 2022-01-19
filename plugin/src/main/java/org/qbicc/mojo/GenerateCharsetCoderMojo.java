@@ -88,7 +88,7 @@ public class GenerateCharsetCoderMojo extends AbstractSppMojo {
                     entry("coding", "decoding"),
                     entry("OtherCoder", "Encoder"),
                     entry("replTypeName", "string"),
-                    entry("defaultRepl", "\"\\uFFFD\""),
+                    entry("defaultRepl", "\"\\\\uFFFD\""),
                     entry("defaultReplName", "<code>\"&#92;uFFFD\"</code>"),
                     entry("replType", "String"),
                     entry("replFQType", "java.lang.String"),
