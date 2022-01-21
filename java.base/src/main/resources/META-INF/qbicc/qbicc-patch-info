@@ -9,3 +9,4 @@ java.io.FileDescriptor$_runtime
 jdk.internal.misc.Unsafe$_runtime
 jdk.internal.misc.UnsafeParkUnpark
 jdk.internal.misc.UnsafeThreadAccess
+sun.nio.ch.FileDispatcherImpl$_runtime

@@ -44,6 +44,7 @@ import jdk.internal.access.SharedSecrets;
 import sun.security.action.GetPropertyAction;
 
 @Tracking("src/java.base/unix/sun/nio/ch/FileDispatcherImpl.java")
+@Tracking("src/java.base/unix/native/libnio/ch/FileDispatcherImpl.c")
 @Tracking("src/java.base/windows/sun/nio/ch/FileDispatcherImpl.java")
 class FileDispatcherImpl extends FileDispatcher {
 
@@ -53,7 +54,6 @@ class FileDispatcherImpl extends FileDispatcher {
             fastFileTransfer = isFastFileTransferRequested();
         } else {
             fastFileTransfer = false;
-            init();
         }
     }
 
@@ -222,8 +222,6 @@ class FileDispatcherImpl extends FileDispatcher {
     static native void closeIntFD(int fd) throws IOException;
 
     static native int setDirect0(FileDescriptor fd) throws IOException;
-
-    static native void init();
 
     // UNIX-specific
 
