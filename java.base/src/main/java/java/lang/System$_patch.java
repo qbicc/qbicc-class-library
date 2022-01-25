@@ -6,7 +6,15 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.lang.invoke.StringConcatFactory;
+import java.util.Map;
 import java.util.Properties;
+
+import jdk.internal.misc.Unsafe;
+import jdk.internal.misc.VM;
+import jdk.internal.module.ModuleBootstrap;
+import jdk.internal.util.StaticProperty;
+import jdk.internal.util.SystemProps;
 
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
@@ -15,15 +23,30 @@ import org.qbicc.runtime.patcher.Replace;
 @PatchClass(System.class)
 public final class System$_patch {
     // Alias
+    private static int allowSecurityManager;
+    // Alias
+    static ModuleLayer bootLayer;
+    // Alias
+    private static String lineSeparator;
+    // Alias
+    private static Properties props;
+
+    // Alias
+    private static native Properties createProperties(Map<String, String> initialProps);
+    // Alias
+    private static native void logInitException(boolean printToStderr, boolean printStackTrace, String msg, Throwable e);
+    // Alias
+    static native PrintStream newPrintStream(FileOutputStream fos, String enc);
+    // Alias
     static native void setIn0(InputStream in);
     // Alias
     static native void setOut0(PrintStream out);
     // Alias
     static native void setErr0(PrintStream err);
     // Alias
-    private static Properties props;
-    // Alias
-    static native PrintStream newPrintStream(FileOutputStream fos, String enc);
+    private static native void setJavaLangAccess();
+
+
 
     @Replace
     public static SecurityManager getSecurityManager() {
@@ -44,7 +67,123 @@ public final class System$_patch {
         }
     }
 
-    // The portions of System.initPhase1 that need to be re-executed at runtime
+
+    /**********************
+     * JDK Initialization
+     **********************/
+
+    @Replace
+    private static void initPhase1() {
+        // register the shared secrets - do this first, since SystemProps.initProperties
+        // might initialize CharsetDecoders that rely on it
+        setJavaLangAccess();
+
+        // VM might invoke JNU_NewStringPlatform() to set those encoding
+        // sensitive properties (user.home, user.name, boot.class.path, etc.)
+        // during "props" initialization.
+        // The charset is initialized in System.c and does not depend on the Properties.
+        Map<String, String> tempProps = SystemProps.initProperties();
+        VersionProps.init(tempProps);
+
+        // There are certain system configurations that may be controlled by
+        // VM options such as the maximum amount of direct memory and
+        // Integer cache size used to support the object identity semantics
+        // of autoboxing.  Typically, the library will obtain these values
+        // from the properties set by the VM.  If the properties are for
+        // internal implementation use only, these properties should be
+        // masked from the system properties.
+        //
+        // Save a private copy of the system properties object that
+        // can only be accessed by the internal implementation.
+        VM.saveProperties(tempProps);
+        props = createProperties(tempProps);
+
+        StaticProperty.javaHome();          // Load StaticProperty to cache the property values
+
+        lineSeparator = props.getProperty("line.separator");
+
+        /* BEGIN replicated in rtinitPhase1 */
+        FileInputStream fdIn = new FileInputStream(FileDescriptor.in);
+        FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
+        FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);
+        setIn0(new BufferedInputStream(fdIn));
+        // sun.stdout/err.encoding are set when the VM is associated with the terminal,
+        // thus they are equivalent to Console.charset(), otherwise the encoding
+        // defaults to Charset.defaultCharset()
+        setOut0(newPrintStream(fdOut, props.getProperty("sun.stdout.encoding")));
+        setErr0(newPrintStream(fdErr, props.getProperty("sun.stderr.encoding")));
+        /* END replicated in rtinitPhase1 */
+
+        /*
+         * MOVED TO rtinitPhase1
+        // Setup Java signal handlers for HUP, TERM, and INT (where available).
+        Terminator.setup();
+        */
+
+        /*
+         * MOVED to  rtinitPhase1
+        // Initialize any miscellaneous operating system settings that need to be
+        // set for the class libraries. Currently this is no-op everywhere except
+        // for Windows where the process-wide error mode is set before the java.io
+        // classes are used.
+        VM.initializeOSEnvironment();
+        */
+
+        // The main thread is not added to its thread group in the same
+        // way as other threads; we must do it ourselves here.
+        Thread current = Thread.currentThread();
+        current.getThreadGroup().add(current);
+
+        // Subsystems that are invoked during initialization can invoke
+        // VM.isBooted() in order to avoid doing things that should
+        // wait until the VM is fully initialized. The initialization level
+        // is incremented from 0 to 1 here to indicate the first phase of
+        // initialization has completed.
+        // IMPORTANT: Ensure that this remains the last initialization action!
+        VM.initLevel(1);
+    }
+
+    @Replace
+    private static int initPhase2(boolean printToStderr, boolean printStackTrace) {
+        try {
+            bootLayer = ModuleBootstrap.boot();
+        } catch (Exception | Error e) {
+            logInitException(printToStderr, printStackTrace,
+                    "Error occurred during initialization of boot layer", e);
+            return -1; // JNI_ERR
+        }
+
+        // module system initialized
+        VM.initLevel(2);
+
+        return 0; // JNI_OK
+    }
+
+    @Replace
+    private static void initPhase3() {
+        // Initialize the StringConcatFactory eagerly to avoid potential
+        // bootstrap circularity issues that could be caused by a custom
+        // SecurityManager
+        Unsafe.getUnsafe().ensureClassInitialized(StringConcatFactory.class);
+
+        // Simplify by unconditionally removing deprecated security manager support for qbicc
+        allowSecurityManager = 1 /* System.NEVER */;
+
+        // initializing the system class loader
+        VM.initLevel(3);
+
+        // system class loader initialized
+        ClassLoader scl = ClassLoader.initSystemClassLoader();
+
+        // set TCCL
+        Thread.currentThread().setContextClassLoader(scl);
+
+        // system is fully initialized
+        VM.initLevel(4);
+    }
+
+
+    // The portions of System.initPhase1 that need to be (re-)executed at runtime
     @Add
     public static void rtinitPhase1() {
         FileInputStream fdIn = new FileInputStream(FileDescriptor.in);
@@ -59,15 +198,26 @@ public final class System$_patch {
 
         // Setup Java signal handlers for HUP, TERM, and INT (where available).
         Terminator.setup();
+
+        // Initialize any miscellaneous operating system settings that need to be
+        // set for the class libraries. Currently this is no-op everywhere except
+        // for Windows where the process-wide error mode is set before the java.io
+        // classes are used.
+        VM.initializeOSEnvironment();
     }
 
-    // The portions of System.initPhase2 that need to be re-executed at runtime
+    // The portions of System.initPhase2 that need to be  (re-)executed at runtime
     @Add
     public static void rtinitPhase2() {
     }
 
-    // The portions of System.initPhase3 that need to be re-executed at runtime
+    // The portions of System.initPhase3 that need to be  (re-)executed at runtime
     @Add
     public static void rtinitPhase3() {
+        /*
+        TODO (?)
+        // set TCCL
+        Thread.currentThread().setContextClassLoader(scl);
+        */
     }
 }
