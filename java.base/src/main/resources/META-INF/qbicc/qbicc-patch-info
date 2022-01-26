@@ -1,12 +1,19 @@
 # Patcher classes. Please keep sorted.
 
-jdk.internal.loader.BootLoader$_patch
 java.lang.Object$_aliases
 java.lang.Runtime$_runtime
 java.lang.System$_patch
 java.lang.Thread$_patch
+java.lang.ref.Reference$_patch
+java.lang.ref.Finalizer$_patch
 java.io.FileDescriptor$_runtime
+jdk.internal.loader.BootLoader$_patch
 jdk.internal.misc.Unsafe$_runtime
 jdk.internal.misc.UnsafeParkUnpark
 jdk.internal.misc.UnsafeThreadAccess
+jdk.internal.ref.CleanerFactory$_patch
+jdk.internal.ref.CleanerFactory$_runtime
 sun.nio.ch.FileDispatcherImpl$_runtime
+sun.security.provider.SeedGenerator$_patch
+sun.security.provider.SeedGenerator$_patch$ThreadedSeedGenerator$_patch
+sun.security.provider.SeedGenerator$_runtime
