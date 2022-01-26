@@ -129,10 +129,13 @@ public final class System$_patch {
         VM.initializeOSEnvironment();
         */
 
+        /*
+         * MOVED to  rtinitPhase1
         // The main thread is not added to its thread group in the same
         // way as other threads; we must do it ourselves here.
         Thread current = Thread.currentThread();
         current.getThreadGroup().add(current);
+        */
 
         // Subsystems that are invoked during initialization can invoke
         // VM.isBooted() in order to avoid doing things that should
@@ -197,13 +200,20 @@ public final class System$_patch {
         setErr0(newPrintStream(fdErr, props.getProperty("sun.stderr.encoding")));
 
         // Setup Java signal handlers for HUP, TERM, and INT (where available).
-        Terminator.setup();
+        // TODO: need to implement Signal.findSignal0 first!
+        // Terminator.setup();
 
         // Initialize any miscellaneous operating system settings that need to be
         // set for the class libraries. Currently this is no-op everywhere except
         // for Windows where the process-wide error mode is set before the java.io
         // classes are used.
         VM.initializeOSEnvironment();
+
+        // The main thread is not added to its thread group in the same
+        // way as other threads; we must do it ourselves here.
+        // TODO: Need to actually implement this functionality
+        // Thread current = Thread.currentThread();
+        // current.getThreadGroup().add(current);
     }
 
     // The portions of System.initPhase2 that need to be  (re-)executed at runtime
