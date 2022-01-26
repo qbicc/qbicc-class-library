@@ -14,3 +14,6 @@ jdk.internal.misc.UnsafeThreadAccess
 jdk.internal.ref.CleanerFactory$_patch
 jdk.internal.ref.CleanerFactory$_runtime
 sun.nio.ch.FileDispatcherImpl$_runtime
+sun.security.provider.SeedGenerator$_patch
+sun.security.provider.SeedGenerator$_patch$ThreadedSeedGenerator$_patch
+sun.security.provider.SeedGenerator$_runtime
