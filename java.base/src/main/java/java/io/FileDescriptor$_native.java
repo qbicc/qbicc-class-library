@@ -9,7 +9,8 @@ import static org.qbicc.runtime.stdc.Errno.errno;
 import org.qbicc.runtime.Build;
 
 public class FileDescriptor$_native {
-    private int fd;
+    int fd;
+    boolean append;
 
     private static long getHandle(int fd) {
         if (Build.Target.isPosix()) {
