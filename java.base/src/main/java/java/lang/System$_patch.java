@@ -200,8 +200,7 @@ public final class System$_patch {
         setErr0(newPrintStream(fdErr, props.getProperty("sun.stderr.encoding")));
 
         // Setup Java signal handlers for HUP, TERM, and INT (where available).
-        // TODO: need to implement Signal.findSignal0 first!
-        // Terminator.setup();
+        Terminator.setup();
 
         // Initialize any miscellaneous operating system settings that need to be
         // set for the class libraries. Currently this is no-op everywhere except
