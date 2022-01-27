@@ -211,9 +211,8 @@ public final class System$_patch {
 
         // The main thread is not added to its thread group in the same
         // way as other threads; we must do it ourselves here.
-        // TODO: Need to actually implement this functionality
-        // Thread current = Thread.currentThread();
-        // current.getThreadGroup().add(current);
+        Thread current = Thread.currentThread();
+        current.getThreadGroup().add(current);
     }
 
     // The portions of System.initPhase2 that need to be  (re-)executed at runtime
