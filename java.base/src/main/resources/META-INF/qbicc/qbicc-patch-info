@@ -1,6 +1,7 @@
 # Patcher classes. Please keep sorted.
 
 java.lang.Object$_aliases
+java.lang.ProcessEnvironment$_runtime
 java.lang.Runtime$_runtime
 java.lang.System$_patch
 java.lang.Thread$_patch
