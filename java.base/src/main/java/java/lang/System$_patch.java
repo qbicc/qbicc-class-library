@@ -17,8 +17,10 @@ import jdk.internal.util.StaticProperty;
 import jdk.internal.util.SystemProps;
 
 import org.qbicc.runtime.patcher.Add;
+import org.qbicc.runtime.patcher.Annotate;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
+import org.qbicc.runtime.SerializeAsZero;
 
 @PatchClass(System.class)
 public final class System$_patch {
@@ -30,6 +32,16 @@ public final class System$_patch {
     private static String lineSeparator;
     // Alias
     private static Properties props;
+
+    @Annotate
+    @SerializeAsZero
+    public static InputStream in;
+    @Annotate
+    @SerializeAsZero
+    public static PrintStream err;
+    @Annotate
+    @SerializeAsZero
+    public static PrintStream out;
 
     // Alias
     private static native Properties createProperties(Map<String, String> initialProps);
