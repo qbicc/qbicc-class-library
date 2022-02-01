@@ -5,6 +5,7 @@ java.lang.ProcessEnvironment$_runtime
 java.lang.Runtime$_runtime
 java.lang.System$_patch
 java.lang.Thread$_patch
+java.lang.invoke.MethodHandleNatives$CallSiteContext$_patch
 java.lang.ref.Reference$_patch
 java.lang.ref.Finalizer$_patch
 java.io.FileDescriptor$_runtime
