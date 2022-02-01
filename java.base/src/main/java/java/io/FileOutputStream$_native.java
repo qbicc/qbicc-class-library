@@ -51,4 +51,8 @@ public final class FileOutputStream$_native {
             len -= nw.intValue();
         }
     }
+
+    private static void initIDs() {
+        // no operation
+    }
 }

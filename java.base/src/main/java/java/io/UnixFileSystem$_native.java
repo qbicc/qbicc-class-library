@@ -152,5 +152,9 @@ class UnixFileSystem$_native {
         free(pathPtr);
         return accessRes.isNonZero();
     }
+
+    private static void initIDs() {
+        // no operation
+    }
 }
 
