@@ -13,6 +13,10 @@ import org.qbicc.runtime.Build;
  */
 public final class Unsafe$_native {
 
+    private static void registerNatives() {
+        // no-op
+    }
+
     public int pageSize() {
         if (Build.isHost()) {
             throw new UnsupportedOperationException("Cannot retrieve page size of target during build; it is not known");
