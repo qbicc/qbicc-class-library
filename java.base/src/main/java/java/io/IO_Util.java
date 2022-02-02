@@ -79,6 +79,23 @@ final class IO_Util {
         }
     }
 
+    static void writeSingle(final FileDescriptor fd, byte b, boolean append) throws IOException {
+        if (Build.Target.isPosix()) {
+            if (!fd.valid()) {
+                throw new IOException("Stream closed");
+            }
+            int cnt = handleWrite(fd, addr_of(b).cast(), 1).intValue();
+            if (cnt == -1) {
+                // todo: JNU_ThrowIOExceptionWithLastError
+                throw new IOException("Write error");
+            }
+        } else if (Build.Target.isWindows()) {
+            throw new UnsupportedOperationException();
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
     static char_ptr mallocStringChars(final String str) throws OutOfMemoryError {
         byte[] bytes = str.getBytes(Charset.defaultCharset());
         char_ptr ptr = malloc(word(bytes.length + 1));
@@ -194,6 +211,26 @@ final class IO_Util {
         }
     }
 
+    static void writeBytes(final FileDescriptor fd, byte b[], int off, int len, boolean append) throws IOException {
+        Objects.requireNonNull(b, "b");
+        if (off < 0 || len < 0 || b.length - off < len) {
+            throw new IndexOutOfBoundsException();
+        }
+        if (!fd.valid()) {
+            throw new IOException("Stream closed");
+        }
+        while (len > 0) {
+            ssize_t nw;
+            if (Build.Target.isPosix() || !append) {
+                nw = handleWrite(fd, addr_of(b[off]).cast(), len);
+            } else {
+                nw = handleAppend(fd, addr_of(b[off]).cast(), len);
+            }
+            len -= nw.intValue();
+            off += nw.intValue();
+        }
+    }
+
     static long IO_GetLength(final FileDescriptor fd) {
         if (Build.Target.isWindows()) {
             // todo: GetFileSizeEx();
@@ -256,5 +293,28 @@ final class IO_Util {
         } else {
             throw new UnsupportedOperationException();
         }
+    }
+
+    static ssize_t handleWrite(final FileDescriptor fd, final ptr<c_char> buf, final int cnt) throws IOException {
+        if (!fd.valid()) {
+            throw new IOException("Stream closed");
+        }
+        if (Build.Target.isPosix()) {
+            int fdes = ((FileDescriptor$_native)(Object)fd).fd;
+            ssize_t result;
+            do {
+                result = write(word(fdes), buf.cast(), word(cnt));
+            } while (result.longValue() == -1 && errno == EINTR.intValue());
+            return result;
+        } else if (Build.Target.isWindows()) {
+            // todo
+            throw new UnsupportedOperationException();
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    static ssize_t handleAppend(final FileDescriptor fd, final ptr<c_char> buf, final int cnt) throws IOException {
+        throw new UnsupportedOperationException();
     }
 }
