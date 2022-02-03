@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.qbicc.rt</groupId>
         <artifactId>qbicc-rt-parent</artifactId>
-        <version>17.alpha.0.7-SNAPSHOT</version>
+        <version>17.alpha.0.8-SNAPSHOT</version>
     </parent>
 
     <artifactId>qbicc-rt-java.base</artifactId>
