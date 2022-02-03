@@ -19,7 +19,7 @@
         <sh>/bin/sh</sh>
         <make>/usr/bin/make</make>
         <!-- IMPORTANT: when updating this value, also update .github/workflows/maven.yml -->
-        <version.qbicc>0.8.0</version.qbicc>
+        <version.qbicc>0.9.0</version.qbicc>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
