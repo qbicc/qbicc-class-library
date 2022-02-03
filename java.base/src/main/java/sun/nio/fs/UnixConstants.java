@@ -54,8 +54,8 @@ final class UnixConstants {
     static final int O_TRUNC = Fcntl.O_TRUNC.intValue();
     static final int O_SYNC = Fcntl.O_SYNC.intValue();
     static final int O_DSYNC = Fcntl.O_DSYNC.intValue();
-    static final int O_NOFOLLOW = Fcntl.O_NOFOLLOW.intValue();
-    static final int O_DIRECT = Fcntl.O_DIRECT.intValue();
+    static final int O_NOFOLLOW = defined(Fcntl.O_NOFOLLOW) ? Fcntl.O_NOFOLLOW.intValue() : 0;
+    static final int O_DIRECT = defined(Fcntl.O_DIRECT) ? Fcntl.O_DIRECT.intValue() : 0;
 
     static final int S_IRUSR = SysStat.S_IRUSR.intValue();
     static final int S_IWUSR = SysStat.S_IWUSR.intValue();
