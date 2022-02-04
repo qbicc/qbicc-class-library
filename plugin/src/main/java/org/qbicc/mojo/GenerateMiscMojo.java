@@ -72,13 +72,13 @@ public class GenerateMiscMojo extends AbstractMojo {
     @Parameter(defaultValue = "qbicc runtime environment", required = true)
     String runtimeName;
 
-    @Parameter(defaultValue = "${project.version}", required = true)
+    @Parameter(defaultValue = "${version.openjdk}", required = true)
     String versionShort;
 
-    @Parameter(defaultValue = "${project.version}", required = true)
+    @Parameter(defaultValue = "${version.openjdk}+${project.version}", required = true)
     String versionString;
 
-    @Parameter(defaultValue = "${project.version}", required = true)
+    @Parameter(defaultValue = "${version.openjdk}", required = true)
     String versionNumber;
 
     @Parameter

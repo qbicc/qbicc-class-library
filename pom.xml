@@ -21,6 +21,9 @@
         <!-- IMPORTANT: when updating this value, also update .github/workflows/maven.yml -->
         <version.qbicc>0.9.0</version.qbicc>
 
+        <!-- This tracks the version of OpenJDK sources in the git submodule -->
+        <version.openjdk>17.0.1</version.openjdk>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
