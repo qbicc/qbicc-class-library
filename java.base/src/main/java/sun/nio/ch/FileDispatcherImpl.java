@@ -43,9 +43,9 @@ import jdk.internal.access.JavaIOFileDescriptorAccess;
 import jdk.internal.access.SharedSecrets;
 import sun.security.action.GetPropertyAction;
 
-@Tracking("src/java.base/unix/sun/nio/ch/FileDispatcherImpl.java")
+@Tracking("src/java.base/unix/classes/sun/nio/ch/FileDispatcherImpl.java")
 @Tracking("src/java.base/unix/native/libnio/ch/FileDispatcherImpl.c")
-@Tracking("src/java.base/windows/sun/nio/ch/FileDispatcherImpl.java")
+@Tracking("src/java.base/windows/classes/sun/nio/ch/FileDispatcherImpl.java")
 class FileDispatcherImpl extends FileDispatcher {
 
     static {
