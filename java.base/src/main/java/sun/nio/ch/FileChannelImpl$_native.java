@@ -33,11 +33,22 @@
 package sun.nio.ch;
 
 import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.Build;
 
 @Tracking("src/java.base/unix/native/libnio/ch/FileChannelImpl.c")
 @Tracking("src/java.base/windows/native/libnio/ch/FileChannelImpl.c")
 public class FileChannelImpl$_native {
     public static long initIDs() {
         return 4096; // TODO: This is supposed to be the value of _SC_PAGESIZE
+    }
+
+    private static int maxDirectTransferSize0() {
+        if (Build.Target.isLinux()) {
+            return 0x7ffff000;
+        } else if(Build.Target.isWindows()) {
+            return Integer.MAX_VALUE-1;
+        } else {
+            return Integer.MAX_VALUE;
+        }
     }
 }

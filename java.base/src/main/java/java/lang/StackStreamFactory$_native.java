@@ -30,12 +30,14 @@
  * contributors.
  */
 
-package sun.nio.fs;
+package java.lang;
 
 import org.qbicc.rt.annotation.Tracking;
 
-public class SolarisNativeDispatcher$_native {
-    private static void init() {
-        // no-op
+@Tracking("src/java.base/share/native/libjava/StackStreamFactory.c")
+class StackStreamFactory$_native {
+
+    private static boolean checkStackWalkModes() {
+        return true;
     }
 }
