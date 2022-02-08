@@ -107,6 +107,7 @@ public final class System$_patch {
             case "nio":
             case "prefs":
             case "zip":
+            case "jimage":
                 return;
             default:
                 throw new UnsatisfiedLinkError("Can't load " + libname);
