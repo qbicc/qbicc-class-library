@@ -34,9 +34,6 @@ package sun.nio.ch;
 import org.qbicc.runtime.Build;
 import org.qbicc.rt.annotation.Tracking;
 
-/**
- *
- */
 @Tracking("src/java.base/aix/classes/sun/nio/ch/DefaultSelectorProvider.java")
 @Tracking("src/java.base/linux/classes/sun/nio/ch/DefaultSelectorProvider.java")
 @Tracking("src/java.base/macosx/classes/sun/nio/ch/DefaultSelectorProvider.java")

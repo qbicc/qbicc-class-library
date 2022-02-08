@@ -55,7 +55,9 @@ import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 
 @Tracking("src/java.base/unix/classes/java/lang/ProcessEnvironment.java")
+@Tracking("src/java.base/unix/native/libjava/ProcessEnvironment_md.c")
 @Tracking("src/java.base/windows/classes/java/lang/ProcessEnvironment.java")
+@Tracking("src/java.base/windows/native/libjava/ProcessEnvironment_md.c")
 final class ProcessEnvironment {
     private ProcessEnvironment() {}
 

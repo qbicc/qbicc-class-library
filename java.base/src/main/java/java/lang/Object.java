@@ -36,12 +36,15 @@ import static org.qbicc.runtime.CNative.*;
 
 import java.lang.reflect.Array;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.NoReflect;
 import org.qbicc.runtime.main.CompilerIntrinsics;
 import org.qbicc.runtime.main.Monitor;
 import org.qbicc.runtime.main.VMHelpers;
 
+@Tracking("src/java.base/share/classes/java/lang/Object.java")
+@Tracking("src/java.base/share/native/libjava/Object.c")
 public class Object {
 
     @NoReflect

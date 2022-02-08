@@ -36,8 +36,14 @@ import java.util.Map;
 
 import jdk.internal.access.JavaIOFileDescriptorAccess;
 import jdk.internal.access.SharedSecrets;
+
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 
+@Tracking("src/java.base/unix/native/libjava/ProcessImpl_md.c")
+@Tracking("src/java.base/unix/classes/java/lang/ProcessImpl.java")
+@Tracking("src/java.base/windows/native/libjava/ProcessImpl_md.c")
+@Tracking("src/java.base/windows/classes/java/lang/ProcessImpl.java")
 abstract class ProcessImpl extends Process {
     static final JavaIOFileDescriptorAccess fdAccess = SharedSecrets.getJavaIOFileDescriptorAccess();
 

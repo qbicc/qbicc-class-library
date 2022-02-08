@@ -37,6 +37,7 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.CharBuffer;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 import org.qbicc.rt.annotation.Tracking;
 import jdk.internal.access.JavaIOFileDescriptorAccess;
