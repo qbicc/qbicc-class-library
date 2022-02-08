@@ -31,9 +31,12 @@
  */
 package java.lang.invoke;
 
+import org.qbicc.rt.annotation.Tracking;
+
 /**
  * Native stubs for {@link MethodHandleNatives}.
  */
+@Tracking("src/java.base/share/classes/java/lang/invoke/MethodHandleNatives.java")
 class MethodHandleNatives$_native {
     static void init(MemberName self, Object ref) {
         throw new UnsupportedOperationException();

@@ -33,6 +33,7 @@ package java.io;
 
 import java.util.List;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
 import org.qbicc.runtime.SerializeAsZero;
@@ -40,6 +41,7 @@ import org.qbicc.runtime.SerializeBooleanAs;
 import org.qbicc.runtime.SerializeIntegralAs;
 
 @PatchClass(java.io.FileDescriptor.class)
+@Tracking("src/java.base/share/classes/java/io/FileDescriptor.java")
 public class FileDescriptor$_patch {
 
     @Replace

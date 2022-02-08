@@ -32,12 +32,14 @@
 
 package java.lang;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
 
 /**
  *
  */
 @PatchClass(Object.class)
+@Tracking("src/java.base/share/classes/java/lang/Object.java")
 class Object$_aliases {
     native boolean holdsLock();
 }

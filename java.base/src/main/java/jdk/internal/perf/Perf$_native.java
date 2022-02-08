@@ -32,6 +32,9 @@
 
 package jdk.internal.perf;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/share/classes/jdk/internal/perf/Perf.java")
 public class Perf$_native {
     private static void registerNatives() {
         // no-op

@@ -36,11 +36,13 @@ import jdk.internal.misc.InnocuousThread;
 
 import java.lang.ref.Cleaner;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.ReplaceInit;
 
 @PatchClass(CleanerFactory.class)
 @ReplaceInit
+@Tracking("src/java.base/share/classes/jdk/internal/ref/CleanerFactory.java")
 public final class CleanerFactory$_patch {
 
     // Disable at buildtime; moved to <rtinit>

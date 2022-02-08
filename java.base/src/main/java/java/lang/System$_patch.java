@@ -48,6 +48,7 @@ import jdk.internal.module.ModuleBootstrap;
 import jdk.internal.util.StaticProperty;
 import jdk.internal.util.SystemProps;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.Annotate;
 import org.qbicc.runtime.patcher.PatchClass;
@@ -55,6 +56,7 @@ import org.qbicc.runtime.patcher.Replace;
 import org.qbicc.runtime.SerializeAsZero;
 
 @PatchClass(System.class)
+@Tracking("src/java.base/share/classes/java/lang/System.java")
 public final class System$_patch {
     // Alias
     private static int allowSecurityManager;

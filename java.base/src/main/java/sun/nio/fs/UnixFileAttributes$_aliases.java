@@ -32,9 +32,11 @@
 
 package sun.nio.fs;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
 
 @PatchClass(UnixFileAttributes.class)
+@Tracking("src/java.base/unix/classes/sun/nio/fs/UnixFileAttributes.java")
 class UnixFileAttributes$_aliases {
     int st_mode;
     long st_ino;

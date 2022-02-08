@@ -32,6 +32,9 @@
 
 package sun.nio.fs;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/windows/native/libnio/fs/WindowsNativeDispatcher.c")
 public class WindowsNativeDispatcher$_native {
     private static void initIDs() {
         // no-op

@@ -31,10 +31,12 @@
  */
 package java.lang.ref;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
 
 @PatchClass(Finalizer.class)
+@Tracking("src/java.base/share/classes/java/lang/ref/Finalizer.java")
 final class Finalizer$_patch {
     // Alias
     static native void runFinalization();

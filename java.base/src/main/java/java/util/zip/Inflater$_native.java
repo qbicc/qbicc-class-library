@@ -32,6 +32,9 @@
 
 package java.util.zip;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/share/native/libzip/Inflater.c")
 public class Inflater$_native {
     private static void initIDs() {
         // no-op

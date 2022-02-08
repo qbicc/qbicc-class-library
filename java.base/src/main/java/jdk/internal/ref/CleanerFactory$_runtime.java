@@ -37,11 +37,13 @@ import jdk.internal.misc.InnocuousThread;
 import java.lang.ref.Cleaner;
 import java.util.concurrent.ThreadFactory;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.RunTimeAspect;
 
 @PatchClass(CleanerFactory.class)
 @RunTimeAspect
+@Tracking("src/java.base/share/classes/jdk/internal/ref/CleanerFactory.java")
 public final class CleanerFactory$_runtime {
     private static final Cleaner commonCleaner = Cleaner.create(new ThreadFactory() {
         @Override

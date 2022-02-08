@@ -32,6 +32,7 @@
 
 package jdk.internal.misc;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
 
@@ -39,6 +40,7 @@ import org.qbicc.runtime.patcher.Replace;
  * Unsafe support for park/unpark.
  */
 @PatchClass(Unsafe.class)
+@Tracking("src/java.base/share/classes/jdk/internal/misc/Unsafe.java")
 final class UnsafeParkUnpark {
 
     @Replace

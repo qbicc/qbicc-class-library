@@ -32,10 +32,12 @@
 
 package java.util.concurrent;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.RunTimeAspect;
 
 @PatchClass(Exchanger.class)
+@Tracking("src/java.base/share/classes/java/util/concurrent/Exchanger.java")
 public class Exchanger$_patch {
     // alias
     static int MMASK;

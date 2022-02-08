@@ -32,6 +32,10 @@
 
 package sun.nio.ch;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/unix/native/libnio/ch/FileChannelImpl.c")
+@Tracking("src/java.base/windows/native/libnio/ch/FileChannelImpl.c")
 public class FileChannelImpl$_native {
     public static long initIDs() {
         return 4096; // TODO: This is supposed to be the value of _SC_PAGESIZE

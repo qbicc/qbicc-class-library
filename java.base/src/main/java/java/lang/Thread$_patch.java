@@ -42,6 +42,7 @@ import static org.qbicc.runtime.stdc.Time.*;
 import java.security.AccessControlContext;
 import java.util.concurrent.locks.LockSupport;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
@@ -51,6 +52,7 @@ import org.qbicc.runtime.patcher.Replace;
  * Patches for {@code java.lang.Thread}.
  */
 @PatchClass(Thread.class)
+@Tracking("src/java.base/share/classes/java/lang/Thread.java")
 public class Thread$_patch {
     // alias fields
     String name;

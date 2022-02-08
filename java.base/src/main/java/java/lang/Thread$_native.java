@@ -36,8 +36,11 @@ import static org.qbicc.runtime.posix.Sched.sched_yield;
 
 import java.util.concurrent.locks.LockSupport;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 
+@Tracking("src/java.base/share/native/libjava/Thread.c")
+@Tracking("src/java.base/share/classes/java/lang/Thread.java")
 class Thread$_native {
     private static void registerNatives() {
         // no operation

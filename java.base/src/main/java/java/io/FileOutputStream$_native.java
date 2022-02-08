@@ -33,10 +33,13 @@ package java.io;
 
 import jdk.internal.access.JavaIOFileDescriptorAccess;
 import jdk.internal.access.SharedSecrets;
+import org.qbicc.rt.annotation.Tracking;
 
 import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.posix.Fcntl.*;
 
+@Tracking("src/java.base/unix/native/libjava/FileOutputStream_md.c")
+@Tracking("src/java.base/windows/native/libjava/FileOutputStream_md.c")
 public final class FileOutputStream$_native {
     private FileDescriptor fd;
 

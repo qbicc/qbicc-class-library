@@ -32,6 +32,9 @@
 
 package jdk.internal.reflect;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/share/classes/jdk/internal/reflect/Reflection.java")
 public class Reflection$_native {
     public static Class getCallerClass() {
         // TODO: Real runtime implementation...via libunwind???

@@ -32,11 +32,13 @@
 
 package java.util.concurrent;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.RunTimeAspect;
 
 @PatchClass(ConcurrentHashMap.class)
 @RunTimeAspect
+@Tracking("src/java.base/share/classes/java/util/concurrent/ConcurrentHashMap.java")
 public class ConcurrentHashMap$_runtime {
     static final int NCPU = Runtime.getRuntime().availableProcessors();
 }

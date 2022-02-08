@@ -34,6 +34,7 @@ package jdk.internal.misc;
 
 import static org.qbicc.runtime.posix.Unistd.*;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
@@ -44,6 +45,7 @@ import org.qbicc.runtime.patcher.RunTimeAspect;
  */
 @RunTimeAspect
 @PatchClass(Unsafe.class)
+@Tracking("src/java.base/share/classes/jdk/internal/misc/Unsafe.java")
 final class Unsafe$_runtime {
     @Add static final int PAGE_SIZE;
 

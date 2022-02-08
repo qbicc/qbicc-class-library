@@ -32,6 +32,9 @@
 
 package jdk.internal.misc;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/share/classes/jdk/internal/misc/X-ScopedMemoryAccess.java.template")
 public class ScopedMemoryAccess$_native {
     private static void registerNatives() {
         // no-op

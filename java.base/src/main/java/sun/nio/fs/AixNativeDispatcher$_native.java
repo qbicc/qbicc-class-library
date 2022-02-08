@@ -32,6 +32,9 @@
 
 package sun.nio.fs;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/aix/native/libnio/fs/AixNativeDispatcher.c")
 public class AixNativeDispatcher$_native {
     private static void init() {
         // no-op

@@ -32,12 +32,11 @@
 
 package jdk.internal.misc;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
 
-/**
- *
- */
 @PatchClass(Thread.class)
+@Tracking("src/java.base/share/classes/jdk/internal/misc/Unsafe.java")
 class UnsafeThreadAccess {
     // alias
     static native void park(boolean isAbsolute, long time);

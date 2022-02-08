@@ -31,10 +31,12 @@
  */
 package java.lang.reflect;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.main.CompilerIntrinsics;
 
 import static org.qbicc.runtime.CNative.*;
 
+@Tracking("src/java.base/share/classes/java/lang/reflect/Array.java")
 public final class Array$_native {
 
     public static int getLength(Object array) throws IllegalArgumentException {

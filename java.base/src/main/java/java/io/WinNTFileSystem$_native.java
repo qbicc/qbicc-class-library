@@ -31,6 +31,9 @@
  */
 package java.io;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/windows/native/libjava/WinNTFileSystem_md.c")
 public class WinNTFileSystem$_native {
 
     private static void initIDs() {

@@ -32,6 +32,12 @@
 
 package jdk.internal.misc;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/unix/native/libjava/VM_md.c")
+@Tracking("src/java.base/windows/native/libjava/VM_md.c")
+@Tracking("src/java.base/share/native/libjava/VM.c")
+@Tracking("src/java.base/share/classes/jdk/internal/misc/VM.java")
 public class VM$_native {
     private static void initialize() {
         // no-op

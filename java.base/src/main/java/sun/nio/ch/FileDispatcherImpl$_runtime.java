@@ -38,6 +38,7 @@ import static org.qbicc.runtime.posix.SysSocket.*;
 import java.io.IOError;
 import java.io.IOException;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
@@ -46,6 +47,9 @@ import org.qbicc.runtime.posix.Unistd;
 
 @PatchClass(FileDispatcherImpl.class)
 @RunTimeAspect
+@Tracking("src/java.base/unix/native/libnio/ch/FileDispatcherImpl.c")
+@Tracking("src/java.base/unix/classes/sun/nio/ch/FileDispatcherImpl.java")
+@Tracking("src/java.base/windows/native/libnio/ch/FileDispatcherImpl.c")
 class FileDispatcherImpl$_runtime {
     @Add
     private static final c_int preCloseFd;

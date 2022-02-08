@@ -32,6 +32,10 @@
 
 package java.net;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/unix/native/libnet/InetAddressImplFactory.c")
+@Tracking("src/java.base/windows/native/libnet/InetAddressImplFactory.c")
 final class InetAddressImplFactory$_native {
     static boolean isIPv6Supported() {
         // TODO: RT config API

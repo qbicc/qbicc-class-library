@@ -31,11 +31,13 @@
  */
 package java.io;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.RunTimeAspect;
 
 @PatchClass(FileDescriptor.class)
 @RunTimeAspect
+@Tracking("src/java.base/share/classes/java/io/FileDescriptor.java")
 public class FileDescriptor$_runtime {
     public static final FileDescriptor$_runtime in = new FileDescriptor$_runtime(0);
     public static final FileDescriptor$_runtime out = new FileDescriptor$_runtime(1);

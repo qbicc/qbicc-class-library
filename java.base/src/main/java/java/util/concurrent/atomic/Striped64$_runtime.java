@@ -32,11 +32,13 @@
 
 package java.util.concurrent.atomic;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.RunTimeAspect;
 
 @PatchClass(Striped64.class)
 @RunTimeAspect
+@Tracking("src/java.base/share/classes/java/util/concurrent/atomic/Striped64.java")
 public class Striped64$_runtime {
     static final int NCPU = Runtime.getRuntime().availableProcessors();
 }

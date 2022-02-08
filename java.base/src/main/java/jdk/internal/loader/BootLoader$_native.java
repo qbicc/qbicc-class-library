@@ -32,6 +32,9 @@
 
 package jdk.internal.loader;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/share/native/libjava/BootLoader.c")
 public class BootLoader$_native {
     private void setBootLoaderUnnamedModule0(Module module) {
         // This is a no-op for qbicc.

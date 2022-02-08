@@ -37,11 +37,12 @@ import static org.qbicc.runtime.stdc.Time.*;
 import static org.qbicc.runtime.posix.Time.*;
 
 import java.util.Properties;
+
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 
-/**
- *
- */
+@Tracking("src/java.base/share/native/libjava/System.c")
+@Tracking("src/java.base/share/classes/java/lang/System.java")
 public final class System$_native {
 
     private static void registerNatives() {

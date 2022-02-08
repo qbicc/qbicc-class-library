@@ -32,6 +32,8 @@
 
 package sun.nio.fs;
 
+import org.qbicc.rt.annotation.Tracking;
+
 public class SolarisNativeDispatcher$_native {
     private static void init() {
         // no-op

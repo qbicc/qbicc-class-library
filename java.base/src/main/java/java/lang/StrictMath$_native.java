@@ -32,10 +32,11 @@
 
 package java.lang;
 
-/**
- *
- */
+import org.qbicc.rt.annotation.Tracking;
+
 @SuppressWarnings("SpellCheckingInspection")
+@Tracking("src/java.base/share/native/libjava/StrictMath.c")
+@Tracking("src/java.base/share/classes/java/lang/StrictMath.java")
 public class StrictMath$_native {
     public static double sin(double val) {
         return org.qbicc.runtime.stdc.Math.sin(val);

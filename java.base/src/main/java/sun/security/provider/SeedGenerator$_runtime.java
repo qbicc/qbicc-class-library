@@ -35,11 +35,13 @@ package sun.security.provider;
 import java.io.IOException;
 import sun.security.util.Debug;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.RunTimeAspect;
 
 @PatchClass(sun.security.provider.SeedGenerator.class)
 @RunTimeAspect
+@Tracking("src/java.base/share/classes/sun/security/provider/SeedGenerator.java")
 class SeedGenerator$_runtime {
     private static SeedGenerator instance;
 

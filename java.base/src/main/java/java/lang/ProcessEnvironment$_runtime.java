@@ -35,6 +35,7 @@ package java.lang;
 import java.util.Collections;
 import java.util.Map;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.RunTimeAspect;
@@ -44,6 +45,8 @@ import org.qbicc.runtime.patcher.RunTimeAspect;
  */
 @PatchClass(ProcessEnvironment.class)
 @RunTimeAspect
+@Tracking("src/java.base/unix/classes/java/lang/ProcessEnvironment.java")
+@Tracking("src/java.base/windows/classes/java/lang/ProcessEnvironment.java")
 final class ProcessEnvironment$_runtime {
     static final ProcessEnvironment.EnvironmentMap theEnvironment;
     static final Map<String, String> theUnmodifiableEnvironment;

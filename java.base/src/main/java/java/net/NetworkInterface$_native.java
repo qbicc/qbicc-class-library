@@ -32,6 +32,10 @@
 
 package java.net;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/unix/native/libnet/NetworkInterface.c")
+@Tracking("src/java.base/windows/native/libnet/NetworkInterface.c")
 public class NetworkInterface$_native {
     private static void init() {
         // no-op

@@ -37,8 +37,11 @@ import static org.qbicc.runtime.posix.Fcntl.*;
 import static org.qbicc.runtime.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.errno;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 
+@Tracking("src/java.base/unix/native/libjava/FileDescriptor_md.c")
+@Tracking("src/java.base/windows/native/libjava/FileDescriptor_md.c")
 public class FileDescriptor$_native {
     int fd;
     boolean append;

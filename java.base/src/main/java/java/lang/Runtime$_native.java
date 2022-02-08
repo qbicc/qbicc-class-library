@@ -32,9 +32,9 @@
 
 package java.lang;
 
-/**
- *
- */
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/share/native/libjava/Runtime.c")
 class Runtime$_native {
 
     public long maxMemory() {

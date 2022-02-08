@@ -38,11 +38,10 @@ import static org.qbicc.runtime.linux.Stdlib.*;
 
 import java.security.ProtectionDomain;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 
-/**
- *
- */
+@Tracking("src/java.base/share/classes/jdk/internal/misc/Unsafe.java")
 public final class Unsafe$_native {
 
     private static void registerNatives() {

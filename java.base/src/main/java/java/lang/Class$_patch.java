@@ -3,6 +3,7 @@ package java.lang;
 import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.NoReflect;
 import org.qbicc.runtime.main.CompilerIntrinsics;
 import org.qbicc.runtime.patcher.Add;
@@ -14,6 +15,7 @@ import org.qbicc.runtime.patcher.Replace;
  * Build-time patches for {@link Class}.
  */
 @PatchClass(Class.class)
+@Tracking("src/java.base/share/classes/java/lang/Class.java")
 final class Class$_patch<T> {
 
     /**

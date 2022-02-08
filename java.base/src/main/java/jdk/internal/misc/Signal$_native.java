@@ -34,8 +34,12 @@ package jdk.internal.misc;
 
 import static org.qbicc.runtime.CNative.*;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 
+@Tracking("src/java.base/share/native/libjava/Signal.c")
+@Tracking("src/hotspot/os/posix/signals_posix.cpp")
+@Tracking("src/hotspot/os/windows/os_windows.cpp")
 class Signal$_native {
 
     private static int findSignal0(String sigName) {

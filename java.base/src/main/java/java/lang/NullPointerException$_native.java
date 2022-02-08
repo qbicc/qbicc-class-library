@@ -32,6 +32,9 @@
 
 package java.lang;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/share/native/libjava/NullPointerException.c")
 public class NullPointerException$_native {
     // Compiler will replace if this feature is supported.
     private String getExtendedNPEMessage() {

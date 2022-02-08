@@ -32,6 +32,9 @@
 
 package java.net;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/share/native/libnet/Inet4Address.c")
 public class InetAddress$_native {
     private static void init() {
         // no-op

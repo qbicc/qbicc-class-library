@@ -34,12 +34,14 @@ package java.lang.ref;
 import jdk.internal.access.JavaLangRefAccess;
 import jdk.internal.access.SharedSecrets;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.ReplaceInit;
 
 @PatchClass(Reference.class)
 @ReplaceInit
+@Tracking("src/java.base/share/classes/java/lang/ref/Reference.java")
 public abstract class Reference$_patch<T> {
     // Alias & preserve original <clinit>
     private static final Object processPendingLock = new Object();

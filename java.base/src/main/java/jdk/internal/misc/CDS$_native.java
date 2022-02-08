@@ -32,6 +32,10 @@
 
 package jdk.internal.misc;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/share/native/libjava/CDS.c")
+@Tracking("src/java.base/share/classes/jdk/internal/misc/CDS.java")
 class CDS$_native {
     static boolean isDumpingClassList0() {
         return false;

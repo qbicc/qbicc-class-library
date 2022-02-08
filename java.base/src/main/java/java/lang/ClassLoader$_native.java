@@ -31,6 +31,9 @@
  */
 package java.lang;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/share/native/libjava/ClassLoader.c")
 public class ClassLoader$_native {
     private static void registerNatives() {
         // no-op

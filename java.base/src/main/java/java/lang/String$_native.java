@@ -37,9 +37,13 @@ import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.qbicc.rt.annotation.Tracking;
+
 /**
  * Native bindings for {@link String}.
  */
+@Tracking("src/java.base/share/native/libjava/String.c")
+@Tracking("src/java.base/share/classes/java/lang/String.java")
 public final class String$_native {
     private static final ReferenceQueue<String> REF_QUEUE = new ReferenceQueue<>();
     private static final ConcurrentHashMap<Key, Ref> INTERNED = new ConcurrentHashMap<>();

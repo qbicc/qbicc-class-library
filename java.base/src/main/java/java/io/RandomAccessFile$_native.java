@@ -31,6 +31,9 @@
  */
 package java.io;
 
+import org.qbicc.rt.annotation.Tracking;
+
+@Tracking("src/java.base/share/native/libjava/RandomAccessFile.c")
 public class RandomAccessFile$_native {
 
     private static void initIDs() {

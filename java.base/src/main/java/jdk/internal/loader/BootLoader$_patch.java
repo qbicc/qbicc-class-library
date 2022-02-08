@@ -32,10 +32,12 @@
 
 package jdk.internal.loader;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
 
 @PatchClass(BootLoader.class)
+@Tracking("src/java.base/share/classes/jdk/internal/loader/BootLoader.java")
 public class BootLoader$_patch {
     @Replace
     public static void loadLibrary(String name) {

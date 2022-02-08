@@ -31,6 +31,7 @@
  */
 package java.lang;
 
+import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.main.CompilerIntrinsics;
 import org.qbicc.runtime.main.VMHelpers;
 
@@ -40,6 +41,8 @@ import static org.qbicc.runtime.stdc.Stdint.*;
 /**
  * Native methods for java.lang.Class; declared in the same order as in Class.java.
  */
+@Tracking("src/java.base/share/classes/java/lang/Class.java")
+@Tracking("src/java.base/share/native/libjava/Class.c")
 public final class Class$_native<T> {
 
     private static void registerNatives() {
