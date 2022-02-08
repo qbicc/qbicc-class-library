@@ -37,9 +37,9 @@ import java.io.File;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 
-@Tracking("src/java.base/unix/classes/java/lang/ClassLoaderHelper.java")
-@Tracking("src/java.base/macos/classes/java/lang/ClassLoaderHelper.java")
-@Tracking("src/java.base/windows/classes/java/lang/ClassLoaderHelper.java")
+@Tracking("src/java.base/unix/classes/jdk/internal/loader/ClassLoaderHelper.java")
+@Tracking("src/java.base/macosx/classes/jdk/internal/loader/ClassLoaderHelper.java")
+@Tracking("src/java.base/windows/classes/jdk/internal/loader/ClassLoaderHelper.java")
 class ClassLoaderHelper {
 
     private ClassLoaderHelper() {}
