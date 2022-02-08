@@ -158,6 +158,10 @@ class FileDispatcherImpl extends FileDispatcher {
         return Build.Target.isWindows();
     }
 
+    boolean canTransferToFromOverlappedMap() {
+        return ! Build.Target.isMacOs();
+    }
+
     int setDirectIO(FileDescriptor fd, String path) {
         int result;
         if (Build.Target.isWindows()) {

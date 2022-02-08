@@ -58,4 +58,8 @@ class ClassLoaderHelper {
             return null;
         }
     }
+
+    static boolean loadLibraryOnlyIfPresent() {
+        return !Build.Target.isMacOs(); // Slight simplificaton.  Actual condition is ! (MacOS > 11) (due to dynamic linker cache)
+    }
 }
