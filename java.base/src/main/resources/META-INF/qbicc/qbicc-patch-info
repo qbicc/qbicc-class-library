@@ -17,9 +17,11 @@ java.util.concurrent.Exchanger$_patch
 java.util.concurrent.Exchanger$_runtime
 java.util.concurrent.Phaser$_runtime
 jdk.internal.loader.BootLoader$_patch
-jdk.internal.misc.Unsafe$_runtime
+jdk.internal.misc.UnsafeConstants$_patch
+jdk.internal.misc.UnsafeConstants$_runtime
 jdk.internal.misc.UnsafeParkUnpark
 jdk.internal.misc.UnsafeThreadAccess
+jdk.internal.misc.Unsafe$_patch
 jdk.internal.ref.CleanerFactory$_patch
 jdk.internal.ref.CleanerFactory$_runtime
 sun.nio.ch.FileDispatcherImpl$_runtime
