@@ -41,13 +41,14 @@ import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.RunTimeAspect;
 
 /**
- * Runtime-initialized Unsafe constants.
+ * Runtime-initialized UnsafeConstants.
  */
 @RunTimeAspect
-@PatchClass(Unsafe.class)
-@Tracking("src/java.base/share/classes/jdk/internal/misc/Unsafe.java")
-final class Unsafe$_runtime {
-    @Add static final int PAGE_SIZE;
+@PatchClass(UnsafeConstants.class)
+@Tracking("src/java.base/share/classes/jdk/internal/misc/UnsafeConstants.java")
+final class UnsafeConstants$_runtime {
+    static final int PAGE_SIZE;
+    static final int DATA_CACHE_LINE_FLUSH_SIZE;
 
     static {
         int pageSize;
@@ -61,5 +62,8 @@ final class Unsafe$_runtime {
             throw new UnsupportedOperationException("page_size");
         }
         PAGE_SIZE = pageSize;
+
+        // TODO: compute appropriate value dynamically
+        DATA_CACHE_LINE_FLUSH_SIZE = 0;
     }
 }
