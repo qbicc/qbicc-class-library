@@ -3,6 +3,8 @@ package jdk.internal.org.qbicc.runtime;
 import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.posix.PThread.pthread_exit;
 
+import java.util.ArrayList;
+
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.NotReachableException;
@@ -11,8 +13,27 @@ import org.qbicc.runtime.NotReachableException;
  * Holds the native image main entry point.
  */
 public final class Main {
+    /**
+     * A list of initialization actions deferred from build time to runtime.
+     * These will be executed in the order they were enqueued by #deferInitAction
+     * after the core JDK is fully booted but before the application main method is invoked.
+     */
+    private static ArrayList<Runnable> deferredInits = new ArrayList<>();
 
     private Main() {
+    }
+
+    /**
+     * Enqueue an initialization action at build time that will be performed
+     * at runtime before the application-level main method is invoked.
+     */
+    public static void deferInitAction(Runnable r) {
+        if (!Build.isHost()) {
+            throw new IllegalStateException("init actions can only be deferrred at build time");
+        }
+        synchronized (deferredInits) {
+            deferredInits.add(r);
+        }
     }
 
     /**
@@ -37,6 +58,11 @@ public final class Main {
         System$_patch.rtinitPhase1();
         System$_patch.rtinitPhase2();
         System$_patch.rtinitPhase3();
+
+        // next execute additional initialization actions deferred from build time
+        for (Runnable r: deferredInits) {
+            r.run();
+        }
 
         // now cause the initial thread to invoke main
         final String[] args = new String[argc.intValue()];

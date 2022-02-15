@@ -22,8 +22,7 @@ jdk.internal.misc.UnsafeConstants$_runtime
 jdk.internal.misc.UnsafeParkUnpark
 jdk.internal.misc.UnsafeThreadAccess
 jdk.internal.misc.Unsafe$_patch
-jdk.internal.ref.CleanerFactory$_patch
-jdk.internal.ref.CleanerFactory$_runtime
+jdk.internal.ref.CleanerImpl$_patch
 sun.nio.ch.FileDispatcherImpl$_runtime
 sun.nio.fs.UnixFileAttributes$_aliases
 sun.security.provider.SeedGenerator$_patch
