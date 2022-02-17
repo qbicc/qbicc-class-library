@@ -32,24 +32,24 @@
 
 package jdk.internal.ref;
 
-import jdk.internal.misc.InnocuousThread;
-
-import java.lang.ref.Cleaner;
 import java.util.concurrent.ThreadFactory;
 
-import org.qbicc.rt.annotation.Tracking;
-import org.qbicc.runtime.patcher.PatchClass;
-import org.qbicc.runtime.patcher.RunTimeAspect;
+/*
+ * This class exists because defining an anonymous Runnable in a patch class
+ * like CleanerImpl$_patch is not currently supported by our Patcher infrastructure.
+ */
+class CleanerImpl_Runnable1 implements Runnable {
+    final ThreadFactory tf;
+    final CleanerImpl ci;
 
-@PatchClass(CleanerFactory.class)
-@RunTimeAspect
-@Tracking("src/java.base/share/classes/jdk/internal/ref/CleanerFactory.java")
-public final class CleanerFactory$_runtime {
-    private static final Cleaner commonCleaner = Cleaner.create(new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            return InnocuousThread.newSystemThread("Common-Cleaner",
-                    r, Thread.MAX_PRIORITY - 2);
-        }
-    });
+    CleanerImpl_Runnable1(ThreadFactory tf, CleanerImpl ci) {
+        this.tf = tf;
+        this.ci = ci;
+    }
+
+    public void run() {
+        Thread thread = tf.newThread(ci);
+        thread.setDaemon(true);
+        thread.start();
+    }
 }

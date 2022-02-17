@@ -32,19 +32,45 @@
 
 package jdk.internal.ref;
 
-import jdk.internal.misc.InnocuousThread;
-
 import java.lang.ref.Cleaner;
+import java.util.concurrent.ThreadFactory;
+
+import jdk.internal.org.qbicc.runtime.Main;
 
 import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.Build;
 import org.qbicc.runtime.patcher.PatchClass;
-import org.qbicc.runtime.patcher.ReplaceInit;
+import org.qbicc.runtime.patcher.Replace;
 
-@PatchClass(CleanerFactory.class)
-@ReplaceInit
-@Tracking("src/java.base/share/classes/jdk/internal/ref/CleanerFactory.java")
-public final class CleanerFactory$_patch {
+@PatchClass(CleanerImpl.class)
+@Tracking("src/java.base/share/classes/jdk/internal/ref/CleanerImpl.java")
+public final class CleanerImpl$_patch {
 
-    // Disable at buildtime; moved to <rtinit>
-    private static final Cleaner commonCleaner = null;
+    // Alias
+    static native CleanerImpl$_patch getCleanerImpl(Cleaner cleaner);
+
+    @Replace
+    public void start(Cleaner cleaner, ThreadFactory threadFactory) {
+        if (getCleanerImpl(cleaner) != this) {
+            throw new AssertionError("wrong cleaner");
+        }
+        // schedule a nop cleaning action for the cleaner, so the associated thread
+        // will continue to run at least until the cleaner is reclaimable.
+        new CleanerImpl.CleanerCleanable(cleaner);
+
+        if (threadFactory == null) {
+            threadFactory = CleanerImpl.InnocuousThreadFactory.factory();
+        }
+
+        // now that there's at least one cleaning action, for the cleaner,
+        // we can start the associated thread, which runs until
+        // all cleaning actions have been run.
+        if (Build.isHost()) {
+            Main.deferInitAction(new CleanerImpl_Runnable1(threadFactory, (CleanerImpl)(Object)this));
+        } else {
+            Thread thread = threadFactory.newThread((CleanerImpl)(Object)this);
+            thread.setDaemon(true);
+            thread.start();
+        }
+    }
 }
