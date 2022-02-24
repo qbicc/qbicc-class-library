@@ -40,6 +40,7 @@ import java.security.ProtectionDomain;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
+import org.qbicc.runtime.main.CompilerIntrinsics;
 
 @Tracking("src/java.base/share/classes/jdk/internal/misc/Unsafe.java")
 public final class Unsafe$_native {
@@ -75,13 +76,14 @@ public final class Unsafe$_native {
         return (Unsafe) (Object) this;
     }
 
+    public Object allocateInstance(Class<?> clazz) throws InstantiationException {
+        return CompilerIntrinsics.emitNew(clazz);
+    }
 
     //TODO:
 
     //unpark
     //park
-
-    //allocateInstance
 
     //allocateMemory0
     //reallocateMemory0
