@@ -41,6 +41,7 @@ import static org.qbicc.runtime.stdc.Stddef.*;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.NoReflect;
+import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.RunTimeAspect;
 
@@ -50,6 +51,7 @@ import org.qbicc.runtime.patcher.RunTimeAspect;
 @Tracking("src/java.base/share/classes/java/lang/Runtime.java")
 class Runtime$_runtime {
     @NoReflect
+    @Add
     static final int CONFIGURED_CPUS;
 
     static {
