@@ -69,9 +69,9 @@ public final class Main {
         */
 
         // now cause the initial thread to invoke main
-        final String[] args = new String[argc.intValue()];
+        final String[] args = new String[argc.intValue() - 1];
         for (int i = 1; i < argc.intValue(); i++) {
-            args[i] = utf8zToJavaString(argv[i].cast());
+            args[i - 1] = utf8zToJavaString(argv[i].cast());
         }
         //todo: string construction
         //String execName = utf8zToJavaString(argv[0].cast());
