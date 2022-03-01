@@ -65,7 +65,7 @@ class Runtime$_runtime {
             mib[1] = HW_NCPU;
             c_int cpu_val = auto();
             size_t len = sizeof(cpu_val);
-            c_int result = sysctl(addr_of(mib).cast(), word(2), addr_of(cpu_val), addr_of(len), zero(), zero());
+            c_int result = sysctl(addr_of(mib).cast(), word(2), addr_of(cpu_val).cast(), addr_of(len), zero(), zero());
             if (result.isGe(zero()) && cpu_val.isGt(word(1))) {
                 configuredCpus = result.intValue();
             } else {
