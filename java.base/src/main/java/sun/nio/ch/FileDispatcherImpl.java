@@ -32,6 +32,8 @@
 
 package sun.nio.ch;
 
+import static org.qbicc.runtime.CNative.word;
+
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -42,6 +44,7 @@ import org.qbicc.runtime.Build;
 import org.qbicc.rt.annotation.Tracking;
 import jdk.internal.access.JavaIOFileDescriptorAccess;
 import jdk.internal.access.SharedSecrets;
+import org.qbicc.runtime.posix.Unistd;
 import sun.security.action.GetPropertyAction;
 
 @Tracking("src/java.base/unix/classes/sun/nio/ch/FileDispatcherImpl.java")
@@ -188,8 +191,19 @@ class FileDispatcherImpl extends FileDispatcher {
 
     // -- Native methods --
 
-    static native int read0(FileDescriptor fd, long address, int len)
-        throws IOException;
+    static int read0(FileDescriptor fd, long address, int len) throws IOException {
+        if (Build.Target.isPosix()) {
+            int fdNum = fdAccess.get(fd);
+            int retVal = Unistd.read(word(fdNum), word(address).cast(), word(len).cast()).intValue();
+            if (retVal > 0) return retVal;
+            if (retVal == 0) return -1; // EOF
+            // error
+            // todo: cause via strerror
+            throw new IOException();
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
 
     static native int pread0(FileDescriptor fd, long address, int len,
                              long position) throws IOException;
