@@ -35,8 +35,8 @@ import jdk.internal.access.JavaLangRefAccess;
 import jdk.internal.access.SharedSecrets;
 
 import org.qbicc.rt.annotation.Tracking;
-import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
+import org.qbicc.runtime.patcher.Replace;
 import org.qbicc.runtime.patcher.ReplaceInit;
 
 @PatchClass(Reference.class)
@@ -83,4 +83,13 @@ public abstract class Reference$_patch<T> {
             }
         });
     }
+
+    // Alias
+    private Object referent;
+
+    @Replace
+    private void clear0() {
+        referent = null;
+    }
+
 }
