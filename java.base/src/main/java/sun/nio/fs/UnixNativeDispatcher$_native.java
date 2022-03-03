@@ -34,10 +34,13 @@ package sun.nio.fs;
 
 import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.posix.Errno.*;
+import static org.qbicc.runtime.posix.String.*;
 import static org.qbicc.runtime.posix.SysStat.*;
 import static org.qbicc.runtime.posix.SysTypes.*;
 import static org.qbicc.runtime.posix.Unistd.F_OK;
 import static org.qbicc.runtime.stdc.Errno.*;
+import static org.qbicc.runtime.stdc.Stdlib.*;
+import static org.qbicc.runtime.stdc.String.*;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
@@ -356,8 +359,21 @@ class UnixNativeDispatcher$_native {
     }
 
     static byte[] strerror(int errnum) {
-        // todo: requires String.strerror_r (the POSIX version, not the GNU version)
-        throw new UnsupportedOperationException();
+        ptr<c_char> tmpBuf = alloca(word(1024)).cast();
+        c_int result;
+        if (Build.Target.isGLibC()) {
+            result = __xpg_strerror_r(word(errnum), tmpBuf, word(1024));
+        } else {
+            result = strerror_r(word(errnum), tmpBuf, word(1024));
+        }
+        if (result.isNonZero()) {
+            // hmmm....
+            abort();
+        }
+        int len = strlen(tmpBuf.cast()).intValue();
+        byte[] bytes = new byte[len];
+        copy(bytes, 0, len, tmpBuf.cast());
+        return bytes;
     }
 
     static int fgetxattr0(int filedes, long nameAddress, long valueAddress, int valueLen) throws UnixException {
