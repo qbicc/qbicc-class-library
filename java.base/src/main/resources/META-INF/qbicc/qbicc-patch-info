@@ -26,6 +26,8 @@ jdk.internal.misc.Unsafe$_patch
 jdk.internal.ref.CleanerImpl$_patch
 sun.nio.ch.FileDispatcherImpl$_runtime
 sun.nio.fs.UnixFileAttributes$_aliases
+sun.nio.fs.UnixFileSystem$_patch
+sun.nio.fs.UnixFileSystem$_runtime
 sun.security.provider.SeedGenerator$_patch
 sun.security.provider.SeedGenerator$_patch$ThreadedSeedGenerator$_patch
 sun.security.provider.SeedGenerator$_runtime

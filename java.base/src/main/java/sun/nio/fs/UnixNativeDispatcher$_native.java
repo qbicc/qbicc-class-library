@@ -34,11 +34,13 @@ package sun.nio.fs;
 
 import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.posix.Errno.*;
+import static org.qbicc.runtime.posix.Limits.PATH_MAX;
 import static org.qbicc.runtime.posix.String.*;
 import static org.qbicc.runtime.posix.SysStat.*;
 import static org.qbicc.runtime.posix.SysTypes.*;
 import static org.qbicc.runtime.posix.Unistd.F_OK;
 import static org.qbicc.runtime.stdc.Errno.*;
+import static org.qbicc.runtime.stdc.Stddef.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
 import static org.qbicc.runtime.stdc.String.*;
 
@@ -51,8 +53,16 @@ import org.qbicc.runtime.posix.Unistd;
 @SuppressWarnings({ "unused", "SpellCheckingInspection" })
 @Tracking("src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c")
 class UnixNativeDispatcher$_native {
-    static byte[] getcwd() {
-        return new byte[0];
+    static byte[] getcwd() throws UnixException {
+        size_t size = word(PATH_MAX.intValue() + 1);
+        char_ptr buf = alloca(size);
+        char_ptr cwd = Unistd.getcwd(buf, size);
+        if (cwd.isNull()) {
+            throw new UnixException(errno);
+        }
+        byte[] bytes = new byte[size.intValue()];
+        copy(bytes, 0, strlen(buf.cast()).intValue(), buf.cast());
+        return bytes;
     }
 
     static int dup(int filedes) throws UnixException {
