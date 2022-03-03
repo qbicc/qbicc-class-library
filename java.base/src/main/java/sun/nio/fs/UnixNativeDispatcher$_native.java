@@ -71,7 +71,7 @@ class UnixNativeDispatcher$_native {
         if (fd == -1) {
             throw new UnixException(errno);
         }
-        throw new UnixException(errno);
+        return fd;
     }
 
     static int openat0(int dfd, long pathAddress, int flags, int mode) throws UnixException {
