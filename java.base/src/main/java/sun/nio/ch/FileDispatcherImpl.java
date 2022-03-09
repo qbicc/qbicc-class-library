@@ -32,7 +32,12 @@
 
 package sun.nio.ch;
 
-import static org.qbicc.runtime.CNative.word;
+import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.linux.SysIoctl.*;
+import static org.qbicc.runtime.posix.Errno.*;
+import static org.qbicc.runtime.posix.SysStat.*;
+import static org.qbicc.runtime.stdc.Errno.*;
+import static org.qbicc.runtime.stdc.Stdint.*;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -41,7 +46,6 @@ import java.nio.CharBuffer;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
-import org.qbicc.rt.annotation.Tracking;
 import jdk.internal.access.JavaIOFileDescriptorAccess;
 import jdk.internal.access.SharedSecrets;
 import org.qbicc.runtime.posix.Unistd;
@@ -226,7 +230,29 @@ class FileDispatcherImpl extends FileDispatcher {
     static native int truncate0(FileDescriptor fd, long size)
         throws IOException;
 
-    static native long size0(FileDescriptor fd) throws IOException;
+    static long size0(FileDescriptor fd) throws IOException {
+        if (Build.Target.isPosix()) {
+            int fdNum = fdAccess.get(fd);
+            struct_stat fbuf = auto();
+            if (fstat(word(fdNum), addr_of(fbuf)).longValue() < 0) {
+                if (errno == EINTR.intValue()) return IOStatus.INTERRUPTED;
+                throw new IOException("Size failed"); // todo: errno cause
+            }
+            if (Build.Target.isLinux() && defined(BLKGETSIZE64)) {
+                if ((S_IFBLK.longValue() & fbuf.st_mode.longValue()) != 0) {
+                    uint64_t size = auto();
+                    if (ioctl(word(fdNum), BLKGETSIZE64, addr_of(size)).longValue() < 0) {
+                        if (errno == EINTR.intValue()) return IOStatus.INTERRUPTED;
+                        throw new IOException("Size failed"); // todo: errno cause
+                    }
+                    return size.longValue();
+                }
+            }
+            return fbuf.st_size.longValue();
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
 
     static native int lock0(FileDescriptor fd, boolean blocking, long pos,
                             long size, boolean shared) throws IOException;
