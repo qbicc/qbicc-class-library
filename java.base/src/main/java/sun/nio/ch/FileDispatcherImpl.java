@@ -36,6 +36,10 @@ import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.linux.SysIoctl.*;
 import static org.qbicc.runtime.posix.Errno.*;
 import static org.qbicc.runtime.posix.SysStat.*;
+import static org.qbicc.runtime.posix.Fcntl.SEEK_CUR;
+import static org.qbicc.runtime.posix.SysStat.*;
+import static org.qbicc.runtime.posix.SysTypes.*;
+import static org.qbicc.runtime.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
 
@@ -224,8 +228,24 @@ class FileDispatcherImpl extends FileDispatcher {
     static native int force0(FileDescriptor fd, boolean metaData)
         throws IOException;
 
-    static native long seek0(FileDescriptor fd, long offset)
-        throws IOException;
+    static long seek0(FileDescriptor fd, long offset) throws IOException {
+        if (Build.Target.isPosix()) {
+            int fdNum = fdAccess.get(fd);
+            off_t result;
+            if (offset < 0) {
+                result = lseek(word(fdNum), zero(), SEEK_CUR);
+            } else {
+                result = lseek(word(fdNum), word(offset), SEEK_SET);
+            }
+            if (result.longValue() < 0) {
+                if (errno == EINTR.intValue()) return IOStatus.INTERRUPTED;
+                throw new IOException("Seek failed"); // todo: errno cause
+            }
+            return result.longValue();
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
 
     static native int truncate0(FileDescriptor fd, long size)
         throws IOException;
