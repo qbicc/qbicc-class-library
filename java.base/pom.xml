@@ -144,9 +144,9 @@
                             <goal>generate-var-handles</goal>
                         </goals>
                         <configuration>
-                            <varHandleTemplateFile>${project.basedir}/../openjdk/src/java.base/share/classes/java/lang/invoke/X-VarHandle.java.template</varHandleTemplateFile>
-                            <varHandleByteArrayViewTemplateFile>${project.basedir}/../openjdk/src/java.base/share/classes/java/lang/invoke/X-VarHandleByteArrayView.java.template</varHandleByteArrayViewTemplateFile>
-                            <varHandleMemoryAccessHelperTemplateFile>${project.basedir}/../openjdk/src/java.base/share/classes/java/lang/invoke/X-VarHandleMemoryAccess.java.template</varHandleMemoryAccessHelperTemplateFile>
+                            <varHandleTemplateFile>${project.basedir}/src/main/java/java/lang/invoke/X-VarHandle.java.template</varHandleTemplateFile>
+                            <varHandleByteArrayViewTemplateFile>${project.basedir}/src/main/java/java/lang/invoke/X-VarHandleByteArrayView.java.template</varHandleByteArrayViewTemplateFile>
+                            <varHandleMemoryAccessHelperTemplateFile>${project.basedir}/src/main/java/java/lang/invoke/X-VarHandleMemoryAccess.java.template</varHandleMemoryAccessHelperTemplateFile>
                         </configuration>
                     </execution>
                     <execution>
