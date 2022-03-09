@@ -31,10 +31,13 @@ import java.lang.invoke.VarHandle.VarHandleDesc;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.qbicc.rt.annotation.Tracking;
+
 import static java.lang.invoke.MethodHandleStatics.UNSAFE;
 
 #warn
 
+@Tracking("src/java.base/share/classes/java/lang/invoke/X-VarHandle.java.template")
 final class VarHandle$Type$s {
 
     static class FieldInstanceReadOnly extends VarHandle {

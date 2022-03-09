@@ -39,10 +39,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
+import org.qbicc.rt.annotation.Tracking;
+
 import static java.lang.invoke.MethodHandleStatics.UNSAFE;
 
 #warn
 
+@Tracking("src/java.base/share/classes/java/lang/invoke/X-VarHandleByteArrayView.java.template")
 final class VarHandleByteArrayAs$Type$s extends VarHandleByteArrayBase {
 
     static final JavaNioAccess NIO_ACCESS = SharedSecrets.getJavaNioAccess();

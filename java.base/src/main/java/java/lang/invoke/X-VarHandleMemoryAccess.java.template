@@ -32,10 +32,13 @@ import java.lang.ref.Reference;
 
 import java.util.Objects;
 
+import org.qbicc.rt.annotation.Tracking;
+
 import static java.lang.invoke.MethodHandleStatics.UNSAFE;
 
 #warn
 
+@Tracking("src/java.base/share/classes/java/lang/invoke/X-VarHandleMemoryAccess.java.template")
 final class MemoryAccessVarHandle$Type$Helper extends MemoryAccessVarHandleBase {
 
     static final boolean BE = UNSAFE.isBigEndian();
