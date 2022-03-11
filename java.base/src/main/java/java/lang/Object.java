@@ -37,6 +37,7 @@ import static org.qbicc.runtime.CNative.*;
 import java.lang.reflect.Array;
 
 import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.AutoQueued;
 import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.NoReflect;
 import org.qbicc.runtime.main.CompilerIntrinsics;
@@ -90,12 +91,14 @@ public class Object {
 
     @NoReflect
     @Hidden
+    @AutoQueued
     private void monitorEnter() {
         getMonitor().enter();
     }
 
     @NoReflect
     @Hidden
+    @AutoQueued
     private void monitorExit() {
         getMonitor().exit();
     }
