@@ -34,6 +34,7 @@ package java.lang;
 
 import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.linux.Futex.*;
+import static org.qbicc.runtime.llvm.LLVM.*;
 import static org.qbicc.runtime.posix.PThread.*;
 import static org.qbicc.runtime.posix.Time.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
@@ -294,6 +295,20 @@ public class Thread$_patch {
             }
         } else {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    @Replace
+    public static void onSpinWait() {
+        if (Build.isHost()) {
+            return;
+        } else if (Build.Target.isAmd64()) {
+            asm(c_void.class, "pause", "", ASM_FLAG_SIDE_EFFECT);
+        } else if (Build.Target.isAarch64()) {
+            asm(c_void.class, "yield", "", ASM_FLAG_SIDE_EFFECT);
+        } else {
+            // no operation
+            return;
         }
     }
 }
