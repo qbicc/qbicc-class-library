@@ -44,6 +44,7 @@ import java.util.concurrent.locks.LockSupport;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
+import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
@@ -106,7 +107,13 @@ public class Thread$_patch {
         }
         this.stackSize = stackSize;
         this.tid = nextThreadID();
-        // initialize native fields
+
+        this.initializeNativeFields();
+    }
+
+    @Add
+    @Hidden
+    public void initializeNativeFields() {
         parkFlag = zero();
         if (Build.isTarget() && ! Build.Target.isLinux()) {
             // mutex type does not matter

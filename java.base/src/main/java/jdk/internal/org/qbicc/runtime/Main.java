@@ -53,6 +53,7 @@ public final class Main {
         // ...
         // next set up the initial thread
         attachNewThread("main", getSystemThreadGroup());
+        ((Thread$_patch)(Object)Thread.currentThread()).initializeNativeFields();
 
         // next initialize the JDK
         System$_patch.rtinitPhase1();
