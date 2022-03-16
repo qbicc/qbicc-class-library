@@ -55,28 +55,29 @@ public final class Main {
         attachNewThread("main", getSystemThreadGroup());
         ((Thread$_patch)(Object)Thread.currentThread()).initializeNativeFields();
 
-        // next initialize the JDK
-        System$_patch.rtinitPhase1();
-        System$_patch.rtinitPhase2();
-        System$_patch.rtinitPhase3();
-
-        // next execute additional initialization actions deferred from build time
-        /*
-         * TODO: Have to sort out threading story first so that deamon threads created by
-         *       deferredInits don't prevent the process from exiting.
-        for (Runnable r: deferredInits) {
-            r.run();
-        }
-        */
-
-        // now cause the initial thread to invoke main
-        final String[] args = new String[argc.intValue() - 1];
-        for (int i = 1; i < argc.intValue(); i++) {
-            args[i - 1] = utf8zToJavaString(argv[i].cast());
-        }
-        //todo: string construction
-        //String execName = utf8zToJavaString(argv[0].cast());
         try {
+            // next initialize the JDK
+            System$_patch.rtinitPhase1();
+            System$_patch.rtinitPhase2();
+            System$_patch.rtinitPhase3();
+
+            // next execute additional initialization actions deferred from build time
+            /*
+             * TODO: Have to sort out threading story first so that deamon threads created by
+             *       deferredInits don't prevent the process from exiting.
+            for (Runnable r: deferredInits) {
+                r.run();
+            }
+            */
+
+            // now cause the initial thread to invoke main
+            final String[] args = new String[argc.intValue() - 1];
+            for (int i = 1; i < argc.intValue(); i++) {
+                args[i - 1] = utf8zToJavaString(argv[i].cast());
+            }
+            //todo: string construction
+            //String execName = utf8zToJavaString(argv[0].cast());
+
             userMain(args);
         } catch (Throwable t) {
             Thread.UncaughtExceptionHandler handler = Thread.currentThread().getUncaughtExceptionHandler();
