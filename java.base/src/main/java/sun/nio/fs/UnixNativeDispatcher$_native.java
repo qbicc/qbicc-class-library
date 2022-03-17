@@ -370,12 +370,7 @@ class UnixNativeDispatcher$_native {
 
     static byte[] strerror(int errnum) {
         ptr<c_char> tmpBuf = alloca(word(1024)).cast();
-        c_int result;
-        if (Build.Target.isGLibC()) {
-            result = __xpg_strerror_r(word(errnum), tmpBuf, word(1024));
-        } else {
-            result = strerror_r(word(errnum), tmpBuf, word(1024));
-        }
+        c_int result = strerror_r(word(errnum), tmpBuf, word(1024));
         if (result.isNonZero()) {
             // hmmm....
             abort();
