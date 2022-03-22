@@ -107,6 +107,11 @@
             </dependency>
             <dependency>
                 <groupId>org.qbicc</groupId>
+                <artifactId>qbicc-runtime-gc-heap</artifactId>
+                <version>${version.qbicc}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.qbicc</groupId>
                 <artifactId>qbicc-runtime-linux</artifactId>
                 <version>${version.qbicc}</version>
             </dependency>

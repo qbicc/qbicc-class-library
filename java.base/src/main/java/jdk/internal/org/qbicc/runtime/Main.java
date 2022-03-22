@@ -2,12 +2,17 @@ package jdk.internal.org.qbicc.runtime;
 
 import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.posix.PThread.pthread_exit;
+import static org.qbicc.runtime.stdc.Stdio.*;
+import static org.qbicc.runtime.stdc.Stdlib.*;
+import static org.qbicc.runtime.stdc.String.strcmp;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.NotReachableException;
+import org.qbicc.runtime.gc.heap.Heap;
 
 /**
  * Holds the native image main entry point.
@@ -48,9 +53,11 @@ public final class Main {
     @export
     @Hidden
     public static c_int main(c_int argc, char_ptr[] argv) {
-
         // first set up VM
-        // ...
+        if (! Heap.checkInit(true)) {
+            exit(word(1));
+        }
+
         // next set up the initial thread
         attachNewThread("main", getSystemThreadGroup());
         ((Thread$_patch)(Object)Thread.currentThread()).initializeNativeFields();
@@ -71,9 +78,21 @@ public final class Main {
             */
 
             // now cause the initial thread to invoke main
-            final String[] args = new String[argc.intValue() - 1];
+            String[] args = new String[argc.intValue() - 1];
+            int cnt = 0;
+            boolean checkForVmArg = true;
             for (int i = 1; i < argc.intValue(); i++) {
-                args[i - 1] = utf8zToJavaString(argv[i].cast());
+                if (checkForVmArg) {
+                    if (strcmp(argv[i].cast(), utf8z("--")).isZero()) {
+                        checkForVmArg = false;
+                    } else if (Heap.isHeapArgument(argv[i].cast())) {
+                        continue;
+                    }
+                }
+                args[cnt++] = utf8zToJavaString(argv[i].cast());
+            }
+            if (cnt < args.length) {
+                args = Arrays.copyOf(args, cnt);
             }
             //todo: string construction
             //String execName = utf8zToJavaString(argv[0].cast());
@@ -82,8 +101,15 @@ public final class Main {
         } catch (Throwable t) {
             Thread.UncaughtExceptionHandler handler = Thread.currentThread().getUncaughtExceptionHandler();
             if (handler != null) {
-                handler.uncaughtException(Thread.currentThread(), t);
+                try {
+                    handler.uncaughtException(Thread.currentThread(), t);
+                } catch (Throwable t2) {
+                    // exception handler threw an exception... just bail out then
+                    fprintf(stderr, utf8z("The uncaught exception handler threw an exception or error\n"));
+                    fflush(stderr);
+                }
             }
+            // TODO: this is the main thread, so mark the exit code as `1` if it hasn't already been set...
         }
         if (Build.Target.isPosix()) {
             pthread_exit(zero());
