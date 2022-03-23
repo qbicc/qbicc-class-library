@@ -87,4 +87,8 @@ public final class Class$_native<T> {
         uint8_t dims = word(0);
         return (Class<? super T>)CompilerIntrinsics.getClassFromTypeId(superTypeId, dims);
     }
+
+    public int getModifiers() {
+        return ((Class$_patch<T>) (Object) this).modifiers & 0xffff;
+    }
 }
