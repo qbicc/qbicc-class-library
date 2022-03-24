@@ -54,7 +54,7 @@ jobs:
 
       - name: Run qbicc tests
         run: |
-          mvn --batch-mode install -Dversion.qbicc.classlib=17.alpha.0.20-SNAPSHOT
+          mvn --batch-mode install -Dversion.qbicc.classlib=17.alpha.0.21-SNAPSHOT
         working-directory: qbicc
 
       - name: Prepare failure archive (if maven failed)
