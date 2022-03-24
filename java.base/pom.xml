@@ -209,6 +209,15 @@
                             <goal>generate-emoji-data</goal>
                         </goals>
                     </execution>
+
+                    <!-- Replace the normal JAR plugin -->
+                    <execution>
+                        <id>qbicc-jar</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+
                 </executions>
             </plugin>
 
@@ -314,6 +323,17 @@
                                 <arg>-XDstringConcat=inline</arg>
                             </compilerArgs>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <!-- Disable Maven JAR plugin -->
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <phase>none</phase>
                     </execution>
                 </executions>
             </plugin>
