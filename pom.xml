@@ -19,7 +19,7 @@
         <sh>/bin/sh</sh>
         <make>/usr/bin/make</make>
         <!-- IMPORTANT: when updating this value, also update .github/workflows/maven.yml -->
-        <version.qbicc>0.22.0</version.qbicc>
+        <version.qbicc>0.23.0</version.qbicc>
 
         <!-- This tracks the version of OpenJDK sources in the git submodule -->
         <version.openjdk>17.0.1</version.openjdk>
