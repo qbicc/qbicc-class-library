@@ -151,21 +151,27 @@ final class Class$_patch<T> {
         this.dimension = zero();
     }
 
+    @Add
+    @Deprecated(forRemoval = true)
+    private Class$_patch(final Class$_patch<?> elementClass, final Class$_patch<?> ignored) {
+        this(elementClass);
+    }
+
     /**
      * Injected constructor for reference array class objects.
      *
      * @param elementClass the array's element class (must not be {@code null})
-     * @param refArrayClass the reference array class (must not be {@code null})
      */
-    @SuppressWarnings({ "unchecked", "ConstantConditions" })
+    @SuppressWarnings({ "unchecked", "ConstantConditions", "CopyConstructorMissesField" })
     @Add
-    private Class$_patch(final Class$_patch<?> elementClass, final Class$_patch<?> refArrayClass) {
+    private Class$_patch(final Class$_patch<?> elementClass) {
         int elemDims = elementClass.dimension.intValue();
         if (elemDims > 0 || CompilerIntrinsics.isPrimArray(elementClass.id)) {
-            this.name = '[' + elementClass.name;
+            this.name = ('[' + elementClass.name).intern();
         } else {
-            this.name = '[' + ('L' + elementClass.name) + ';';
+            this.name = ('[' + ('L' + elementClass.name) + ';').intern();
         }
+        final Class$_patch<?> refArrayClass = (Class$_patch<?>) (Object) CompilerIntrinsics.getClassFromTypeIdSimple(CompilerIntrinsics.getReferenceArrayTypeId());
         this.classLoader = elementClass.classLoader;
         this.id = elementClass.id;
         this.classData = null;
