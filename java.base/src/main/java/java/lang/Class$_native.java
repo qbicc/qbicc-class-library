@@ -100,10 +100,6 @@ public final class Class$_native<T> {
         return dims.intValue() > 0 || CompilerIntrinsics.isPrimArray(typeId);
     }
 
-    public boolean isPrimitive() {
-        return CompilerIntrinsics.isPrimitive(CompilerIntrinsics.getTypeIdFromClass((Class<?>)(Object)this));
-    }
-
     public Class<? super T> getSuperclass() {
         type_id typeId = CompilerIntrinsics.getTypeIdFromClass((Class<?>)(Object)this);
         if (CompilerIntrinsics.isJavaLangObject(typeId) || CompilerIntrinsics.isPrimitive(typeId) || CompilerIntrinsics.isInterface(typeId)) {
