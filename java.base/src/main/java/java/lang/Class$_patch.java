@@ -4,6 +4,7 @@ import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
 
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.NoReflect;
@@ -145,7 +146,11 @@ final class Class$_patch<T> {
         this.module = module;
         this.instanceSize = instanceSize;
         this.instanceAlign = instanceAlign;
-        this.nestHost = nestHost == null ? ((Class<T>)(Object)this) : nestHost;
+        Class<?> actualNestHost = nestHost == null ? ((Class<T>) (Object) this) : nestHost.getNestHost();
+        this.nestHost = actualNestHost;
+        if (actualNestHost != (Object)this) {
+            ((Class$_patch<?>)(Object)actualNestHost).addNestMember((Class<?>)(Object)this);
+        }
         this.referenceBitMap = referenceBitMap;
         this.modifiers = modifiers;
         this.dimension = zero();
@@ -195,6 +200,29 @@ final class Class$_patch<T> {
         } else {
             return new Class<?>[] { ((Class<?>) (Object) this) };
         }
+    }
+
+    void addNestMember(Class<?> member) {
+        Class<?>[] oldVal = this.nestMembers;
+        Class<?>[] newVal, witness;
+        for (;;) {
+            if (oldVal == null) {
+                newVal = new Class<?>[] { (Class<?>)(Object)this, member };
+            } else {
+                int oldLen = oldVal.length;
+                newVal = Arrays.copyOf(oldVal, oldLen + 1);
+                newVal[oldLen] = member;
+            }
+            witness = compareAndSwapNestMembers(oldVal, newVal);
+            if (witness == oldVal) {
+                return;
+            }
+            oldVal = witness;
+        }
+    }
+
+    private Class<?>[] compareAndSwapNestMembers(Class<?>[] expect, Class<?>[] update) {
+        return addr_of(refToPtr(this).sel().nestMembers).compareAndSwap(expect, update);
     }
 
     @Replace
