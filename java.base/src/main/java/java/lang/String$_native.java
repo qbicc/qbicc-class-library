@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.main.InitialHeap;
 
 /**
  * Native bindings for {@link String}.
@@ -50,6 +51,14 @@ public final class String$_native {
 
     public String intern() {
         String self = (String) (Object) this;
+
+        // First look to see if there is a build-time interned String
+        int btIndex = Arrays.binarySearch(InitialHeap.internedStrings, self);
+        if (btIndex >=0) {
+            return InitialHeap.internedStrings[btIndex];
+        }
+
+        // No build time interned String; fallback to runtime interning
         byte coder = self.coder();
         byte[] bytes = self.value();
         int hc = self.hashCode();
