@@ -54,7 +54,7 @@ jobs:
 
       - name: Run qbicc tests
         run: |
-          mvn --batch-mode install -Dversion.qbicc.classlib=17.alpha.0.22-SNAPSHOT
+          mvn --batch-mode install -Dversion.qbicc.classlib=17.alpha.0.22
         working-directory: qbicc
 
       - name: Prepare failure archive (if maven failed)
@@ -108,7 +108,7 @@ jobs:
         env:
             LIBRARY_PATHS: $(brew --prefix gcc)/lib/gcc/11
         run: |
-          mvn --batch-mode install -Dversion.qbicc.classlib=17.alpha.0.22-SNAPSHOT
+          mvn --batch-mode install -Dversion.qbicc.classlib=17.alpha.0.22
         working-directory: qbicc
 
       - name: Prepare failure archive (if maven failed)
