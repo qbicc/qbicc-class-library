@@ -33,10 +33,13 @@
 package java.lang;
 
 import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.InlineCondition.*;
 import static org.qbicc.runtime.linux.Futex.*;
 import static org.qbicc.runtime.llvm.LLVM.*;
+import static org.qbicc.runtime.posix.Errno.EAGAIN;
 import static org.qbicc.runtime.posix.PThread.*;
 import static org.qbicc.runtime.posix.Time.*;
+import static org.qbicc.runtime.stdc.Errno.errno;
 import static org.qbicc.runtime.stdc.Stdint.*;
 import static org.qbicc.runtime.stdc.Time.*;
 
@@ -46,6 +49,9 @@ import java.util.concurrent.locks.LockSupport;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.Hidden;
+import org.qbicc.runtime.Inline;
+import org.qbicc.runtime.NoReflect;
+import org.qbicc.runtime.main.VMHelpers;
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
@@ -73,15 +79,14 @@ public class Thread$_patch {
     native void setPriority(final int priority);
     static native long nextThreadID();
 
-    // used only by non-Linux
-    // TODO: predicate class cannot be loaded before java.lang.Thread is loaded
-    @Add //(unless = Build.Target.IsLinux.class)
-    pthread_mutex_t mutex;
-    @Add // (unless = Build.Target.IsLinux.class)
-    pthread_cond_t cond;
-    // used by Linux & POSIX
     @Add
-    uint32_t parkFlag;
+    pthread_t thread;
+
+    // used only by non-Linux
+    @Add(unless = Build.Target.IsLinux.class)
+    pthread_mutex_t mutex;
+    @Add(unless = Build.Target.IsLinux.class)
+    pthread_cond_t cond;
 
     @Replace
     Thread$_patch(ThreadGroup g, Runnable target, String name,
@@ -115,7 +120,8 @@ public class Thread$_patch {
     @Add
     @Hidden
     public void initializeNativeFields() {
-        parkFlag = zero();
+        // initialize native fields
+        threadStatus = 0;
         if (Build.isTarget() && ! Build.Target.isLinux()) {
             // mutex type does not matter
             c_int res = pthread_mutex_init(addr_of(refToPtr(this).sel().mutex), zero());
@@ -155,34 +161,53 @@ public class Thread$_patch {
             nanos -= 1_000_000;
         }
         end = System.nanoTime();
-        for (;;) {
-            start = end;
-            if (Thread.interrupted()) {
-                throw new InterruptedException();
+        int32_t_ptr statusPtr = addr_of(refToPtr((Thread$_patch) (Object) Thread.currentThread()).sel().threadStatus).cast();
+        statusPtr.getAndBitwiseOrOpaque(word(STATE_SLEEPING));
+        try {
+            for (;;) {
+                start = end;
+                if (Thread.interrupted()) {
+                    throw new InterruptedException();
+                }
+                // we can only fit MAX_NANOS_PER_MS_TIME milliseconds into a long as nanos; so that's the max we can wait
+                LockSupport.parkNanos(Math.min(millis, MAX_NANOS_PER_MS_TIME) * 1_000_000L + nanos);
+                end = System.nanoTime();
+                // subtract the elapsed milliseconds
+                millis -= Long.divideUnsigned(end - start, 1_000_000L);
+                // subtract the elapsed nanoseconds
+                nanos -= (int) Long.remainderUnsigned(end - start, 1_000_000L);
+                while (nanos < 0) {
+                    millis -= 1;
+                    nanos += 1_000_000L;
+                }
+                if (millis < 0 || millis == 0 && nanos <= 0) {
+                    return;
+                }
             }
-            // we can only fit MAX_NANOS_PER_MS_TIME milliseconds into a long as nanos; so that's the max we can wait
-            LockSupport.parkNanos(Math.min(millis, MAX_NANOS_PER_MS_TIME) * 1_000_000L + nanos);
-            end = System.nanoTime();
-            // subtract the elapsed milliseconds
-            millis -= Long.divideUnsigned(end - start, 1_000_000L);
-            // subtract the elapsed nanoseconds
-            nanos -= (int) Long.remainderUnsigned(end - start, 1_000_000L);
-            while (nanos < 0) {
-                millis -= 1;
-                nanos += 1_000_000L;
-            }
-            if (millis < 0 || millis == 0 && nanos <= 0) {
-                return;
-            }
+        } finally {
+            statusPtr.getAndBitwiseAndOpaque(word(~STATE_SLEEPING));
         }
     }
 
-    static final int STATE_ALIVE = 1 << 0;
+    // stick with the JVMTI flag definitions
+
+    static final int STATE_ALIVE = 1 << 0; // thread, cond, and mutex are valid only when this bit is set
     static final int STATE_TERMINATED = 1 << 1;
     static final int STATE_RUNNABLE = 1 << 2;
-    static final int STATE_WAITING = 1 << 4;
+    static final int STATE_WAITING_INDEFINITELY = 1 << 4;
     static final int STATE_WAITING_WITH_TIMEOUT = 1 << 5;
-    static final int STATE_BLOCKED = 1 << 10;
+    static final int STATE_SLEEPING = 1 << 6;
+    static final int STATE_WAITING = 1 << 7;
+    static final int STATE_IN_OBJECT_WAIT = 1 << 8;
+    static final int STATE_PARKED = 1 << 9;
+    static final int STATE_BLOCKED = 1 << 10; // on monitor enter
+    // bits 9 - 20 unused
+    static final int STATE_INTERRUPTED = 1 << 21;
+    static final int STATE_IN_NATIVE = 1 << 22;
+    // bits 23 - 27 unused
+    static final int STATE_UNPARK = 1 << 28; // pending unpark (aka vendor 1)
+    static final int STATE_VENDOR_2 = 1 << 29;
+    static final int STATE_VENDOR_3 = 1 << 30;
 
     @Add
     void blocked() {
@@ -194,19 +219,133 @@ public class Thread$_patch {
         addr_of(refToPtr(this).sel().threadStatus).getAndBitwiseAndOpaque(word(~STATE_BLOCKED));
     }
 
+    /**
+     * The number of non-daemon threads; when this reaches zero, we exit.
+     */
+    @Add
+    private static volatile int nonDaemonThreadCount;
+
+    @Replace
+    @Hidden
+    @NoReflect
+    private void start0() {
+        // initialize mutex & condition if there is one
+        if (Build.isTarget() && ! Build.Target.isLinux()) {
+            // mutex type does not matter
+            c_int res = pthread_mutex_init(addr_of(refToPtr(this).sel().mutex), zero());
+            if (res.isNonNull()) {
+                throw new InternalError("Failed to initialize thread park mutex");
+            }
+            // cond type does not matter either
+            res = pthread_cond_init(addr_of(refToPtr(this).sel().cond), zero());
+            if (res.isNonNull()) {
+                throw new InternalError("Failed to initialize thread park condition");
+            }
+        }
+        addr_of(refToPtr(this).sel().threadStatus).storeSingleRelease(word(STATE_ALIVE));
+        void_ptr threadWrapper = VMHelpers.threadWrapper(zero());
+        ptr<Thread> thisPtr = refToPtr(this).cast();
+        ptr<pthread_t> pthreadPtr = addr_of(refToPtr(this).sel().thread);
+        int result = pthread_create(pthreadPtr.cast(), zero(), threadWrapper.cast(), thisPtr.cast()).intValue();
+        if (result != 0) {
+            // terminated - clear ALIVE and set TERMINATED in one swap
+            addr_of(refToPtr(this).sel().threadStatus).getAndBitwiseXor(word(STATE_ALIVE | STATE_TERMINATED));
+            if (errno == EAGAIN.intValue()) {
+                throw new OutOfMemoryError("Native thread");
+            } else {
+                throw new InternalError("Native thread");
+            }
+        }
+    }
+
+    /**
+     * Actually run the thread body.
+     */
+    @Add
+    @Hidden
+    @NoReflect
+    @SuppressWarnings("CallToThreadRun")
+    private void run0() {
+        Thread self = (Thread) (Object) this;
+        begin();
+        try {
+            self.run();
+        } finally {
+            end();
+        }
+    }
+
+    @Add
+    @Hidden
+    @NoReflect
+    private void begin() {
+        Thread self = (Thread) (Object) this;
+        if (! self.isDaemon()) {
+            addr_of(nonDaemonThreadCount).getAndAdd(word(1));
+        }
+        addr_of(refToPtr(this).sel().threadStatus).getAndBitwiseOr(word(STATE_RUNNABLE));
+    }
+
+    @Add
+    @Hidden
+    @NoReflect
+    private void end() {
+        Thread self = (Thread) (Object) this;
+        if (! self.isDaemon()) {
+            int cnt = addr_of(nonDaemonThreadCount).getAndAdd(word(- 1)).intValue();
+            if (cnt == 1) {
+                // it was the last non-daemon thread
+                // TODO: process exit
+            }
+        }
+        // terminated - clear ALIVE and RUNNABLE and set TERMINATED in one swap
+        addr_of(refToPtr(this).sel().threadStatus).getAndBitwiseXor(word(STATE_ALIVE | STATE_RUNNABLE | STATE_TERMINATED));
+    }
+
+    @Replace
+    private void interrupt0() {
+        addr_of(refToPtr(this).sel().threadStatus).getAndBitwiseOr(word(STATE_INTERRUPTED));
+        // unpark the thread so it can observe the interruption
+        unpark();
+    }
+
+    @Replace
+    @Inline(ALWAYS)
+    private static void clearInterruptEvent() {
+        addr_of(refToPtr((Thread$_patch) (Object) Thread.currentThread()).sel().threadStatus).getAndBitwiseAnd(word(~STATE_INTERRUPTED));
+    }
+
     @SuppressWarnings("ConstantConditions")
     @Add
     static void park(boolean isAbsolute, long time) {
         Thread thread = Thread.currentThread();
         Thread$_patch patchThread = (Thread$_patch) (Object) thread;
-        uint32_t_ptr ptr = addr_of(refToPtr(patchThread).sel().parkFlag);
-        // if we have a pending unpark, the wait value will be 1 and we will not block.
-        if (ptr.compareAndSet(word(1), zero())) {
-            return;
+        int32_t_ptr ptr = addr_of(refToPtr(patchThread).sel().threadStatus).cast();
+        int oldVal, newVal, witness, setFlags;
+        oldVal = ptr.loadAcquire().intValue();
+        setFlags = STATE_PARKED | STATE_WAITING | (time == 0 && ! isAbsolute ? STATE_WAITING_INDEFINITELY : STATE_WAITING_WITH_TIMEOUT);
+        for (;;) {
+            if ((oldVal & STATE_UNPARK) != 0) {
+                // clear pending unpark
+                newVal = oldVal & ~STATE_UNPARK;
+                // todo: singleRelease
+                witness = ptr.compareAndSwapRelease(word(oldVal), word(newVal)).intValue();
+                if (witness == oldVal) {
+                    // updated successfully; exit
+                    return;
+                }
+            } else {
+                newVal = oldVal | setFlags;
+                witness = ptr.compareAndSwap(word(oldVal), word(newVal)).intValue();
+                if (witness == oldVal) {
+                    // updated successfully; break out to park
+                    break;
+                }
+            }
+            // retry CAS
+            oldVal = witness;
         }
-        // indicate that we are waiting
-        int flag = time == 0 && ! isAbsolute ? STATE_WAITING : STATE_WAITING_WITH_TIMEOUT;
-        addr_of(refToPtr(patchThread).sel().threadStatus).getAndBitwiseOrOpaque(word(flag));
+        // now park
         try {
             if (Build.Target.isLinux()) {
                 // block via futex.
@@ -216,15 +355,15 @@ public class Thread$_patch {
                     // time is in milliseconds since epoch
                     timespec.tv_sec = word(time / 1_000L);
                     timespec.tv_nsec = word(time * 1_000_000L);
-                    futex_wait_absolute(ptr, word(0), addr_of(timespec));
+                    futex_wait_absolute(ptr.cast(), word(newVal), addr_of(timespec));
                 } else if (time == 0) {
                     // relative time of zero means wait indefinitely
-                    futex_wait(ptr, word(0), zero());
+                    futex_wait(ptr.cast(), word(newVal), zero());
                 } else {
                     // time is in relative nanoseconds
                     timespec.tv_sec = word(time / 1_000_000_000L);
                     timespec.tv_nsec = word(time % 1_000_000_000L);
-                    futex_wait(ptr, word(0), addr_of(timespec));
+                    futex_wait(ptr.cast(), word(newVal), addr_of(timespec));
                 }
                 ptr.storeRelease(zero());
             } else if (Build.Target.isPosix()) {
@@ -265,37 +404,56 @@ public class Thread$_patch {
                 throw new UnsupportedOperationException();
             }
         } finally {
-            addr_of(refToPtr(patchThread).sel().threadStatus).getAndBitwiseAndOpaque(word(~flag));
+            // reset flags on exit
+            ptr.getAndBitwiseAndOpaque(word(~(setFlags | STATE_PARKED)));
         }
     }
 
     @Add
     void unpark() {
-        uint32_t_ptr ptr = addr_of(refToPtr(this).sel().parkFlag);
-        if (Build.Target.isLinux()) {
-            if (ptr.compareAndSet(zero(), word(1))) {
-                // nothing we can do about errors really, other than panic
-                futex_wake_all(ptr);
+        int32_t_ptr ptr = addr_of(refToPtr(this).sel().threadStatus).cast();
+        int oldVal, newVal, witness;
+        oldVal = ptr.loadSingleAcquire().intValue();
+        for (;;) {
+            if ((oldVal & (STATE_UNPARK | STATE_TERMINATED)) != 0) {
+                // no op necessary; unpark already pending or the thread is gone
+                return;
             }
-        } else if (Build.Target.isPosix()) {
-            if (ptr.compareAndSet(zero(), word(1))) {
-                // wake
-                pthread_mutex_t_ptr mutexPtr = addr_of(refToPtr(this).sel().mutex);
-                if (pthread_mutex_lock(mutexPtr).isNonZero()) {
-                    throw new InternalError("mutex operation failed");
+            newVal = oldVal | STATE_UNPARK;
+            // todo: single release
+            witness = ptr.compareAndSwapRelease(word(oldVal), word(newVal)).intValue();
+            if (witness == oldVal) {
+                // done; now we just have to signal waiters (well just one waiter really) (well, maybe zero actually)
+                if ((oldVal & STATE_ALIVE) == 0) {
+                    // there isn't actually anyone to wake
+                    return;
                 }
-                try {
-                    pthread_cond_t_ptr condPtr = addr_of(refToPtr(this).sel().cond);
-                    if (pthread_cond_broadcast(condPtr).isNonZero()) {
-                        throw new InternalError("mutex condition operation failed");
+                if (Build.Target.isLinux()) {
+                    // nothing we can do about errors really, other than panic
+                    futex_wake_all(ptr.cast());
+                } else if (Build.Target.isPosix()) {
+                    // wake
+                    pthread_mutex_t_ptr mutexPtr = addr_of(refToPtr(this).sel().mutex);
+                    if (pthread_mutex_lock(mutexPtr).isNonZero()) {
+                        throw new InternalError("mutex operation failed");
                     }
-                } finally {
-                    pthread_mutex_unlock(mutexPtr);
+                    try {
+                        pthread_cond_t_ptr condPtr = addr_of(refToPtr(this).sel().cond);
+                        if (pthread_cond_broadcast(condPtr).isNonZero()) {
+                            throw new InternalError("mutex condition operation failed");
+                        }
+                    } finally {
+                        pthread_mutex_unlock(mutexPtr);
+                    }
+                } else {
+                    throw new UnsupportedOperationException();
                 }
+                return;
             }
-        } else {
-            throw new UnsupportedOperationException();
+            // retry
+            oldVal = witness;
         }
+
     }
 
     @Replace

@@ -34,8 +34,6 @@ package java.lang;
 
 import static org.qbicc.runtime.posix.Sched.sched_yield;
 
-import java.util.concurrent.locks.LockSupport;
-
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 
@@ -62,8 +60,6 @@ class Thread$_native {
         Thread.sleep(remaining, 0);
     }
 
-    // TODO: private native void start0();
-
     public static boolean holdsLock(Object obj) {
         return ((Object$_aliases) obj).holdsLock();
     }
@@ -85,15 +81,6 @@ class Thread$_native {
 
     private void resume0() {
         throw new UnsupportedOperationException();
-    }
-
-    private void interrupt0() {
-        // unpark the thread so it can observe the interruption
-        LockSupport.unpark((Thread) (Object) this);
-    }
-
-    private static void clearInterruptEvent() {
-        // no operation
     }
 
     private void setNativeName(String name) {
