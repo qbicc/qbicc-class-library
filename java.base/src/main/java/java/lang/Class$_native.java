@@ -91,4 +91,9 @@ public final class Class$_native<T> {
     public int getModifiers() {
         return ((Class$_patch<T>) (Object) this).modifiers & 0xffff;
     }
+
+    public boolean isHidden() {
+        int I_ACC_HIDDEN = 1 << 18; // TODO: get this from a set of constants shared with the runtime
+        return (((Class$_patch<T>) (Object) this).modifiers & I_ACC_HIDDEN) == I_ACC_HIDDEN;
+    }
 }
