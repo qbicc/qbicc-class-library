@@ -50,7 +50,11 @@ public final class Class$_native<T> {
     }
 
     private static Class<?> forName0(String name, boolean initialize, ClassLoader loader, Class<?> caller) throws ClassNotFoundException {
-        throw new UnsupportedOperationException();
+        Class<?> cls = VMHelpers.findLoadedClass(name, loader);
+        if (cls == null) {
+            throw new ClassNotFoundException(name);
+        }
+        return cls;
     }
 
     public boolean isInstance(Object obj) {

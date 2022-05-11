@@ -32,10 +32,19 @@
 package java.lang;
 
 import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.main.VMHelpers;
 
 @Tracking("src/java.base/share/native/libjava/ClassLoader.c")
 public class ClassLoader$_native {
     private static void registerNatives() {
         // no-op
+    }
+
+    private static Class<?> findBootstrapClass(String name) {
+        return VMHelpers.findLoadedClass(name, null);
+    }
+
+    private final Class<?> findLoadedClass0(String name) {
+        return VMHelpers.findLoadedClass(name, (ClassLoader)((Object)this));
     }
 }
