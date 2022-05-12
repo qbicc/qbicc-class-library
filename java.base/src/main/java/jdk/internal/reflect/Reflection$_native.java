@@ -32,13 +32,23 @@
 
 package jdk.internal.reflect;
 
+import org.qbicc.runtime.stackwalk.JavaStackWalker;
+import org.qbicc.runtime.stackwalk.StackWalker;
 import org.qbicc.rt.annotation.Tracking;
 
 @Tracking("src/java.base/share/classes/jdk/internal/reflect/Reflection.java")
 public class Reflection$_native {
     public static Class getCallerClass() {
-        // TODO: Real runtime implementation...via libunwind???
-        throw new UnsupportedOperationException();
+        StackWalker sw = new StackWalker();
+        JavaStackWalker javaStackWalker = new JavaStackWalker(true);
+        boolean ok = javaStackWalker.next(sw); // Start
+        ok = ok && javaStackWalker.next(sw);   // Skip me.
+        ok = ok && javaStackWalker.next(sw);   // Skip my caller.
+        if (ok) {
+            return javaStackWalker.getFrameClass();
+        } else {
+            throw new InternalError("Malformed Stack");
+        }
     }
 
     public static int getClassAccessFlags(Class<?> c) {
