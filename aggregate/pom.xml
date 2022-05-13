@@ -25,6 +25,10 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>qbicc-rt-java.logging</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>qbicc-rt-jdk.unsupported</artifactId>
         </dependency>
     </dependencies>
