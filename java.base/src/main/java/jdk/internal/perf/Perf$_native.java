@@ -32,11 +32,32 @@
 
 package jdk.internal.perf;
 
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+
 import org.qbicc.rt.annotation.Tracking;
 
 @Tracking("src/java.base/share/classes/jdk/internal/perf/Perf.java")
 public class Perf$_native {
     private static void registerNatives() {
         // no-op
+    }
+
+    public ByteBuffer createLong(String name, int variability, int units, long value) {
+        ByteBuffer buf = ByteBuffer.allocate(8);
+        buf.putLong(0, value);
+        return buf;
+    }
+
+    public ByteBuffer createByteArray(String name, int variability, int units, byte[] value, int maxLength) {
+        return ByteBuffer.wrap(value == null ? new byte[maxLength] : Arrays.copyOf(value, maxLength));
+    }
+
+    public long highResCounter() {
+        return System.nanoTime();
+    }
+
+    public long highResFrequency() {
+        return 1_000_000_000L;
     }
 }
