@@ -1,0 +1,3 @@
+# Patcher classes.  Please keep sorted.
+
+java.util.logging.LogManager$_patch

@@ -25,6 +25,11 @@
             <groupId>org.qbicc.rt</groupId>
             <artifactId>qbicc-rt-annotation</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.qbicc</groupId>
+            <artifactId>qbicc-runtime-main</artifactId>
+        </dependency>
     </dependencies>
 
 

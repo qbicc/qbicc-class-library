@@ -181,6 +181,7 @@
                             <output>${project.build.directory}/generated-sources/module-info/module-info.java</output>
                             <sourceFile>${project.basedir}/../openjdk/src/java.base/share/classes/module-info.java</sourceFile>
                             <moduleFiles>
+                                <moduleFile>${project.basedir}/src/main/java/module-info.java.extra</moduleFile>
                                 <moduleFile>${project.basedir}/../openjdk/src/java.base/unix/classes/module-info.java.extra</moduleFile>
                                 <moduleFile>${project.basedir}/../openjdk/src/java.base/windows/classes/module-info.java.extra</moduleFile>
                             </moduleFiles>
