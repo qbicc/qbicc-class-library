@@ -195,13 +195,10 @@ public final class System$_patch {
 
     @Replace
     private static int initPhase2(boolean printToStderr, boolean printStackTrace) {
-        try {
-            bootLayer = ModuleBootstrap.boot();
-        } catch (Exception | Error e) {
-            logInitException(printToStderr, printStackTrace,
-                    "Error occurred during initialization of boot layer", e);
-            return -1; // JNI_ERR
-        }
+        // For qbicc, we get better error reporting if we simply allow any exception
+        // raised by ModuleBootstrap.boot() to propagate back to VmImpl.initialize()
+        // and be caught and reported there.
+        bootLayer = ModuleBootstrap.boot();
 
         // module system initialized
         VM.initLevel(2);
