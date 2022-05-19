@@ -39,6 +39,7 @@ import static org.qbicc.runtime.stdc.Errno.errno;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
+import org.qbicc.runtime.host.HostIO;
 
 @Tracking("src/java.base/unix/native/libjava/FileDescriptor_md.c")
 @Tracking("src/java.base/windows/native/libjava/FileDescriptor_md.c")
@@ -55,7 +56,9 @@ public class FileDescriptor$_native {
     }
 
     private static boolean getAppend(int fd) {
-        if (Build.Target.isPosix()) {
+        if (Build.isHost()) {
+            return HostIO.isAppend(fd);
+        } else if (Build.Target.isPosix()) {
             c_int res = fcntl(word(fd), F_GETFL);
             return (res.intValue() & O_APPEND.intValue()) != 0;
         } else {
@@ -68,7 +71,16 @@ public class FileDescriptor$_native {
         if (fd == -1) {
             return;
         }
-        if (Build.Target.isPosix()) {
+        if (Build.isHost()) {
+            this.fd = -1;
+            if (0 <= fd && fd <= 2) {
+                // stdin, stdout, or stderr... redirect to `/dev/null` in the same manner as OpenJDK
+                HostIO.reopen(fd, "/dev/null", fd == 0 ? HostIO.O_RDONLY : HostIO.O_WRONLY);
+            } else {
+                HostIO.close(fd);
+            }
+        } else if (Build.Target.isPosix()) {
+            this.fd = -1;
             if (0 <= fd && fd <= 2) {
                 // stdin, stdout, or stderr... redirect to `/dev/null` in the same manner as OpenJDK
                 c_int res = open(utf8z("/dev/null"), O_WRONLY);
@@ -77,9 +89,7 @@ public class FileDescriptor$_native {
                 }
                 dup2(res, word(fd));
                 close(res);
-                return;
             }
-            this.fd = -1;
             c_int res;
             if (Build.Target.isAix()) {
                 do {
@@ -106,7 +116,13 @@ public class FileDescriptor$_native {
     }
 
     public void sync() throws SyncFailedException {
-        if (Build.Target.isPosix()) {
+        if (Build.isHost()) {
+            try {
+                HostIO.fsync(fd);
+            } catch (IOException e) {
+                throw new SyncFailedException(e.getMessage());
+            }
+        } else if (Build.Target.isPosix()) {
             c_int res = fsync(word(fd));
             if (res.intValue() == -1) {
                 throw new SyncFailedException("sync failed");

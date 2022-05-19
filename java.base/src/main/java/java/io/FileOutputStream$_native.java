@@ -31,8 +31,6 @@
  */
 package java.io;
 
-import jdk.internal.access.JavaIOFileDescriptorAccess;
-import jdk.internal.access.SharedSecrets;
 import org.qbicc.rt.annotation.Tracking;
 
 import static org.qbicc.runtime.CNative.*;
