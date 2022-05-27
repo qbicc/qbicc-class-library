@@ -44,8 +44,16 @@ import static org.qbicc.runtime.stdc.Stddef.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
 import static org.qbicc.runtime.stdc.String.*;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.NotDirectoryException;
+
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
+import org.qbicc.runtime.host.HostIO;
 import org.qbicc.runtime.posix.Fcntl;
 import org.qbicc.runtime.posix.SysStat;
 import org.qbicc.runtime.posix.Unistd;
@@ -76,7 +84,27 @@ class UnixNativeDispatcher$_native {
         return res;
     }
 
+    static byte[] getZeroTerminatedBytes(long address) {
+        char_ptr ptr = word(address);
+        int len;
+        for (len = 0; ptr.plus(len).loadUnshared().isNonZero(); len ++);
+        byte[] array = new byte[len];
+        for (int i = 0; i < len; i ++) {
+            array[i] = ptr.plus(i).loadUnshared().byteValue();
+        }
+        return array;
+    }
+
     static int open0(long pathAddress, int flags, int mode) throws UnixException {
+        if (Build.isHost()) {
+            int fixedFlags = fixFlags(flags);
+            try {
+                //noinspection OctalInteger
+                return HostIO.open(new String(getZeroTerminatedBytes(pathAddress), StandardCharsets.UTF_8), fixedFlags, mode & 0777);
+            } catch (IOException e) {
+                throw new UnixException(toErrno(e));
+            }
+        }
         int fd;
         do {
             fd = Fcntl.open(word(pathAddress), word(flags), word(mode)).intValue();
@@ -87,7 +115,57 @@ class UnixNativeDispatcher$_native {
         return fd;
     }
 
+    private static int toErrno(final IOException ioe) {
+        if (ioe instanceof NoSuchFileException) {
+            return ENOENT.intValue();
+        } else if (ioe instanceof NotDirectoryException) {
+            return ENOTDIR.intValue();
+        } else if (ioe instanceof AccessDeniedException) {
+            return EACCES.intValue();
+        } else if (ioe instanceof DirectoryNotEmptyException) {
+            return ENOTEMPTY.intValue();
+        } else {
+            return EIO.intValue();
+        }
+    }
+
+    /**
+     * Fix OS-specific flags to HostIO flags.
+     *
+     * @param flags the flags to fix
+     * @return the fixed flags
+     */
+    private static int fixFlags(final int flags) {
+        int fixedFlags = 0;
+        if ((flags & Fcntl.O_CREAT.intValue()) != 0) {
+            fixedFlags |= HostIO.O_CREAT;
+        }
+        if ((flags & Fcntl.O_APPEND.intValue()) != 0) {
+            fixedFlags |= HostIO.O_APPEND;
+        }
+        if ((flags & Fcntl.O_EXCL.intValue()) != 0) {
+            fixedFlags |= HostIO.O_EXCL;
+        }
+        if ((flags & Fcntl.O_TRUNC.intValue()) != 0) {
+            fixedFlags |= HostIO.O_TRUNC;
+        }
+        int mode = flags & Fcntl.O_ACCMODE.intValue();
+        if (mode == Fcntl.O_RDONLY.intValue()) {
+            fixedFlags |= HostIO.O_RDONLY;
+        } else if (mode == Fcntl.O_WRONLY.intValue()) {
+            fixedFlags |= HostIO.O_WRONLY;
+        } else if (mode == Fcntl.O_RDWR.intValue()) {
+            fixedFlags |= HostIO.O_RDWR;
+        } else {
+            throw new IllegalStateException();
+        }
+        return fixedFlags;
+    }
+
     static int openat0(int dfd, long pathAddress, int flags, int mode) throws UnixException {
+        if (Build.isHost()) {
+            throw new UnsupportedOperationException("openat");
+        }
         int fd;
         do {
             fd = Fcntl.openat(word(dfd), word(pathAddress), word(flags), word(mode)).intValue();
@@ -101,6 +179,13 @@ class UnixNativeDispatcher$_native {
     // NOTE: the JDK does not declare this exception but the impl can still throw it.
     // Reported upstream: JDK-
     static void close0(int fd) throws UnixException {
+        if (Build.isHost()) {
+            try {
+                HostIO.close(fd);
+            } catch (IOException e) {
+                throw new UnixException(toErrno(e));
+            }
+        }
         int res;
         do {
             res = Unistd.close(word(fd)).intValue();
