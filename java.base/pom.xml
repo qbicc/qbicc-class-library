@@ -108,6 +108,28 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>gensrc-tzdb</id>
+                        <goals>
+                            <goal>generate-tzdb</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDir>${project.basedir}/../openjdk/make/data/tzdata</sourceDir>
+                            <tzFiles>
+                                <tzFile>africa</tzFile>
+                                <tzFile>antarctica</tzFile>
+                                <tzFile>asia</tzFile>
+                                <tzFile>australasia</tzFile>
+                                <tzFile>europe</tzFile>
+                                <tzFile>northamerica</tzFile>
+                                <tzFile>southamerica</tzFile>
+                                <tzFile>backward</tzFile>
+                                <tzFile>etcetera</tzFile>
+                                <tzFile>gmt</tzFile>
+                                <tzFile>jdk11_backward</tzFile>
+                            </tzFiles>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>gensrc-locale-data</id>
                         <goals>
                             <goal>generate-locale-data</goal>
