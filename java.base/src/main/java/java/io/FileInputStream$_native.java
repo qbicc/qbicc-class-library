@@ -32,7 +32,6 @@
 package java.io;
 
 import static java.lang.Math.*;
-import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.posix.Fcntl.*;
 
 import org.qbicc.rt.annotation.Tracking;
@@ -91,15 +90,15 @@ class FileInputStream$_native {
     }
 
     private int available0() throws IOException {
-        c_long ret = auto();
         if (! fd.valid()) {
             throw new IOException("Stream closed");
         }
-        if (! IO_Util.handleAvailable(fd, addr_of(ret))) {
+        long ret = IO_Util.handleAvailable(fd);
+        if (ret == -1) {
             // todo: JNU_ThrowIOExceptionWithLastError
             throw new IOException();
         }
-        return (int) min(Integer.MAX_VALUE, max(0, ret.longValue()));
+        return (int) min(Integer.MAX_VALUE, max(0, ret));
     }
 
     private static void initIDs() {

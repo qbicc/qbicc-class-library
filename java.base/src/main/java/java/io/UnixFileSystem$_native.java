@@ -41,6 +41,8 @@ import static org.qbicc.runtime.stdc.Stdlib.*;
 import java.nio.charset.StandardCharsets;
 
 import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.Build;
+import org.qbicc.runtime.host.HostIO;
 
 /**
  *
@@ -153,6 +155,13 @@ class UnixFileSystem$_native {
     }
 
     public int getBooleanAttributes0(File f) {
+        if (Build.isHost()) {
+            try {
+                return HostIO.getBooleanAttributes(f.toString());
+            } catch (IOException ignored) {
+                return 0;
+            }
+        }
         final struct_stat statBuf = auto();
         final char_ptr pathPtr = mallocPath(f);
         c_int statResult = stat(pathPtr.cast(), addr_of(statBuf));
@@ -172,6 +181,14 @@ class UnixFileSystem$_native {
     }
 
     public boolean checkAccess(File f, int chkAccess) {
+        if (Build.isHost()) {
+            try {
+                HostIO.checkAccess(f.toString());
+                return true;
+            } catch (IOException ignored) {
+                return false;
+            }
+        }
         final c_int mode = switch (chkAccess) {
             case ACCESS_READ -> R_OK;
             case ACCESS_WRITE -> W_OK;

@@ -46,6 +46,8 @@ import java.util.Objects;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
+import org.qbicc.runtime.host.HostIO;
+import org.qbicc.runtime.posix.Fcntl;
 
 @SuppressWarnings({ "SpellCheckingInspection", "ConstantConditions" })
 @Tracking("src/java.base/share/native/libjava/io_util.h")
@@ -57,10 +59,13 @@ final class IO_Util {
     private static final int BUF_SIZE = 8192;
 
     static int readSingle(final FileDescriptor fd) throws IOException {
-        if (Build.Target.isPosix()) {
-            if (! fd.valid()) {
-                throw new IOException("Stream closed");
-            }
+        if (! fd.valid()) {
+            throw new IOException("Stream closed");
+        }
+        if (Build.isHost()) {
+            int fdes = ((FileDescriptor$_native) (Object) fd).fd;
+            return HostIO.readSingle(fdes);
+        } else if (Build.Target.isPosix()) {
             c_char ret = auto();
             int cnt = handleRead(fd, addr_of(ret), 1).intValue();
             if (cnt == 0) {
@@ -80,10 +85,17 @@ final class IO_Util {
     }
 
     static void writeSingle(final FileDescriptor fd, byte b, boolean append) throws IOException {
-        if (Build.Target.isPosix()) {
-            if (!fd.valid()) {
-                throw new IOException("Stream closed");
+        if (! fd.valid()) {
+            throw new IOException("Stream closed");
+        }
+        if (Build.isHost()) {
+            int fdes = ((FileDescriptor$_native) (Object) fd).fd;
+            if (append) {
+                HostIO.appendSingle(fdes, b);
+            } else {
+                HostIO.writeSingle(fdes, b);
             }
+        } else if (Build.Target.isPosix()) {
             int cnt = handleWrite(fd, addr_of(b).cast(), 1).intValue();
             if (cnt == -1) {
                 // todo: JNU_ThrowIOExceptionWithLastError
@@ -140,7 +152,43 @@ final class IO_Util {
     }
 
     static void fileOpen(final FileDescriptor fd, final String name, final c_int flags) throws FileNotFoundException {
-        if (Build.Target.isPosix()) {
+        if (Build.isHost()) {
+            // convert native flags to host flags
+            int nativeFlags = flags.intValue();
+            int hostFlags;
+            if ((nativeFlags & O_ACCMODE.intValue()) == O_RDONLY.intValue()) {
+                hostFlags = HostIO.O_RDONLY;
+            } else if ((nativeFlags & O_ACCMODE.intValue()) == O_WRONLY.intValue()) {
+                hostFlags = HostIO.O_WRONLY;
+            } else if ((nativeFlags & O_ACCMODE.intValue()) == O_RDWR.intValue()) {
+                hostFlags = HostIO.O_RDWR;
+            } else {
+                // impossible
+                throw new IllegalStateException();
+            }
+            if ((nativeFlags & O_APPEND.intValue()) != 0) {
+                hostFlags |= HostIO.O_APPEND;
+            }
+            if ((nativeFlags & O_CREAT.intValue()) != 0) {
+                hostFlags |= HostIO.O_CREAT;
+            }
+            if ((nativeFlags & O_EXCL.intValue()) != 0) {
+                hostFlags |= HostIO.O_EXCL;
+            }
+            if ((nativeFlags & O_TRUNC.intValue()) != 0) {
+                hostFlags |= HostIO.O_TRUNC;
+            }
+            try {
+                //noinspection OctalInteger
+                ((FileDescriptor$_native) (Object) fd).fd = HostIO.open(name, hostFlags, 0666);
+            } catch (FileNotFoundException e) {
+                throw e;
+            } catch (IOException e) {
+                FileNotFoundException fnfe = new FileNotFoundException(name);
+                fnfe.initCause(e);
+                throw fnfe;
+            }
+        } else if (Build.Target.isPosix()) {
             char_ptr ptr = mallocStringChars(name);
             try {
                 if (Build.Target.isLinux() /* todo: || defined(_ALLBSD_SOURCE) */) {
@@ -175,6 +223,9 @@ final class IO_Util {
         }
         if (! fd.valid()) {
             throw new IOException("Stream closed");
+        }
+        if (Build.isHost()) {
+            return HostIO.read(((FileDescriptor$_native)(Object)fd).fd, b, off, len);
         }
         int nread;
         //todo: <T, P extends ptr<T>> P alloca(Class<T> type, int count); // and variations
@@ -211,13 +262,22 @@ final class IO_Util {
         }
     }
 
-    static void writeBytes(final FileDescriptor fd, byte b[], int off, int len, boolean append) throws IOException {
+    static void writeBytes(final FileDescriptor fd, byte[] b, int off, int len, boolean append) throws IOException {
         Objects.requireNonNull(b, "b");
         if (off < 0 || len < 0 || b.length - off < len) {
             throw new IndexOutOfBoundsException();
         }
         if (!fd.valid()) {
             throw new IOException("Stream closed");
+        }
+        if (Build.isHost()) {
+            while (len > 0) {
+                int fdNum = ((FileDescriptor$_native) (Object) fd).fd;
+                int cnt = append ? HostIO.append(fdNum, b, off, len) : HostIO.write(fdNum, b, off, len);
+                len -= cnt;
+                off += cnt;
+            }
+            return;
         }
         while (len > 0) {
             ssize_t nw;
@@ -232,7 +292,13 @@ final class IO_Util {
     }
 
     static long IO_GetLength(final FileDescriptor fd) {
-        if (Build.Target.isWindows()) {
+        if (Build.isHost()) {
+            try {
+                return HostIO.getFileSize(((FileDescriptor$_native)(Object)fd).fd);
+            } catch (IOException e) {
+                return -1;
+            }
+        } else if (Build.Target.isWindows()) {
             // todo: GetFileSizeEx();
             throw new UnsupportedOperationException();
         } else if (Build.Target.isPosix()) {
@@ -253,6 +319,19 @@ final class IO_Util {
     }
 
     static long handleLseek(final FileDescriptor fd, final long offs, final c_int whence) {
+        if (Build.isHost()) {
+            try {
+                if (whence == Fcntl.SEEK_CUR) {
+                    return HostIO.seekRelative(((FileDescriptor$_native) (Object) fd).fd, offs);
+                } else if (whence == Fcntl.SEEK_SET) {
+                    return HostIO.seekAbsolute(((FileDescriptor$_native) (Object) fd).fd, offs);
+                } else {
+                    return -1;
+                }
+            } catch (IOException e) {
+                return -1;
+            }
+        }
         if (Build.Target.isPosix()) {
             int fdes = ((FileDescriptor$_native) (Object) fd).fd;
             return lseek(word(fdes), word(offs), whence).longValue();
@@ -264,8 +343,16 @@ final class IO_Util {
         }
     }
 
-    static boolean handleAvailable(final FileDescriptor fd, final ptr<c_long> cntPtr) {
-        if (Build.Target.isPosix()) {
+    static long handleAvailable(final FileDescriptor fd) {
+        if (Build.isHost()) {
+            long available;
+            try {
+                available = HostIO.available(((FileDescriptor$_native)(Object)fd).fd);
+            } catch (IOException e) {
+                return -1;
+            }
+            return available;
+        } else if (Build.Target.isPosix()) {
             // todo: requires Unistd.ioctl(), FIONREAD
             throw new UnsupportedOperationException();
         } else if (Build.Target.isWindows()) {
