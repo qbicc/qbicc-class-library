@@ -156,6 +156,10 @@
                     <version>2.8.2</version>
                 </plugin>
                 <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.2.2</version>
+                </plugin>
+                <plugin>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>3.4.0</version>
                 </plugin>
