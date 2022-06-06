@@ -74,6 +74,13 @@ class UnixNativeDispatcher$_native {
     }
 
     static int dup(int filedes) throws UnixException {
+        if (Build.isHost()) {
+            try {
+                return HostIO.dup(filedes);
+            } catch (IOException e) {
+                throw new UnixException(toErrno(e));
+            }
+        }
         int res;
         do {
             res = Unistd.dup(word(filedes)).intValue();
