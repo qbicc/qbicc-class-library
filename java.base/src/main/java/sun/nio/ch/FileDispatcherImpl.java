@@ -230,6 +230,10 @@ class FileDispatcherImpl extends FileDispatcher {
         throws IOException;
 
     static long seek0(FileDescriptor fd, long offset) throws IOException {
+        if (Build.isHost()) {
+            int fdNum = fdAccess.get(fd);
+            return offset < 0 ? HostIO.seekRelative(fdNum, 0) : HostIO.seekAbsolute(fdNum, offset);
+        }
         if (Build.Target.isPosix()) {
             int fdNum = fdAccess.get(fd);
             off_t result;
