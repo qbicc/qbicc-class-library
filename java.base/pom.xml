@@ -211,6 +211,21 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>gensrc-module-mapper</id>
+                        <goals>
+                            <goal>generate-module-loader-map</goal>
+                        </goals>
+                        <configuration>
+                            <bootModules>
+                                <bootModule>java.base</bootModule>
+                                <bootModule>java.logging</bootModule>
+                                <bootModule>jdk.unsupported</bootModule>
+                            </bootModules>
+                            <platformModules>
+                            </platformModules>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>gensrc-locale-equiv-maps</id>
                         <goals>
                             <goal>generate-locale-equiv-maps</goal>
@@ -309,6 +324,9 @@
                                 </resource>
                                 <resource>
                                     <directory>${project.build.directory}/generated-sources/module-info</directory>
+                                </resource>
+                                <resource>
+                                    <directory>${project.build.directory}/generated-sources/module-loader-map</directory>
                                 </resource>
                                 <resource>
                                     <directory>${project.build.directory}/generated-sources/spp</directory>
