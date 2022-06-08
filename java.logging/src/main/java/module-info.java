@@ -37,8 +37,6 @@
  * @since 9
  */
 module java.logging {
-    requires qbicc.rt.annotation;
-
     exports java.util.logging;
 
     provides jdk.internal.logger.DefaultLoggerFinder with

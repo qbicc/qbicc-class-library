@@ -102,6 +102,8 @@
                                 <arg>--system</arg>
                                 <arg>none</arg>
                                 <arg>-XDstringConcat=inline</arg>
+                                <arg>--add-reads</arg>
+                                <arg>java.logging=ALL-UNNAMED</arg>
                             </compilerArgs>
                         </configuration>
                     </execution>
@@ -133,7 +135,7 @@
                                     <sourcepath>${project.build.directory}/combined-sources</sourcepath>
                                     <additionalOptions>
                                         <additionalOption>--add-reads</additionalOption>
-                                        <additionalOption>java.base=ALL-UNNAMED</additionalOption>
+                                        <additionalOption>java.logging=ALL-UNNAMED</additionalOption>
                                     </additionalOptions>
                                     <failOnError>false</failOnError>
                                     <failOnWarnings>false</failOnWarnings>
