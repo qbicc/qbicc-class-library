@@ -149,6 +149,9 @@ class UnixNativeDispatcher$_native {
         if ((flags & Fcntl.O_TRUNC.intValue()) != 0) {
             fixedFlags |= HostIO.O_TRUNC;
         }
+        if ((flags & Fcntl.O_DIRECTORY.intValue()) != 0) {
+            fixedFlags |= HostIO.O_DIRECTORY;
+        }
         int mode = flags & Fcntl.O_ACCMODE.intValue();
         if (mode == Fcntl.O_RDONLY.intValue()) {
             fixedFlags |= HostIO.O_RDONLY;
