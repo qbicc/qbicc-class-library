@@ -52,6 +52,7 @@ import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 import jdk.internal.access.JavaIOFileDescriptorAccess;
 import jdk.internal.access.SharedSecrets;
+import org.qbicc.runtime.host.HostIO;
 import org.qbicc.runtime.posix.Unistd;
 import sun.security.action.GetPropertyAction;
 
@@ -229,6 +230,10 @@ class FileDispatcherImpl extends FileDispatcher {
         throws IOException;
 
     static long seek0(FileDescriptor fd, long offset) throws IOException {
+        if (Build.isHost()) {
+            int fdNum = fdAccess.get(fd);
+            return offset < 0 ? HostIO.seekRelative(fdNum, 0) : HostIO.seekAbsolute(fdNum, offset);
+        }
         if (Build.Target.isPosix()) {
             int fdNum = fdAccess.get(fd);
             off_t result;
@@ -251,6 +256,10 @@ class FileDispatcherImpl extends FileDispatcher {
         throws IOException;
 
     static long size0(FileDescriptor fd) throws IOException {
+        if (Build.isHost()) {
+            int fdNum = fdAccess.get(fd);
+            return HostIO.getFileSize(fdNum);
+        }
         if (Build.Target.isPosix()) {
             int fdNum = fdAccess.get(fd);
             struct_stat fbuf = auto();

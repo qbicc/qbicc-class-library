@@ -25,10 +25,14 @@ jdk.internal.misc.UnsafeParkUnpark
 jdk.internal.misc.UnsafeThreadAccess
 jdk.internal.misc.Unsafe$_patch
 jdk.internal.ref.CleanerImpl$_patch
+sun.nio.ch.ByteBuffer$_aliases
+sun.nio.ch.FileDescriptor$_aliases
 sun.nio.ch.FileDispatcherImpl$_runtime
+sun.nio.ch.IOUtil$_patch
 sun.nio.fs.UnixFileAttributes$_aliases
 sun.nio.fs.UnixFileSystem$_patch
 sun.nio.fs.UnixFileSystem$_runtime
+sun.nio.fs.UnixNativeDispatcher$_patch
 sun.security.provider.SeedGenerator$_patch
 sun.security.provider.SeedGenerator$_patch$ThreadedSeedGenerator$_patch
 sun.security.provider.SeedGenerator$_runtime
