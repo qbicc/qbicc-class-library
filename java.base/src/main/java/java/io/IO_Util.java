@@ -38,6 +38,7 @@ import static org.qbicc.runtime.posix.SysStat.*;
 import static org.qbicc.runtime.posix.SysTypes.*;
 import static org.qbicc.runtime.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
+import static org.qbicc.runtime.stdc.Stdint.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
 import static org.qbicc.runtime.stdc.String.*;
 
@@ -85,6 +86,9 @@ final class IO_Util {
     }
 
     static void writeSingle(final FileDescriptor fd, byte b, boolean append) throws IOException {
+        // todo: change to `byte bv = auto(word(b))` after qbicc release
+        int8_t bv = auto();
+        addr_of(bv).storeUnshared(word(b));
         if (! fd.valid()) {
             throw new IOException("Stream closed");
         }
@@ -96,7 +100,7 @@ final class IO_Util {
                 HostIO.writeSingle(fdes, b);
             }
         } else if (Build.Target.isPosix()) {
-            int cnt = handleWrite(fd, addr_of(b).cast(), 1).intValue();
+            int cnt = handleWrite(fd, addr_of(bv).cast(), 1).intValue();
             if (cnt == -1) {
                 // todo: JNU_ThrowIOExceptionWithLastError
                 throw new IOException("Write error");
