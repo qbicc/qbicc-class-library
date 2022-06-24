@@ -100,4 +100,8 @@ public final class Class$_native<T> {
         int I_ACC_HIDDEN = 1 << 18; // TODO: get this from a set of constants shared with the runtime
         return (((Class$_patch<T>) (Object) this).modifiers & I_ACC_HIDDEN) == I_ACC_HIDDEN;
     }
+
+    private java.security.ProtectionDomain getProtectionDomain0() {
+        return null; // TODO: add instance field and store for real??
+    }
 }
