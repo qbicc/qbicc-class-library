@@ -74,6 +74,8 @@
         <!-- IMPORTANT: when adding boot or platform modules, update java.base/pom.xml as well -->
         <module>java.base</module>
         <module>java.logging</module>
+        <module>java.naming</module>
+        <module>java.security.sasl</module>
         <module>jdk.net</module>
         <module>jdk.unsupported</module>
 
@@ -94,6 +96,16 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>qbicc-rt-java.logging</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>qbicc-rt-java.naming</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>qbicc-rt-java.security.sasl</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
