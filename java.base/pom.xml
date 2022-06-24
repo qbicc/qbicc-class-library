@@ -223,6 +223,7 @@
                             <bootModules>
                                 <bootModule>java.base</bootModule>
                                 <bootModule>java.logging</bootModule>
+                                <bootModule>jdk.net</bootModule>
                                 <bootModule>jdk.unsupported</bootModule>
                             </bootModules>
                             <platformModules>

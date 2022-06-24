@@ -74,6 +74,7 @@
         <!-- IMPORTANT: when adding boot or platform modules, update java.base/pom.xml as well -->
         <module>java.base</module>
         <module>java.logging</module>
+        <module>jdk.net</module>
         <module>jdk.unsupported</module>
 
         <!-- aggregate module -->
@@ -84,6 +85,7 @@
         <dependencies>
             <!-- internal -->
 
+            <!-- IMPORTANT: when adding a new OpenJDK project here, update aggregate/pom.xml as well -->
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>qbicc-rt-java.base</artifactId>
@@ -92,6 +94,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>qbicc-rt-java.logging</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>qbicc-rt-jdk.net</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
