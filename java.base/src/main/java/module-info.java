@@ -85,17 +85,17 @@ module java.base {
     exports javax.security.auth.x500;
     exports javax.security.cert;
 //    exports com.sun.crypto.provider to jdk.crypto.cryptoki;
-//    exports com.sun.security.ntlm to java.security.sasl;
+    exports com.sun.security.ntlm to java.security.sasl;
     exports jdk.internal.access to
-        java.logging/*,
-        java.management,
+        java.logging,
+//      java.management,
         java.naming,
-        java.rmi,
-        jdk.charsets,
-        jdk.incubator.foreign,
-        jdk.jartool,
-        jdk.jlink,
-        jdk.net*/;
+//      java.rmi,
+//      jdk.charsets,
+//      jdk.incubator.foreign,
+//      jdk.jartool,
+//      jdk.jlink,
+        jdk.net;
 //    exports jdk.internal.access.foreign to jdk.incubator.foreign;
 //    exports jdk.internal.event to jdk.jfr;
 //    exports jdk.internal.invoke to jdk.incubator.foreign;
@@ -110,15 +110,15 @@ module java.base {
 //        jdk.jlink;
     exports jdk.internal.loader to
 //        java.instrument,
-        java.logging/*,
-        java.naming,
+        java.logging,
+        java.naming/*,
         jdk.incubator.foreign*/;
     exports jdk.internal.logger to java.logging;
     exports jdk.internal.misc to
 //        java.desktop,
         java.logging,
 //        java.management,
-//        java.naming,
+        java.naming,
 //        java.net.http,
 //        java.rmi,
 //        java.security.jgss,
@@ -196,7 +196,7 @@ module java.base {
 //    exports sun.net.dns to
 //        java.security.jgss,
 //        jdk.naming.dns;
-//    exports sun.net.ext to jdk.net;
+    exports sun.net.ext to jdk.net;
 //    exports sun.net.util to
 //        java.desktop,
 //        java.net.http,
@@ -206,16 +206,16 @@ module java.base {
 //        java.net.http,
 //        jdk.jartool;
 //    exports sun.net.www.protocol.http to java.security.jgss;
-//    exports sun.nio.ch to
+    exports sun.nio.ch to
 //        java.management,
 //        jdk.crypto.cryptoki,
 //        jdk.incubator.foreign,
-//        jdk.net,
-//        jdk.sctp;
+        jdk.net/*,
+        jdk.sctp*/;
 //    exports sun.nio.cs to
 //        java.desktop,
 //        jdk.charsets;
-//    exports sun.nio.fs to jdk.net;
+    exports sun.nio.fs to jdk.net;
 //    exports sun.reflect.annotation to jdk.compiler;
 //    exports sun.reflect.generics.reflectiveObjects to java.desktop;
 //    exports sun.reflect.misc to
@@ -248,18 +248,18 @@ module java.base {
 //        jdk.crypto.cryptoki,
 //        jdk.crypto.ec,
 //        jdk.security.auth;
-//    exports sun.security.provider.certpath to java.naming;
+    exports sun.security.provider.certpath to java.naming;
 //    exports sun.security.rsa to
 //        jdk.crypto.cryptoki,
 //        jdk.crypto.mscapi;
 //    exports sun.security.timestamp to jdk.jartool;
 //    exports sun.security.tools to jdk.jartool;
-//    exports sun.security.util to
+    exports sun.security.util to
 //        java.desktop,
-//        java.naming,
+        java.naming,
 //        java.rmi,
 //        java.security.jgss,
-//        java.security.sasl,
+        java.security.sasl//,
 //        java.smartcardio,
 //        java.xml.crypto,
 //        jdk.crypto.cryptoki,
@@ -267,7 +267,7 @@ module java.base {
 //        jdk.crypto.mscapi,
 //        jdk.jartool,
 //        jdk.security.auth,
-//        jdk.security.jgss;
+/*        jdk.security.jgss*/;
 //    exports sun.security.util.math to jdk.crypto.ec;
 //    exports sun.security.util.math.intpoly to jdk.crypto.ec;
 //    exports sun.security.validator to jdk.jartool;
