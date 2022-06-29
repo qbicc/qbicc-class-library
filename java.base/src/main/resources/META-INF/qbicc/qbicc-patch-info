@@ -1,5 +1,6 @@
 # Patcher classes. Please keep sorted.
 
+java.lang.Class$ReflectionData$_patch
 java.lang.Class$_patch
 java.lang.Object$_aliases
 java.lang.ProcessEnvironment$_runtime
