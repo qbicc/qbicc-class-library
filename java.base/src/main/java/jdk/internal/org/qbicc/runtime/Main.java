@@ -53,6 +53,8 @@ public final class Main {
     @export
     @Hidden
     public static c_int main(c_int argc, char_ptr[] argv) {
+        Heap.initHeap(argc.intValue(), addr_of(argv[0]).cast());
+
         // first set up VM
         if (! Heap.checkInit(true)) {
             exit(word(1));
