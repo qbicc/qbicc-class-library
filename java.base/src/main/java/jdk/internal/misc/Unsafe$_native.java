@@ -40,13 +40,9 @@ import static org.qbicc.runtime.stdc.String.*;
 
 import java.security.ProtectionDomain;
 
-import jdk.internal.vm.annotation.IntrinsicCandidate;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
-import org.qbicc.runtime.llvm.LLVM;
 import org.qbicc.runtime.main.CompilerIntrinsics;
-import org.qbicc.runtime.stdc.Stddef;
-import org.qbicc.runtime.stdc.Stdint;
 
 @Tracking("src/java.base/share/classes/jdk/internal/misc/Unsafe.java")
 public final class Unsafe$_native {
@@ -99,18 +95,28 @@ public final class Unsafe$_native {
     }
 
     private void setMemory0(Object o, long offset, long bytes, byte value) {
-        memset(refToPtr(o).cast(char_ptr.class).plus(offset).cast(), word(value).cast(), word(bytes).cast());
+        ptr<c_char> destPtr = refToPtr(o).cast(char_ptr.class).plus(offset);
+        if (Build.isHost()) {
+            // no set on the host
+            for (long i = 0; i < bytes; i ++) {
+                destPtr.plus(i).storePlain(word(value));
+            }
+        } else {
+            memset(destPtr.cast(), word(value).cast(), word(bytes).cast());
+        }
     }
-
-    // todo: remove when qbicc 0.17.0 is released
-    @extern
-    @include("<string.h>")
-    public static native void_ptr memmove(void_ptr dest, const_void_ptr src, Stddef.size_t n);
 
     private void copyMemory0(Object srcBase, long srcOffset, Object destBase, long destOffset, long bytes) {
         ptr<c_char> srcPtr = refToPtr(srcBase).cast(char_ptr.class).plus(srcOffset);
         ptr<c_char> destPtr = refToPtr(destBase).cast(char_ptr.class).plus(destOffset);
-        memmove(destPtr.cast(), srcPtr.cast(), word(bytes).cast());
+        if (Build.isHost()) {
+            // no memmove on the host
+            for (long i = 0; i < bytes; i ++) {
+                destPtr.plus(i).storePlain(srcPtr.plus(i).loadPlain());
+            }
+        } else {
+            memmove(destPtr.cast(), srcPtr.cast(), word(bytes).cast());
+        }
     }
 
     private void copySwapMemory0(Object srcBase, long srcOffset, Object destBase, long destOffset, long bytes, long elemSize) {
@@ -124,7 +130,7 @@ public final class Unsafe$_native {
                 int16_t_ptr destPtr = refToPtr(destBase).cast(char_ptr.class).plus(destOffset).cast(int16_t_ptr.class);
                 long cnt = bytes >> 1;
                 for (long i = 0; i < cnt; i ++) {
-                    destPtr.plus(i).storePlain(word(LLVM.byteSwap(srcPtr.plus(i).loadPlain().shortValue())));
+                    destPtr.plus(i).storePlain(word(Short.reverseBytes(srcPtr.plus(i).loadPlain().shortValue())));
                 }
             }
             case 4 -> {
@@ -132,7 +138,7 @@ public final class Unsafe$_native {
                 int32_t_ptr destPtr = refToPtr(destBase).cast(char_ptr.class).plus(destOffset).cast(int32_t_ptr.class);
                 long cnt = bytes >> 2;
                 for (long i = 0; i < cnt; i ++) {
-                    destPtr.plus(i).storePlain(word(LLVM.byteSwap(srcPtr.plus(i).loadPlain().intValue())));
+                    destPtr.plus(i).storePlain(word(Integer.reverseBytes(srcPtr.plus(i).loadPlain().intValue())));
                 }
             }
             case 8 -> {
@@ -140,7 +146,7 @@ public final class Unsafe$_native {
                 int64_t_ptr destPtr = refToPtr(destBase).cast(char_ptr.class).plus(destOffset).cast(int64_t_ptr.class);
                 long cnt = bytes >> 3;
                 for (long i = 0; i < cnt; i ++) {
-                    destPtr.plus(i).storePlain(word(LLVM.byteSwap(srcPtr.plus(i).loadPlain().longValue())));
+                    destPtr.plus(i).storePlain(word(Long.reverseBytes(srcPtr.plus(i).loadPlain().longValue())));
                 }
             }
             case 16 -> {
@@ -150,8 +156,8 @@ public final class Unsafe$_native {
                 for (long i = 0; i < cnt; i += 2) {
                     long a = srcPtr.plus(i).loadPlain().longValue();
                     long b = srcPtr.plus(i + 1).loadPlain().longValue();
-                    destPtr.plus(i).storePlain(word(LLVM.byteSwap(b)));
-                    destPtr.plus(i + 1).storePlain(word(LLVM.byteSwap(a)));
+                    destPtr.plus(i).storePlain(word(Long.reverseBytes(b)));
+                    destPtr.plus(i + 1).storePlain(word(Long.reverseBytes(a)));
                 }
             }
         }
