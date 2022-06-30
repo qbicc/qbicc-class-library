@@ -68,7 +68,7 @@ jobs:
             LIBRARY_PATH: /usr/lib/gcc/x86_64-linux-gnu/11:/usr/lib/x86_64-linux-gnu
             CC: clang
         run: |
-          mvn --batch-mode install -Dversion.qbicc.classlib=17.alpha.0.30-SNAPSHOT -Dqbicc.test.clean-target=true
+          mvn --batch-mode install -Dversion.qbicc.classlib=17.alpha.0.30 -Dqbicc.test.clean-target=true
         working-directory: qbicc
 
       - name: Run qbicc tests (Mac OS)
@@ -77,7 +77,7 @@ jobs:
             LIBRARY_PATH: $(brew --prefix gcc)/lib/gcc/11
             CC: gcc
         run: |
-          mvn --batch-mode install -Dversion.qbicc.classlib=17.alpha.0.30-SNAPSHOT -Dqbicc.test.clean-target=true
+          mvn --batch-mode install -Dversion.qbicc.classlib=17.alpha.0.30 -Dqbicc.test.clean-target=true
         working-directory: qbicc
 
       - name: Prepare failure archive (if maven failed)
