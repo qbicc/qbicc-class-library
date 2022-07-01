@@ -66,6 +66,10 @@ public class DefaultFileSystemProvider {
             WindowsFileSystemProvider provider = new WindowsFileSystemProvider();
             INSTANCE = provider;
             THE_FILE_SYSTEM = provider.theFileSystem();
+        } else if (Build.Target.isWasm()) {
+            WasmFileSystemProvider provider = new WasmFileSystemProvider();
+            INSTANCE = provider;
+            THE_FILE_SYSTEM = provider.theFileSystem();
         } else {
             throw new Error();
         }
