@@ -200,7 +200,7 @@ public class GenerateBuffersMojo extends AbstractSppMojo {
                 mappings.put("toBits", "Double.doubleToRawLongBits");
             }
         }
-        if (rw.equals("S")) {
+        if (bo.equals("S")) {
             mappings.put("swap", "Bits.swap");
         }
         return mappings;
