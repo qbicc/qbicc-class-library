@@ -77,7 +77,7 @@ public class GenerateBuffersMojo extends AbstractSppMojo {
             "streams", "streamableType",
             "streamtype", "int",
             "Streamtype", "Int",
-            "LBPV", "0"
+            "LBPV", "1"
         ),
         "short", Map.of(
             "x", "s",
