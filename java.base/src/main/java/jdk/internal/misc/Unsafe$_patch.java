@@ -48,4 +48,9 @@ final class Unsafe$_patch {
         }
         return UnsafeConstants.PAGE_SIZE;
     }
+
+    @Replace(when = Build.Target.IsWasm.class)
+    private void checkNativeAddress(long address) {
+        if (Build.Target.isWasm()) return;
+    }
 }

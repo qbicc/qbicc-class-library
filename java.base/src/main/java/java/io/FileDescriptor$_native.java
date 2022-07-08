@@ -79,6 +79,8 @@ public class FileDescriptor$_native {
             } else {
                 HostIO.close(fd);
             }
+        } else if (Build.Target.isWasm()) {
+            // ignore
         } else if (Build.Target.isPosix()) {
             this.fd = -1;
             if (0 <= fd && fd <= 2) {

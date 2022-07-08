@@ -84,13 +84,13 @@ public class Thread$_patch {
     native void setPriority(final int priority);
     static native long nextThreadID();
 
-    @Add
+    @Add(unless = { Build.Target.IsWasm.class })
     pthread_t thread;
 
     // used only by non-Linux
-    @Add(unless = Build.Target.IsLinux.class)
+    @Add(unless = { Build.Target.IsLinux.class, Build.Target.IsWasm.class })
     pthread_mutex_t mutex;
-    @Add(unless = Build.Target.IsLinux.class)
+    @Add(unless = { Build.Target.IsLinux.class, Build.Target.IsWasm.class })
     pthread_cond_t cond;
 
     @Replace
@@ -127,7 +127,7 @@ public class Thread$_patch {
     public void initializeNativeFields() {
         // initialize native fields
         threadStatus = 0;
-        if (Build.isTarget() && ! Build.Target.isLinux()) {
+        if (Build.isTarget() && ! Build.Target.isLinux() && !Build.Target.isWasm()) {
             // mutex type does not matter
             c_int res = pthread_mutex_init(addr_of(refToPtr(this).sel().mutex), zero());
             if (res.isNonNull()) {
@@ -234,6 +234,9 @@ public class Thread$_patch {
     @Hidden
     @NoReflect
     private void start0() {
+        if (Build.Target.isWasm()) {
+            return;
+        }
         // initialize mutex & condition if there is one
         if (Build.isTarget() && ! Build.Target.isLinux()) {
             // mutex type does not matter
@@ -323,6 +326,9 @@ public class Thread$_patch {
     @SuppressWarnings("ConstantConditions")
     @Add
     static void park(boolean isAbsolute, long time) {
+        if (Build.Target.isWasm()) {
+            return;
+        }
         Thread thread = Thread.currentThread();
         Thread$_patch patchThread = (Thread$_patch) (Object) thread;
         int32_t_ptr ptr = addr_of(refToPtr(patchThread).sel().threadStatus).cast();
@@ -416,6 +422,9 @@ public class Thread$_patch {
 
     @Add
     void unpark() {
+        if (Build.Target.isWasm()) {
+            return;
+        }
         int32_t_ptr ptr = addr_of(refToPtr(this).sel().threadStatus).cast();
         int oldVal, newVal, witness;
         oldVal = ptr.loadSingleAcquire().intValue();

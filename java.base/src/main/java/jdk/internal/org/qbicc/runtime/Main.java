@@ -52,6 +52,7 @@ public final class Main {
 
     @export
     @Hidden
+    @name(value = "__main_argc_argv", when = Build.Target.IsWasm.class)
     public static c_int main(c_int argc, char_ptr[] argv) {
         Heap.initHeap(argc.intValue(), addr_of(argv[0]).cast());
 
@@ -112,6 +113,9 @@ public final class Main {
                 }
             }
             // TODO: this is the main thread, so mark the exit code as `1` if it hasn't already been set...
+        }
+        if (Build.Target.isWasm()) {
+            return word(0);
         }
         if (Build.Target.isPosix()) {
             pthread_exit(zero());
