@@ -26,11 +26,13 @@ jdk.internal.misc.UnsafeConstants$_runtime
 jdk.internal.misc.UnsafeParkUnpark
 jdk.internal.misc.UnsafeThreadAccess
 jdk.internal.misc.Unsafe$_patch
+jdk.internal.ref.CleanerFactory$_patch
 jdk.internal.ref.CleanerImpl$_patch
 sun.nio.ch.ByteBuffer$_aliases
 sun.nio.ch.FileDescriptor$_aliases
 sun.nio.ch.FileDispatcherImpl$_runtime
 sun.nio.ch.IOUtil$_patch
+sun.nio.fs.NativeBuffer$_patch
 sun.nio.fs.UnixFileAttributes$_aliases
 sun.nio.fs.UnixFileSystem$_patch
 sun.nio.fs.UnixFileSystem$_runtime

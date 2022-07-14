@@ -51,8 +51,10 @@ import org.qbicc.runtime.Build;
 import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.Inline;
 import org.qbicc.runtime.NoReflect;
+import org.qbicc.runtime.SerializeAsZero;
 import org.qbicc.runtime.main.VMHelpers;
 import org.qbicc.runtime.patcher.Add;
+import org.qbicc.runtime.patcher.Annotate;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
 
@@ -71,6 +73,9 @@ public class Thread$_patch {
     AccessControlContext inheritedAccessControlContext;
     Runnable target;
     ThreadLocal.ThreadLocalMap inheritableThreadLocals;
+    @Annotate
+    @SerializeAsZero
+    ThreadLocal.ThreadLocalMap threadLocals;
     long stackSize;
     long tid;
     int threadStatus;
