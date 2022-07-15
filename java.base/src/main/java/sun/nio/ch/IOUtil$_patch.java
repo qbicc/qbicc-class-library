@@ -25,7 +25,11 @@ class IOUtil$_patch {
                     int alignment, NativeDispatcher nd) throws IOException {
         int pos = dst.position();
         int lim = dst.limit();
-        assert (pos <= lim);
+        /* Avoid using assert, as it introduces a <clinit>, which then generates a warning from qbicc because this is a patch class */
+        // assert (pos <= lim);
+        if (pos > lim) {
+            throw new AssertionError();
+        }
         int rem = (pos <= lim ? lim - pos : 0);
 
         if (dst.isReadOnly()) {
