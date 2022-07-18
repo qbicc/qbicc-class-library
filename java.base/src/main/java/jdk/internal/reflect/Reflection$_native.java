@@ -50,9 +50,4 @@ public class Reflection$_native {
             throw new InternalError("Malformed Stack");
         }
     }
-
-    public static int getClassAccessFlags(Class<?> c) {
-        // TODO: Real runtime implementation by accessing info stored in c...
-        throw new UnsupportedOperationException();
-    }
 }
