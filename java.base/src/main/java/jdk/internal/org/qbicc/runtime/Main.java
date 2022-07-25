@@ -52,7 +52,7 @@ public final class Main {
 
     @export
     @Hidden
-    @name(value = "__main_argc_argv", when = Build.Target.IsWasm.class)
+    @name(value = "__main_argc_argv", when = Build.Target.IsWasi.class)
     public static c_int main(c_int argc, char_ptr[] argv) {
         Heap.initHeap(argc.intValue(), addr_of(argv[0]).cast());
 
