@@ -90,7 +90,7 @@ public class Thread$_patch {
     // used only by non-Linux
     @Add(when = Build.Target.IsPThreads.class, unless = Build.Target.IsLinux.class)
     pthread_mutex_t mutex;
-    @Add(when = Build.Target.IsPThreads.class, unless = Build.Target.IsWasm.class)
+    @Add(when = Build.Target.IsPThreads.class)
     pthread_cond_t cond;
 
     @Replace
