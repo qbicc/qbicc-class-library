@@ -79,9 +79,7 @@ public class FileDescriptor$_native {
             } else {
                 HostIO.close(fd);
             }
-        } else if (Build.Target.isWasm()) {
-            // ignore
-        } else if (Build.Target.isPosix()) {
+        } else if (Build.Target.isPosix() || Build.Target.isWasi()) {
             this.fd = -1;
             if (0 <= fd && fd <= 2) {
                 // stdin, stdout, or stderr... redirect to `/dev/null` in the same manner as OpenJDK
