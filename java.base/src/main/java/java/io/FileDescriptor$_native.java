@@ -79,7 +79,7 @@ public class FileDescriptor$_native {
             } else {
                 HostIO.close(fd);
             }
-        } else if (Build.Target.isPosix() || Build.Target.isWasi()) {
+        } else if (Build.Target.isPosix()) {
             this.fd = -1;
             if (0 <= fd && fd <= 2) {
                 // stdin, stdout, or stderr... redirect to `/dev/null` in the same manner as OpenJDK
@@ -87,7 +87,10 @@ public class FileDescriptor$_native {
                 if (res.isLt(zero())) {
                     throw new IOException("open /dev/null failed");
                 }
-                dup2(res, word(fd));
+                // dup2 currently not supported in Wasi, ignore for now
+                if (!Build.Target.isWasi()) {
+                    dup2(res, word(fd));
+                }
                 close(res);
             }
             c_int res;
