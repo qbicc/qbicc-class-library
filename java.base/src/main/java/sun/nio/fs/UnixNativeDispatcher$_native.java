@@ -62,8 +62,8 @@ import org.qbicc.runtime.posix.Unistd;
 @Tracking("src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c")
 class UnixNativeDispatcher$_native {
     static byte[] getcwd() throws UnixException {
-        if (Build.Target.isWasm()) {
-            throw new UnixException(-1);
+        if (Build.Target.isWasi()) {
+            return "/qbicc/build".getBytes(StandardCharsets.UTF_8);
         }
         size_t size = word(PATH_MAX.intValue() + 1);
         char_ptr buf = alloca(size);
