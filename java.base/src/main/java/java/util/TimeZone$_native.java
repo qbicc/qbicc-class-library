@@ -166,7 +166,9 @@ public class TimeZone$_native {
                 offset = word(-offset.longValue());
                 sign = '-';
             }
-        } else if (Build.Target.isPosix() && !Build.Target.isWasi()) {
+        } if (Build.Target.isWasi()) {
+            return "GMT";
+        } else if (Build.Target.isPosix()) {
             offset = timezone.cast();
             if (offset.isZero()) {
                 return "GMT";
