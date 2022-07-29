@@ -112,6 +112,16 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>gensrc-currency</id>
+                        <goals>
+                            <goal>generate-currency</goal>
+                        </goals>
+                        <configuration>
+                            <input>${project.basedir}/../openjdk/make/data/currency/CurrencyData.properties</input>
+                            <output>${project.build.directory}/generated-sources/currency/java/util/currency.data</output>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>gensrc-tzdb</id>
                         <goals>
                             <goal>generate-tzdb</goal>
@@ -316,6 +326,9 @@
                                 </resource>
                                 <resource>
                                     <directory>${project.build.directory}/generated-sources/cldr</directory>
+                                </resource>
+                                <resource>
+                                    <directory>${project.build.directory}/generated-sources/currency</directory>
                                 </resource>
                                 <resource>
                                     <directory>${project.build.directory}/generated-sources/exceptions</directory>
