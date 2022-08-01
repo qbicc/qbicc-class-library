@@ -30,74 +30,20 @@
  * contributors.
  */
 
-package sun.nio.ch;
+package java.net;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
-import org.qbicc.runtime.posix.Poll;
 
-@Tracking("src/java.base/unix/native/libnio/ch/Net.c")
-class Net$_native {
+@Tracking("src/java.base/unix/native/libnet/SocketImpl.c")
+@Tracking("src/java.base/windows/native/libnet/SocketImpl.c")
+class NetUtil {
 
-    private static void initIDs() {
-    }
-
-    static short pollinValue() {
-        if (Build.Target.isPosix()) {
-            return Poll.POLLIN.shortValue();
-        } else {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    static short polloutValue() {
-        if (Build.Target.isPosix()) {
-            return Poll.POLLOUT.shortValue();
-        } else {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    static short pollerrValue() {
-        if (Build.Target.isPosix()) {
-            return Poll.POLLERR.shortValue();
-        } else {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    static short pollhupValue() {
-        if (Build.Target.isPosix()) {
-            return Poll.POLLHUP.shortValue();
-        } else {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    static short pollnvalValue() {
-        if (Build.Target.isPosix()) {
-            return Poll.POLLNVAL.shortValue();
-        } else {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    static short pollconnValue() {
-        if (Build.Target.isPosix()) {
-            return Poll.POLLOUT.shortValue();
-        } else {
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    /*
-     * Returns 1 for Windows and -1 for Linux/Mac OS
-     */
-    static int isExclusiveBindAvailable() {
+    static boolean reuseport_supported() {
         if (Build.Target.isWindows()) {
-            return 1;
-        } else if (Build.Target.isLinux() || Build.Target.isMacOs()) {
-            return -1;
+            return false;
+        } else if (Build.Target.isMacOs() || Build.Target.isLinux()) {
+            return true;
         } else {
             throw new UnsupportedOperationException();
         }
