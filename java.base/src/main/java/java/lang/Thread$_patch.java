@@ -119,14 +119,14 @@ public class Thread$_patch {
         this.stackSize = stackSize;
         this.tid = nextThreadID();
 
-        this.initializeNativeFields();
+        // fields that contain pointers to OS/native resources are initialized in start0()
+        // This allows Thread instances to be created (but not started) at build time.
+        // One typical use case is <clinit> methods that register shutdownhooks.
     }
 
     @Add
     @Hidden
     public void initializeNativeFields() {
-        // initialize native fields
-        threadStatus = 0;
         if (Build.isTarget() && ! Build.Target.isLinux()) {
             // mutex type does not matter
             c_int res = pthread_mutex_init(addr_of(refToPtr(this).sel().mutex), zero());
@@ -234,19 +234,9 @@ public class Thread$_patch {
     @Hidden
     @NoReflect
     private void start0() {
-        // initialize mutex & condition if there is one
-        if (Build.isTarget() && ! Build.Target.isLinux()) {
-            // mutex type does not matter
-            c_int res = pthread_mutex_init(addr_of(refToPtr(this).sel().mutex), zero());
-            if (res.isNonNull()) {
-                throw new InternalError("Failed to initialize thread park mutex");
-            }
-            // cond type does not matter either
-            res = pthread_cond_init(addr_of(refToPtr(this).sel().cond), zero());
-            if (res.isNonNull()) {
-                throw new InternalError("Failed to initialize thread park condition");
-            }
-        }
+        // execute defered initialization of native fields
+        initializeNativeFields();
+
         addr_of(refToPtr(this).sel().threadStatus).storeSingleRelease(word(STATE_ALIVE));
         void_ptr threadWrapper = VMHelpers.threadWrapper(zero());
         ptr<Thread> thisPtr = refToPtr(this).cast();
