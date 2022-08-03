@@ -32,12 +32,17 @@
 
 package jdk.internal.misc;
 
+import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.Time.*;
+import static org.qbicc.runtime.stdc.Time.*;
+
 import org.qbicc.rt.annotation.Tracking;
 
 @Tracking("src/java.base/unix/native/libjava/VM_md.c")
 @Tracking("src/java.base/windows/native/libjava/VM_md.c")
 @Tracking("src/java.base/share/native/libjava/VM.c")
 @Tracking("src/java.base/share/classes/jdk/internal/misc/VM.java")
+@Tracking("src/hotspot/share/prims/jvm.cpp") // getNanoTimeAdjustment
 public class VM$_native {
     private static void initialize() {
         // no-op
@@ -45,5 +50,22 @@ public class VM$_native {
 
     private static void initializeFromArchive(Class ignored) {
         // no-op
+    }
+
+    public static long getNanoTimeAdjustment(long offsetInSeconds) {
+        // os_posix.cpp javaTimeSystemUTC
+        struct_timespec timespec = auto();
+        clock_gettime(CLOCK_REALTIME, addr_of(timespec));
+        long seconds = timespec.tv_sec.longValue();
+        long nanos = timespec.tv_nsec.longValue();
+
+        // jvm.cpp getNanoTimeAdjustment
+        long MAX_DIFF_SECS = 0x0100000000L; // 2^32
+        long MIN_DIFF_SECS = -MAX_DIFF_SECS;
+        long diff = seconds - offsetInSeconds;
+        if (diff >= MAX_DIFF_SECS || diff <= MIN_DIFF_SECS) {
+            return -1; // sentinel value: the offset is too far off the target
+        }
+        return (diff * 1000000000L) + nanos;
     }
 }
