@@ -96,18 +96,18 @@ public class SocketOptionRegistry {
 
             // IPPROTO_IP is 0
             map.put(new RegistryKey(StandardSocketOptions.IP_TOS,
-                StandardProtocolFamily.INET), new OptionKey(0, IP_TOS.intValue()));
+                StandardProtocolFamily.INET), new OptionKey(0, defined(IP_TOS) ? IP_TOS.intValue() : 0));
             map.put(new RegistryKey(StandardSocketOptions.IP_MULTICAST_IF,
-                StandardProtocolFamily.INET), new OptionKey(0, IP_MULTICAST_IF.intValue()));
+                StandardProtocolFamily.INET), new OptionKey(0, defined(IP_MULTICAST_IF) ? IP_MULTICAST_IF.intValue() : 0));
             map.put(new RegistryKey(StandardSocketOptions.IP_MULTICAST_TTL,
-                StandardProtocolFamily.INET), new OptionKey(0, IP_MULTICAST_TTL.intValue()));
+                StandardProtocolFamily.INET), new OptionKey(0, defined(IP_MULTICAST_TTL) ? IP_MULTICAST_TTL.intValue() : 0));
             map.put(new RegistryKey(StandardSocketOptions.IP_MULTICAST_LOOP,
-                StandardProtocolFamily.INET), new OptionKey(0, IP_MULTICAST_LOOP.intValue()));
+                StandardProtocolFamily.INET), new OptionKey(0, defined(IP_MULTICAST_LOOP) ? IP_MULTICAST_LOOP.intValue() : 0));
 
             if (defined(AF_INET6)) {
                 // IPPROTO_IPV6 is 41
                 map.put(new RegistryKey(StandardSocketOptions.IP_TOS,
-                    StandardProtocolFamily.INET6), new OptionKey(41, IPV6_TCLASS.intValue()));
+                    StandardProtocolFamily.INET6), new OptionKey(41, defined(IPV6_TCLASS) ? IPV6_TCLASS.intValue() : 0));
                 map.put(new RegistryKey(StandardSocketOptions.IP_MULTICAST_IF,
                     StandardProtocolFamily.INET6), new OptionKey(41, IPV6_MULTICAST_IF.intValue()));
                 map.put(new RegistryKey(StandardSocketOptions.IP_MULTICAST_TTL,
