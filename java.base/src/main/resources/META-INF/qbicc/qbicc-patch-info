@@ -40,3 +40,6 @@ sun.nio.fs.UnixNativeDispatcher$_patch
 sun.security.provider.SeedGenerator$_patch
 sun.security.provider.SeedGenerator$_patch$ThreadedSeedGenerator$_patch
 sun.security.provider.SeedGenerator$_runtime
+sun.security.provider.SecureRandom$_patch
+sun.security.provider.SecureRandom$SeederHolder$_patch
+sun.security.provider.SecureRandom$SeederHolder$_runtime
