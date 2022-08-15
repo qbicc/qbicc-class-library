@@ -5,9 +5,12 @@ java.lang.Class$_patch
 java.lang.Object$_aliases
 java.lang.ProcessEnvironment$_runtime
 java.lang.Runtime$_runtime
+java.lang.StackFrameInfo$_patch
+java.lang.StackStreamFactory$AbstractStackWalker_patch
 java.lang.System$_patch
 java.lang.Thread$_patch
 java.lang.invoke.DirectMethodHandle$_patch
+java.lang.invoke.MemberName$_patch
 java.lang.invoke.MethodHandle$_patch
 java.lang.invoke.MethodHandleNatives$CallSiteContext$_patch
 java.lang.ref.Reference$_patch
