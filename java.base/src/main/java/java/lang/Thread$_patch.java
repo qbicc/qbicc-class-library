@@ -53,6 +53,7 @@ import org.qbicc.runtime.Inline;
 import org.qbicc.runtime.NoReflect;
 import org.qbicc.runtime.SerializeAsZero;
 import org.qbicc.runtime.main.VMHelpers;
+import org.qbicc.runtime.main.CompilerIntrinsics;
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.Annotate;
 import org.qbicc.runtime.patcher.PatchClass;
@@ -238,7 +239,7 @@ public class Thread$_patch {
         initializeNativeFields();
 
         addr_of(refToPtr(this).sel().threadStatus).storeSingleRelease(word(STATE_ALIVE));
-        void_ptr threadWrapper = VMHelpers.threadWrapper(zero());
+        void_ptr_unaryoperator_function_ptr threadWrapper = CompilerIntrinsics.nativeFunctionPointer("org.qbicc.runtime.main.VMHelpers", "pthreadCreateWrapper");
         ptr<Thread> thisPtr = refToPtr(this).cast();
         ptr<pthread_t> pthreadPtr = addr_of(refToPtr(this).sel().thread);
         int result = pthread_create(pthreadPtr.cast(), zero(), threadWrapper.cast(), thisPtr.cast()).intValue();
