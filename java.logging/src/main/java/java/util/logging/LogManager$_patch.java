@@ -37,13 +37,22 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
+import org.qbicc.runtime.ReflectivelyAccesses;
+import org.qbicc.runtime.ReflectivelyAccessedElement;
 import org.qbicc.runtime.patcher.Add;
+import org.qbicc.runtime.patcher.Annotate;
 import org.qbicc.runtime.patcher.Patch;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
 
 @PatchClass(LogManager.class)
 @Tracking("src/java.logging/share/classes/java/util/LogManager.java")
+@ReflectivelyAccesses({
+        @ReflectivelyAccessedElement(clazz = ConsoleHandler.class, method = "<init>", params = {}),
+        @ReflectivelyAccessedElement(clazz = FileHandler.class, method = "<init>", params = {}),
+        @ReflectivelyAccessedElement(clazz = SimpleFormatter.class, method = "<init>", params = {})
+})
+@Annotate
 public class LogManager$_patch {
 
     // Alias
