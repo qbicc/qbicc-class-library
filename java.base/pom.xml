@@ -112,6 +112,26 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>gensrc-currency</id>
+                        <goals>
+                            <goal>generate-currency</goal>
+                        </goals>
+                        <configuration>
+                            <input>${project.basedir}/../openjdk/make/data/currency/CurrencyData.properties</input>
+                            <output>${project.build.directory}/generated-sources/currency/java/util/currency.data</output>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>gensrc-security</id>
+                        <goals>
+                            <goal>generate-security</goal>
+                        </goals>
+                        <configuration>
+                            <input>${project.basedir}/../openjdk/src/java.base/share/conf/security/java.security</input>
+                            <output>${project.build.directory}/generated-sources/security/META-INF/java.home/conf/security/java.security</output>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>gensrc-tzdb</id>
                         <goals>
                             <goal>generate-tzdb</goal>
@@ -271,6 +291,24 @@
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>copy-conf</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/META-INF/java.home/conf</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/../openjdk/src/java.base/share/conf</directory>
+                                    <excludes>
+                                        <exclude>security/java.security</exclude> <!-- Template file that we generate below -->
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>copy-sources</id>
                         <phase>generate-sources</phase>
                         <goals>
@@ -318,6 +356,9 @@
                                     <directory>${project.build.directory}/generated-sources/cldr</directory>
                                 </resource>
                                 <resource>
+                                    <directory>${project.build.directory}/generated-sources/currency</directory>
+                                </resource>
+                                <resource>
                                     <directory>${project.build.directory}/generated-sources/exceptions</directory>
                                 </resource>
                                 <resource>
@@ -337,6 +378,9 @@
                                 </resource>
                                 <resource>
                                     <directory>${project.build.directory}/generated-sources/spp</directory>
+                                </resource>
+                                <resource>
+                                    <directory>${project.build.directory}/generated-sources/security</directory>
                                 </resource>
 
                                 <!-- our sources take precedence -->
