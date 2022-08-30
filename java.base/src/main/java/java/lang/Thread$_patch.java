@@ -274,7 +274,7 @@ public class Thread$_patch {
     @Add
     @Hidden
     @NoReflect
-    private void begin() {
+    public void begin() {
         Thread self = (Thread) (Object) this;
         if (! self.isDaemon()) {
             addr_of(nonDaemonThreadCount).getAndAdd(word(1));
@@ -285,13 +285,12 @@ public class Thread$_patch {
     @Add
     @Hidden
     @NoReflect
-    private void end() {
+    public void end() {
         Thread self = (Thread) (Object) this;
         if (! self.isDaemon()) {
             int cnt = addr_of(nonDaemonThreadCount).getAndAdd(word(- 1)).intValue();
             if (cnt == 1) {
-                // it was the last non-daemon thread
-                // TODO: process exit
+                Shutdown.exit(0);
             }
         }
         // terminated - clear ALIVE and RUNNABLE and set TERMINATED in one swap
