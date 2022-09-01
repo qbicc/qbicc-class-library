@@ -261,7 +261,7 @@ public class Thread$_patch {
     @Hidden
     @NoReflect
     @SuppressWarnings("CallToThreadRun")
-    private void run0() {
+    void run0() {
         Thread self = (Thread) (Object) this;
         begin();
         try {
