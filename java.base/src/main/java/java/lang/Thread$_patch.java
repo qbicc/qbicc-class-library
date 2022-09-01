@@ -52,7 +52,6 @@ import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.Inline;
 import org.qbicc.runtime.NoReflect;
 import org.qbicc.runtime.SerializeAsZero;
-import org.qbicc.runtime.main.VMHelpers;
 import org.qbicc.runtime.main.CompilerIntrinsics;
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.Annotate;
@@ -86,12 +85,15 @@ public class Thread$_patch {
     static native long nextThreadID();
 
     @Add
+    @SerializeAsZero
     pthread_t thread;
 
     // used only by non-Linux
     @Add(unless = Build.Target.IsLinux.class)
+    @SerializeAsZero
     pthread_mutex_t mutex;
     @Add(unless = Build.Target.IsLinux.class)
+    @SerializeAsZero
     pthread_cond_t cond;
 
     @Replace
@@ -231,6 +233,9 @@ public class Thread$_patch {
     @Add
     private static volatile int nonDaemonThreadCount;
 
+    @Add
+    private static volatile int shutdownInitiated;
+
     @Replace
     @Hidden
     @NoReflect
@@ -239,7 +244,7 @@ public class Thread$_patch {
         initializeNativeFields();
 
         addr_of(refToPtr(this).sel().threadStatus).storeSingleRelease(word(STATE_ALIVE));
-        void_ptr_unaryoperator_function_ptr threadWrapper = CompilerIntrinsics.nativeFunctionPointer("org.qbicc.runtime.main.VMHelpers", "pthreadCreateWrapper");
+        void_ptr_unaryoperator_function_ptr threadWrapper = CompilerIntrinsics.nativeFunctionPointer("java.lang.Thread$_qbicc", "qbiccThreadRunWrapper");
         ptr<Thread> thisPtr = refToPtr(this).cast();
         ptr<pthread_t> pthreadPtr = addr_of(refToPtr(this).sel().thread);
         int result = pthread_create(pthreadPtr.cast(), zero(), threadWrapper.cast(), thisPtr.cast()).intValue();
@@ -253,6 +258,7 @@ public class Thread$_patch {
             }
         }
     }
+
 
     /**
      * Actually run the thread body.
@@ -290,11 +296,15 @@ public class Thread$_patch {
         if (! self.isDaemon()) {
             int cnt = addr_of(nonDaemonThreadCount).getAndAdd(word(- 1)).intValue();
             if (cnt == 1) {
-                Shutdown.exit(0);
+                boolean shouldShutdown = addr_of(shutdownInitiated).compareAndSet(word(0), word(1));
+                if (shouldShutdown) {
+                    Shutdown.exit(0);
+                }
             }
         }
         // terminated - clear ALIVE and RUNNABLE and set TERMINATED in one swap
         addr_of(refToPtr(this).sel().threadStatus).getAndBitwiseXor(word(STATE_ALIVE | STATE_RUNNABLE | STATE_TERMINATED));
+        this.notifyAll(); // notify any threads that have called Thread.join() on me.
     }
 
     @Replace
