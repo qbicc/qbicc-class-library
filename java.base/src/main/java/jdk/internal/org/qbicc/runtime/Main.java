@@ -62,7 +62,9 @@ public final class Main {
 
         // next set up the initial thread
         attachNewThread("main", getSystemThreadGroup());
-        ((Thread$_patch)(Object)Thread.currentThread()).initializeNativeFields();
+        Thread$_patch mainThread = (Thread$_patch)(Object)Thread.currentThread();
+        mainThread.initializeNativeFields();
+        mainThread.begin();
 
         try {
             // next initialize the JDK
@@ -111,8 +113,9 @@ public final class Main {
                     fflush(stderr);
                 }
             }
-            // TODO: this is the main thread, so mark the exit code as `1` if it hasn't already been set...
+            System.exit(1);
         }
+        mainThread.end(); // Will return only if mainThread is not the last non-dameon thread
         if (Build.Target.isPosix()) {
             pthread_exit(zero());
         }
