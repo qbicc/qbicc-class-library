@@ -9,7 +9,7 @@ import org.qbicc.runtime.ThreadScoped;
  *   1. @ThreadScoped fields can't be declated on Thrad (circular dependency)
  *   2. The @Add annotation doesn't preserve the other annotations (like @export).
  */
-class ThreadSupportQbicc {
+class Thread$_qbicc {
 
     /**
      * Internal holder for the pointer to the current thread.
