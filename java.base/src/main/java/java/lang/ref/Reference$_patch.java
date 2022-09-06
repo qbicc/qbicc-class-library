@@ -37,6 +37,7 @@ import jdk.internal.org.qbicc.runtime.Main;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.SerializeAsZero;
+import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.Annotate;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
@@ -50,6 +51,11 @@ public abstract class Reference$_patch<T> {
     private static final Object processPendingLock = new Object();
     // Alias & preserve orginal <clinit>
     private static boolean processPendingActive = false;
+
+    @Add
+    private static Object pendingReferenceListLock = new Object();
+    @Add
+    private static Reference pendingReferenceList = null;
 
     // Alias
     private static native boolean waitForReferenceProcessing() throws InterruptedException;
@@ -85,4 +91,31 @@ public abstract class Reference$_patch<T> {
 
     // Alias -- make accessible to ReferenceDeferredInitAction.ReferenceHandler
     static native void processPendingReferences();
+
+    @Replace
+    private static Reference<?> getAndClearReferencePendingList() {
+        Reference<?> prior = null;
+        synchronized(pendingReferenceListLock) {
+            prior = pendingReferenceList;
+            pendingReferenceList = null;
+        }
+        return prior;
+    }
+
+    @Replace
+    private static boolean hasReferencePendingList() {
+        synchronized(pendingReferenceListLock) {
+            return pendingReferenceList != null;
+        }
+    }
+
+    @Replace
+    private static void waitForReferencePendingList() {
+        synchronized (pendingReferenceListLock) {
+            try {
+                pendingReferenceListLock.wait();
+            } catch (InterruptedException e) {
+            }
+        }
+    }
 }
