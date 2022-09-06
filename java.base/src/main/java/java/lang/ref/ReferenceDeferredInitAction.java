@@ -31,58 +31,39 @@
  */
 package java.lang.ref;
 
-import jdk.internal.access.JavaLangRefAccess;
-import jdk.internal.access.SharedSecrets;
-import jdk.internal.org.qbicc.runtime.Main;
-
 import org.qbicc.rt.annotation.Tracking;
-import org.qbicc.runtime.SerializeAsZero;
-import org.qbicc.runtime.patcher.Annotate;
-import org.qbicc.runtime.patcher.PatchClass;
-import org.qbicc.runtime.patcher.Replace;
-import org.qbicc.runtime.patcher.ReplaceInit;
 
-@PatchClass(Reference.class)
-@ReplaceInit
+/*
+ * This class exists because defining an anonymous Runnable in a patch class
+ * like Reference$_patch is not currently supported by our Patcher infrastructure.
+ */
 @Tracking("src/java.base/share/classes/java/lang/ref/Reference.java")
-public abstract class Reference$_patch<T> {
-    // Alias & preserve original <clinit>
-    private static final Object processPendingLock = new Object();
-    // Alias & preserve orginal <clinit>
-    private static boolean processPendingActive = false;
+class ReferenceDeferredInitAction implements Runnable {
 
-    // Alias
-    private static native boolean waitForReferenceProcessing() throws InterruptedException;
-
-    static {
-        Main.deferInitAction(new ReferenceDeferredInitAction());
-
-        // provide access in SharedSecrets
-        SharedSecrets.setJavaLangRefAccess(new JavaLangRefAccess() {
-            @Override
-            public boolean waitForReferenceProcessing()
-                    throws InterruptedException
-            {
-                return Reference$_patch.waitForReferenceProcessing();
-            }
-
-            @Override
-            public void runFinalization() {
-                Finalizer.runFinalization();
-            }
-        });
+    public void run() {
+        ThreadGroup tg = Thread.currentThread().getThreadGroup();
+        for (ThreadGroup tgn = tg;
+             tgn != null;
+             tg = tgn, tgn = tg.getParent())
+            ;
+        Thread handler = new ReferenceHandler(tg, "Reference Handler");
+        /* If there were a special system-only priority greater than
+         * MAX_PRIORITY, it would be used here
+         */
+        handler.setPriority(Thread.MAX_PRIORITY);
+        handler.setDaemon(true);
+        handler.start();
     }
 
-    // Alias
-    @Annotate
-    @SerializeAsZero
-    private Object referent;
+    private static class ReferenceHandler extends Thread {
+        ReferenceHandler(ThreadGroup g, String name) {
+            super(g, null, name, 0, false);
+        }
 
-    @Replace
-    private void clear0() {
-        referent = null;
+        public void run() {
+            while (true) {
+                Reference$_patch.processPendingReferences();
+            }
+        }
     }
-
-    // Alias -- make accessible to ReferenceDeferredInitAction.ReferenceHandler
-    static native void processPendingReferences();
 }
