@@ -88,7 +88,7 @@ module java.base {
     exports com.sun.security.ntlm to java.security.sasl;
     exports jdk.internal.access to
         java.logging,
-//      java.management,
+        java.management,
         java.naming,
 //      java.rmi,
 //      jdk.charsets,
@@ -117,7 +117,7 @@ module java.base {
     exports jdk.internal.misc to
 //        java.desktop,
         java.logging,
-//        java.management,
+        java.management,
         java.naming,
 //        java.net.http,
 //        java.rmi,
@@ -153,8 +153,8 @@ module java.base {
     exports jdk.internal.org.qbicc.runtime to java.logging;
 //    exports jdk.internal.org.xml.sax to jdk.jfr;
 //    exports jdk.internal.org.xml.sax.helpers to jdk.jfr;
-//    exports jdk.internal.perf to
-//        java.management,
+    exports jdk.internal.perf to
+        java.management;
 //        jdk.internal.jvmstat,
 //        jdk.management.agent;
 //    exports jdk.internal.platform to
@@ -165,7 +165,7 @@ module java.base {
 //        jdk.incubator.foreign;
     exports jdk.internal.reflect to
         java.logging,
-//        java.sql,
+        java.sql,
 //        java.sql.rowset,
 //        jdk.dynalink,
 //        jdk.incubator.foreign,
@@ -207,7 +207,7 @@ module java.base {
 //        jdk.jartool;
 //    exports sun.net.www.protocol.http to java.security.jgss;
     exports sun.nio.ch to
-//        java.management,
+        java.management,
 //        jdk.crypto.cryptoki,
 //        jdk.incubator.foreign,
         jdk.net/*,
@@ -218,10 +218,10 @@ module java.base {
     exports sun.nio.fs to jdk.net;
 //    exports sun.reflect.annotation to jdk.compiler;
 //    exports sun.reflect.generics.reflectiveObjects to java.desktop;
-//    exports sun.reflect.misc to
+    exports sun.reflect.misc to
 //        java.datatransfer,
 //        java.desktop,
-//        java.management,
+        java.management;
 //        java.management.rmi,
 //        java.rmi,
 //        java.sql.rowset;

@@ -74,8 +74,12 @@
         <!-- IMPORTANT: when adding boot or platform modules, update java.base/pom.xml as well -->
         <module>java.base</module>
         <module>java.logging</module>
+        <module>java.management</module>
         <module>java.naming</module>
         <module>java.security.sasl</module>
+        <module>java.sql</module>
+        <module>java.transaction.xa</module>
+        <module>java.xml</module>
         <module>jdk.net</module>
         <module>jdk.unsupported</module>
 
@@ -100,12 +104,32 @@
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>qbicc-rt-java.management</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>qbicc-rt-java.naming</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>qbicc-rt-java.security.sasl</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>qbicc-rt-java.sql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>qbicc-rt-java.transaction.xa</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>qbicc-rt-java.xml</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
