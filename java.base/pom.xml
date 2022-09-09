@@ -243,6 +243,7 @@
                             <bootModules>
                                 <bootModule>java.base</bootModule>
                                 <bootModule>java.logging</bootModule>
+                                <bootModule>java.management</bootModule>
                                 <bootModule>java.naming</bootModule>
                                 <bootModule>java.security.sasl</bootModule>
                                 <bootModule>java.sql</bootModule>
