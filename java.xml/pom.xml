@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.qbicc.rt</groupId>
+        <artifactId>qbicc-rt-parent</artifactId>
+        <version>17.alpha.0.36-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>qbicc-rt-java.xml</artifactId>
+
+    <name>Qbicc Run Time: java.xml</name>
+    <description>The Qbicc builder for the java.xml JDK module</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>qbicc-rt-java.base</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.qbicc.rt</groupId>
+            <artifactId>qbicc-rt-annotation</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.qbicc</groupId>
+            <artifactId>qbicc-runtime-main</artifactId>
+        </dependency>
+    </dependencies>
+
+
+    <build>
+        <sourceDirectory>target/combined-sources</sourceDirectory>
+
+        <plugins>
+
+            <!-- Copy our sources in preferred order to a single source path -->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/combined-sources</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <resources>
+                                <!-- Order these in *reverse preference*; last write is best write -->
+                                <!-- share is least significant  -->
+                                <resource>
+                                    <directory>${project.basedir}/../openjdk/src/java.xml/share/classes</directory>
+                                </resource>
+
+                                <!-- our sources take precedence -->
+                                <resource>
+                                    <directory>${project.basedir}/src/main/java</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>get-module-path</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>build-classpath</goal>
+                        </goals>
+                        <configuration>
+                            <outputProperty>maven.compile.classpath</outputProperty>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <compileSourceRoots>
+                                <compileSourceRoot>${project.build.directory}/combined-sources</compileSourceRoot>
+                            </compileSourceRoots>
+                            <compilerArgs>
+                                <arg>--module-path</arg>
+                                <arg>${maven.compile.classpath}</arg>
+                                <arg>--system</arg>
+                                <arg>none</arg>
+                                <arg>-XDstringConcat=inline</arg>
+                                <arg>--add-reads</arg>
+                                <arg>java.xml=ALL-UNNAMED</arg>
+                            </compilerArgs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <activation>
+                <property>
+                    <name>release</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>default</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <sourcepath>${project.build.directory}/combined-sources</sourcepath>
+                                    <additionalOptions>
+                                        <additionalOption>--add-reads</additionalOption>
+                                        <additionalOption>java.xml=ALL-UNNAMED</additionalOption>
+                                    </additionalOptions>
+                                    <failOnError>false</failOnError>
+                                    <failOnWarnings>false</failOnWarnings>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

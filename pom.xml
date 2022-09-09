@@ -76,6 +76,9 @@
         <module>java.logging</module>
         <module>java.naming</module>
         <module>java.security.sasl</module>
+        <module>java.sql</module>
+        <module>java.transaction.xa</module>
+        <module>java.xml</module>
         <module>jdk.net</module>
         <module>jdk.unsupported</module>
 
@@ -106,6 +109,21 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>qbicc-rt-java.security.sasl</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>qbicc-rt-java.sql</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>qbicc-rt-java.transaction.xa</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>qbicc-rt-java.xml</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -165,7 +165,7 @@ module java.base {
 //        jdk.incubator.foreign;
     exports jdk.internal.reflect to
         java.logging,
-//        java.sql,
+        java.sql,
 //        java.sql.rowset,
 //        jdk.dynalink,
 //        jdk.incubator.foreign,
