@@ -22,7 +22,7 @@
         <version.qbicc>0.43.0</version.qbicc>
 
         <!-- This tracks the version of OpenJDK sources in the git submodule -->
-        <version.openjdk>17.0.3</version.openjdk>
+        <version.openjdk>17.0.4.1</version.openjdk>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

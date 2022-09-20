@@ -69,6 +69,9 @@ public class GenerateEquivMapsMojo extends AbstractMojo {
     @Parameter
     File outputFile;
 
+    @Parameter
+    Integer copyrightYear;
+
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
             Path java = Path.of(System.getProperty("java.home"), "bin", JAVA);
@@ -91,6 +94,7 @@ public class GenerateEquivMapsMojo extends AbstractMojo {
             // args
             command.add(languageSubtagRegistry.toString());
             command.add(outputFile.toString());
+            command.add(copyrightYear.toString());
 
             pb.command(command);
             MojoUtil.runAndWaitForProcessNoInput(pb);
