@@ -34,6 +34,9 @@ package java.io;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 
+import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.Unistd.*;
+
 @Tracking("src/java.base/unix/native/libjava/Console_md.c")
 @Tracking("src/java.base/windows/native/libjava/Console_md.c")
 public class Console$_native {
@@ -57,4 +60,13 @@ public class Console$_native {
             throw new UnsupportedOperationException();
         }
     }
+
+    private static boolean istty() {
+        if (Build.Target.isUnix()) {
+            return isatty(word(0)).intValue() == 1 && isatty(word(1)).intValue() == 1;
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
 }
