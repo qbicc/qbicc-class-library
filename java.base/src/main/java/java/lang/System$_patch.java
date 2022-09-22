@@ -103,6 +103,7 @@ public final class System$_patch {
     public static void loadLibrary(String libname) {
         switch (libname) {
             case "extnet":
+            case "management":
             case "net":
             case "nio":
             case "prefs":
