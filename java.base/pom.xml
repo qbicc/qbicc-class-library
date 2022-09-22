@@ -264,6 +264,7 @@
                         <configuration>
                             <languageSubtagRegistry>${project.basedir}/../openjdk/make/data/lsrdata/language-subtag-registry.txt</languageSubtagRegistry>
                             <outputFile>${project.build.directory}/generated-sources/lsr/sun/util/locale/LocaleEquivalentMaps.java</outputFile>
+                            <copyrightYear>2022</copyrightYear>
                         </configuration>
                     </execution>
                     <execution>
