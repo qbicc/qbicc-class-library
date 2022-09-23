@@ -1,1 +1,2 @@
 # Patcher classes.  Please keep sorted.
+sun.management.VMManagementImpl$_patch
