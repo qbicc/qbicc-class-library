@@ -150,7 +150,6 @@ module java.base {
 //        jdk.jfr,
 //        jdk.jlink;
 //    exports jdk.internal.org.objectweb.asm.util to jdk.jfr;
-    exports jdk.internal.org.qbicc.runtime to java.logging;
 //    exports jdk.internal.org.xml.sax to jdk.jfr;
 //    exports jdk.internal.org.xml.sax.helpers to jdk.jfr;
     exports jdk.internal.perf to
