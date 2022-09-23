@@ -8,6 +8,7 @@ java.lang.Runtime$_runtime
 java.lang.StackFrameInfo$_patch
 java.lang.StackStreamFactory$AbstractStackWalker_patch
 java.lang.System$_patch
+java.lang.System$_runtime
 java.lang.Thread$_patch
 java.lang.invoke.DirectMethodHandle$_patch
 java.lang.invoke.MemberName$_patch
