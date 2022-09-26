@@ -24,6 +24,7 @@ java.net.URL$DefaultFactory$_patch
 java.text.DateFormatSymbols$_patch
 java.util.concurrent.atomic.Striped64$_runtime
 java.util.concurrent.ConcurrentHashMap$_init
+java.util.concurrent.ConcurrentHashMap$_patch_ncpu
 java.util.concurrent.ConcurrentHashMap$_runtime
 java.util.concurrent.Exchanger$_patch
 java.util.concurrent.Exchanger$_runtime
@@ -33,7 +34,6 @@ jdk.internal.misc.UnsafeConstants$_patch
 jdk.internal.misc.UnsafeConstants$_runtime
 jdk.internal.misc.UnsafeParkUnpark
 jdk.internal.misc.UnsafeThreadAccess
-jdk.internal.ref.CleanerFactory$_patch
 jdk.internal.ref.CleanerImpl$_patch
 sun.nio.ch.ByteBuffer$_aliases
 sun.nio.ch.FileDescriptor$_aliases
