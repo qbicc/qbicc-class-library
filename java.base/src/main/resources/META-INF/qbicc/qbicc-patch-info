@@ -22,12 +22,14 @@ java.io.FileDescriptor$_runtime
 java.io.FileDescriptor$_patch
 java.net.URL$DefaultFactory$_patch
 java.text.DateFormatSymbols$_patch
+java.util.concurrent.atomic.Striped64$_init
 java.util.concurrent.atomic.Striped64$_runtime
 java.util.concurrent.ConcurrentHashMap$_init
 java.util.concurrent.ConcurrentHashMap$_patch_ncpu
 java.util.concurrent.ConcurrentHashMap$_runtime
-java.util.concurrent.Exchanger$_patch
+java.util.concurrent.Exchanger$_init
 java.util.concurrent.Exchanger$_runtime
+java.util.concurrent.Phaser$_init
 java.util.concurrent.Phaser$_runtime
 jdk.internal.loader.BootLoader$_patch
 jdk.internal.misc.UnsafeConstants$_patch
