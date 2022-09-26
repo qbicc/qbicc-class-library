@@ -30,22 +30,21 @@
  * contributors.
  */
 
-package jdk.internal.misc;
+package java.lang;
+
+import java.io.BufferedInputStream;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.PrintStream;
 
 import org.qbicc.rt.annotation.Tracking;
-import org.qbicc.runtime.Build;
 import org.qbicc.runtime.patcher.PatchClass;
-import org.qbicc.runtime.patcher.Replace;
+import org.qbicc.runtime.patcher.ReplaceInit;
 
-@PatchClass(Unsafe.class)
-@Tracking("src/java.base/share/classes/jdk/internal/misc/Unsafe.java")
-final class Unsafe$_patch {
-
-    @Replace
-    public int pageSize() {
-        if (Build.isHost()) {
-            throw new UnsupportedOperationException("Cannot retrieve page size of target during build; it is not known");
-        }
-        return UnsafeConstants.PAGE_SIZE;
-    }
+@PatchClass(System.class)
+@Tracking("src/java.base/share/classes/java/lang/System.java")
+@ReplaceInit
+public final class System$_init {
 }

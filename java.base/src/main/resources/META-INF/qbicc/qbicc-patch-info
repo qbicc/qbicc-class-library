@@ -8,6 +8,7 @@ java.lang.Runtime$_runtime
 java.lang.StackFrameInfo$_patch
 java.lang.StackStreamFactory$AbstractStackWalker_patch
 java.lang.System$_patch
+java.lang.System$_init
 java.lang.System$_runtime
 java.lang.Thread$_patch
 java.lang.invoke.DirectMethodHandle$_patch
@@ -21,6 +22,7 @@ java.io.FileDescriptor$_patch
 java.net.URL$DefaultFactory$_patch
 java.text.DateFormatSymbols$_patch
 java.util.concurrent.atomic.Striped64$_runtime
+java.util.concurrent.ConcurrentHashMap$_init
 java.util.concurrent.ConcurrentHashMap$_runtime
 java.util.concurrent.Exchanger$_patch
 java.util.concurrent.Exchanger$_runtime
@@ -30,7 +32,6 @@ jdk.internal.misc.UnsafeConstants$_patch
 jdk.internal.misc.UnsafeConstants$_runtime
 jdk.internal.misc.UnsafeParkUnpark
 jdk.internal.misc.UnsafeThreadAccess
-jdk.internal.misc.Unsafe$_patch
 jdk.internal.ref.CleanerFactory$_patch
 jdk.internal.ref.CleanerImpl$_patch
 sun.nio.ch.ByteBuffer$_aliases

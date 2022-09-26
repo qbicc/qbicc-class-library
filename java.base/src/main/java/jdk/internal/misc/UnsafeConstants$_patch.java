@@ -48,17 +48,13 @@ import org.qbicc.runtime.patcher.ReplaceInit;
 @Tracking("src/java.base/share/classes/jdk/internal/misc/UnsafeConstants.java")
 final class UnsafeConstants$_patch {
     static final int ADDRESS_SIZE0;
-    static final int PAGE_SIZE;
     static final boolean BIG_ENDIAN;
     static final boolean UNALIGNED_ACCESS;
-    static final int DATA_CACHE_LINE_FLUSH_SIZE;
 
     static {
         ADDRESS_SIZE0 = targetAddressSize();
-        PAGE_SIZE = 0;                  // Invalid value; Set at runtime. Build-time usage flagged as an error by Unsafe$_patch.pageSize()
         BIG_ENDIAN = targetBigEndian();
         UNALIGNED_ACCESS = Build.Target.isI386() || Build.Target.isAmd64() || Build.Target.isAarch64();
-        DATA_CACHE_LINE_FLUSH_SIZE = 0; // NOTE: reset at runtime
     }
 
     @Add

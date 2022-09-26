@@ -45,10 +45,6 @@ import org.qbicc.runtime.Build;
 @Tracking("src/java.base/share/classes/java/lang/System.java")
 public final class System$_native {
 
-    private static void registerNatives() {
-        // no-op
-    }
-
     // Temporary manual implementation
     @SuppressWarnings("ManualArrayCopy")
     public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length) {

@@ -43,6 +43,7 @@ import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.NoReflect;
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
+import org.qbicc.runtime.patcher.Replace;
 import org.qbicc.runtime.patcher.RunTimeAspect;
 
 @PatchClass(System.class)
@@ -50,9 +51,12 @@ import org.qbicc.runtime.patcher.RunTimeAspect;
 @RunTimeAspect
 public final class System$_runtime {
 
-    public static InputStream in;
-    public static PrintStream err;
-    public static PrintStream out;
+    @Replace
+    public static final InputStream in;
+    @Replace
+    public static final PrintStream err;
+    @Replace
+    public static final PrintStream out;
     @Add
     @NoReflect
     static boolean trigger = true;
@@ -61,11 +65,11 @@ public final class System$_runtime {
         FileInputStream fdIn = new FileInputStream(FileDescriptor.in);
         FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
         FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);
-        System$_patch.setIn0(new BufferedInputStream(fdIn));
+        in = new BufferedInputStream(fdIn);
         // sun.stdout/err.encoding are set when the VM is associated with the terminal,
         // thus they are equivalent to Console.charset(), otherwise the encoding
         // defaults to Charset.defaultCharset()
-        System$_patch.setOut0(System$_patch.newPrintStream(fdOut, System$_patch.props.getProperty("sun.stdout.encoding")));
-        System$_patch.setErr0(System$_patch.newPrintStream(fdErr, System$_patch.props.getProperty("sun.stderr.encoding")));
+        out = System$_patch.newPrintStream(fdOut, System$_patch.props.getProperty("sun.stdout.encoding"));
+        err = System$_patch.newPrintStream(fdErr, System$_patch.props.getProperty("sun.stderr.encoding"));
     }
 }
