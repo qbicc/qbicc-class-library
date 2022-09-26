@@ -53,6 +53,7 @@ import java.util.Set;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
+import org.qbicc.runtime.SerializeAsZero;
 
 @Tracking("src/java.base/unix/classes/java/lang/ProcessEnvironment.java")
 @Tracking("src/java.base/unix/native/libjava/ProcessEnvironment_md.c")
@@ -61,8 +62,8 @@ import org.qbicc.runtime.Build;
 final class ProcessEnvironment {
     private ProcessEnvironment() {}
 
-    static final EnvironmentMap theEnvironment;
-    static final Map<String, String> theUnmodifiableEnvironment;
+    @SerializeAsZero
+    private static final EnvironmentMap theBuildtimeEnvironment;
 
     static {
         assert Build.isHost();
@@ -75,8 +76,7 @@ final class ProcessEnvironment {
                 env.put(key, value);
             }
         }
-        theEnvironment = env;
-        theUnmodifiableEnvironment = Collections.unmodifiableMap(env);
+        theBuildtimeEnvironment = env;
     }
 
     private static Key makeKey(final String str) {
@@ -98,17 +98,23 @@ final class ProcessEnvironment {
 
     /* System.getenv(String) */
     static String getenv(String name) {
-        return theEnvironment.get(name);
+        if (Build.isHost()) {
+            return theBuildtimeEnvironment.get(name);
+        } else {
+            return ProcessEnvironment$_runtime.theEnvironment.get(name);
+        }
     }
 
     /* System.getenv() */
     static Map<String,String> getenv() {
-        return theUnmodifiableEnvironment;
+        // Do not want build-time environment to escape into the initial heap as a Map, so only support this API at runtime.
+        return ProcessEnvironment$_runtime.theUnmodifiableEnvironment;
     }
 
     /* ProcessBuilder.environment() */
     static Map<String, String> environment() {
-        return theEnvironment.clone();
+        // Do not want build-time environment to escape into the initial heap as a Map, so only support this API at runtime.
+        return ProcessEnvironment$_runtime.theEnvironment.clone();
     }
 
     /* Runtime.exec(*) / ProcessBuilder */

@@ -40,9 +40,6 @@ import org.qbicc.runtime.Build;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.RunTimeAspect;
 
-/**
- *
- */
 @PatchClass(ProcessEnvironment.class)
 @RunTimeAspect
 @Tracking("src/java.base/unix/classes/java/lang/ProcessEnvironment.java")
