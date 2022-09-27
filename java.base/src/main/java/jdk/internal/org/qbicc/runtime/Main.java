@@ -73,13 +73,9 @@ public final class Main {
             System$_patch.rtinitPhase3();
 
             // next execute additional initialization actions deferred from build time
-            /*
-             * TODO: Have to sort out threading story first so that deamon threads created by
-             *       deferredInits don't prevent the process from exiting.
             for (Runnable r: deferredInits) {
                 r.run();
             }
-            */
 
             // now cause the initial thread to invoke main
             String[] args = new String[argc.intValue() - 1];

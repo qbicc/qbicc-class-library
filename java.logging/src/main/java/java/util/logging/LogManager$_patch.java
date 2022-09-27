@@ -32,8 +32,6 @@
 
 package java.util.logging;
 
-import jdk.internal.org.qbicc.runtime.Main;
-
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.ReflectivelyAccesses;

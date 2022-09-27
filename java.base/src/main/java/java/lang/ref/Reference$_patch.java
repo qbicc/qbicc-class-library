@@ -33,9 +33,11 @@ package java.lang.ref;
 
 import jdk.internal.access.JavaLangRefAccess;
 import jdk.internal.access.SharedSecrets;
+import jdk.internal.org.qbicc.runtime.Main;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.SerializeAsZero;
+import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.Annotate;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
@@ -50,25 +52,16 @@ public abstract class Reference$_patch<T> {
     // Alias & preserve orginal <clinit>
     private static boolean processPendingActive = false;
 
+    @Add
+    private static Object pendingReferenceListLock = new Object();
+    @Add
+    private static Reference pendingReferenceList = null;
+
     // Alias
     private static native boolean waitForReferenceProcessing() throws InterruptedException;
 
     static {
-        /*
-         * EXCLUDE from build-time <clinit> (eventually need to do at runtime).
-         *
-        ThreadGroup tg = Thread.currentThread().getThreadGroup();
-        for (ThreadGroup tgn = tg;
-             tgn != null;
-             tg = tgn, tgn = tg.getParent());
-        Thread handler = new ReferenceHandler(tg, "Reference Handler");
-        /* If there were a special system-only priority greater than
-         * MAX_PRIORITY, it would be used here
-         * /
-        handler.setPriority(Thread.MAX_PRIORITY);
-        handler.setDaemon(true);
-        handler.start();
-        */
+        Main.deferInitAction(new ReferenceDeferredInitAction());
 
         // provide access in SharedSecrets
         SharedSecrets.setJavaLangRefAccess(new JavaLangRefAccess() {
@@ -96,4 +89,33 @@ public abstract class Reference$_patch<T> {
         referent = null;
     }
 
+    // Alias -- make accessible to ReferenceDeferredInitAction.ReferenceHandler
+    static native void processPendingReferences();
+
+    @Replace
+    private static Reference<?> getAndClearReferencePendingList() {
+        Reference<?> prior = null;
+        synchronized(pendingReferenceListLock) {
+            prior = pendingReferenceList;
+            pendingReferenceList = null;
+        }
+        return prior;
+    }
+
+    @Replace
+    private static boolean hasReferencePendingList() {
+        synchronized(pendingReferenceListLock) {
+            return pendingReferenceList != null;
+        }
+    }
+
+    @Replace
+    private static void waitForReferencePendingList() {
+        synchronized (pendingReferenceListLock) {
+            try {
+                pendingReferenceListLock.wait();
+            } catch (InterruptedException e) {
+            }
+        }
+    }
 }

@@ -32,43 +32,20 @@
 
 package sun.nio.fs;
 
-import java.lang.ref.Cleaner.Cleanable;
 import jdk.internal.misc.Unsafe;
-import jdk.internal.ref.CleanerFactory;
 
 import org.qbicc.rt.annotation.Tracking;
-import org.qbicc.runtime.Build;
-import org.qbicc.runtime.patcher.PatchClass;
-import org.qbicc.runtime.patcher.Replace;
 
-@PatchClass(NativeBuffer.class)
 @Tracking("src/java.base/share/classes/sun/nio/fs/NativeBuffer.java")
-class NativeBuffer$_patch {
-    // alias
-    private static Unsafe unsafe;
+class NativeBuffer$_patch$Deallocator implements Runnable {
+    private static final Unsafe unsafe = Unsafe.getUnsafe();
     private final long address;
-    private final int size;
-    private final Cleanable cleanable;
 
-    @Replace
-    NativeBuffer$_patch(int size) {
-        this.address = unsafe.allocateMemory(size);
-        this.size = size;
-        if (Build.isHost()) {
-            // No need for a cleanable.  There are two cases:
-            //   1. The NativeBuffer is not serialized, so everything is just Java objects on the host JVM heap
-            //   2. The NativeBuffer is serialized, so the native memory becomes part of the initial heap,
-            //       which means it is not malloced memory, so it is not valid to call free on it.
-            this.cleanable = null;
-        } else {
-            this.cleanable = CleanerFactory.cleaner().register(this, new NativeBuffer$_patch$Deallocator(address));
-        }
+    NativeBuffer$_patch$Deallocator(long address) {
+        this.address = address;
     }
 
-    @Replace
-    void free() {
-        if (cleanable != null) {
-            cleanable.clean();
-        }
+    public void run() {
+        unsafe.freeMemory(address);
     }
 }

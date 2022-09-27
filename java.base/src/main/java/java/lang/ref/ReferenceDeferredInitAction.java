@@ -2,7 +2,7 @@
  * This code is based on OpenJDK source file(s) which contain the following copyright notice:
  *
  * ------
- * Copyright (c) 2008, 2009, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -29,46 +29,41 @@
  * This file may contain additional modifications which are Copyright (c) Red Hat and other
  * contributors.
  */
-
-package sun.nio.fs;
-
-import java.lang.ref.Cleaner.Cleanable;
-import jdk.internal.misc.Unsafe;
-import jdk.internal.ref.CleanerFactory;
+package java.lang.ref;
 
 import org.qbicc.rt.annotation.Tracking;
-import org.qbicc.runtime.Build;
-import org.qbicc.runtime.patcher.PatchClass;
-import org.qbicc.runtime.patcher.Replace;
 
-@PatchClass(NativeBuffer.class)
-@Tracking("src/java.base/share/classes/sun/nio/fs/NativeBuffer.java")
-class NativeBuffer$_patch {
-    // alias
-    private static Unsafe unsafe;
-    private final long address;
-    private final int size;
-    private final Cleanable cleanable;
+/*
+ * This class exists because defining an anonymous Runnable in a patch class
+ * like Reference$_patch is not currently supported by our Patcher infrastructure.
+ */
+@Tracking("src/java.base/share/classes/java/lang/ref/Reference.java")
+class ReferenceDeferredInitAction implements Runnable {
 
-    @Replace
-    NativeBuffer$_patch(int size) {
-        this.address = unsafe.allocateMemory(size);
-        this.size = size;
-        if (Build.isHost()) {
-            // No need for a cleanable.  There are two cases:
-            //   1. The NativeBuffer is not serialized, so everything is just Java objects on the host JVM heap
-            //   2. The NativeBuffer is serialized, so the native memory becomes part of the initial heap,
-            //       which means it is not malloced memory, so it is not valid to call free on it.
-            this.cleanable = null;
-        } else {
-            this.cleanable = CleanerFactory.cleaner().register(this, new NativeBuffer$_patch$Deallocator(address));
-        }
+    public void run() {
+        ThreadGroup tg = Thread.currentThread().getThreadGroup();
+        for (ThreadGroup tgn = tg;
+             tgn != null;
+             tg = tgn, tgn = tg.getParent())
+            ;
+        Thread handler = new ReferenceHandler(tg, "Reference Handler");
+        /* If there were a special system-only priority greater than
+         * MAX_PRIORITY, it would be used here
+         */
+        handler.setPriority(Thread.MAX_PRIORITY);
+        handler.setDaemon(true);
+        handler.start();
     }
 
-    @Replace
-    void free() {
-        if (cleanable != null) {
-            cleanable.clean();
+    private static class ReferenceHandler extends Thread {
+        ReferenceHandler(ThreadGroup g, String name) {
+            super(g, null, name, 0, false);
+        }
+
+        public void run() {
+            while (true) {
+                Reference$_patch.processPendingReferences();
+            }
         }
     }
 }
