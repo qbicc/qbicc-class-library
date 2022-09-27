@@ -32,13 +32,37 @@
 
 package java.util.concurrent;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
-import org.qbicc.runtime.patcher.RunTimeAspect;
+import org.qbicc.runtime.patcher.ReplaceInit;
 
 @PatchClass(Exchanger.class)
 @Tracking("src/java.base/share/classes/java/util/concurrent/Exchanger.java")
-public class Exchanger$_patch {
-    // alias
-    static int MMASK;
+@ReplaceInit
+public class Exchanger$_init {
+    private static final int ASHIFT = 5;
+    /* private*/ static final int MMASK = 0xff;
+    private static final int SEQ = MMASK + 1;
+    private static final int SPINS = 1 << 10;
+    private static final Object NULL_ITEM = new Object();
+    private static final Object TIMED_OUT = new Object();
+
+    private static final VarHandle BOUND;
+    private static final VarHandle SLOT;
+    private static final VarHandle MATCH;
+    private static final VarHandle AA;
+    static {
+        try {
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            BOUND = l.findVarHandle(Exchanger.class, "bound", int.class);
+            SLOT = l.findVarHandle(Exchanger.class, "slot", Exchanger.Node.class);
+            MATCH = l.findVarHandle(Exchanger.Node.class, "match", Object.class);
+            AA = MethodHandles.arrayElementVarHandle(Exchanger.Node[].class);
+        } catch (ReflectiveOperationException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 }

@@ -30,22 +30,44 @@
  * contributors.
  */
 
-package jdk.internal.misc;
+package java.util.concurrent.atomic;
+
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 
 import org.qbicc.rt.annotation.Tracking;
-import org.qbicc.runtime.Build;
 import org.qbicc.runtime.patcher.PatchClass;
-import org.qbicc.runtime.patcher.Replace;
+import org.qbicc.runtime.patcher.ReplaceInit;
 
-@PatchClass(Unsafe.class)
-@Tracking("src/java.base/share/classes/jdk/internal/misc/Unsafe.java")
-final class Unsafe$_patch {
+@PatchClass(Striped64.class)
+@ReplaceInit
+@Tracking("src/java.base/share/classes/java/util/concurrent/atomic/Striped64.java")
+public class Striped64$_init {
 
-    @Replace
-    public int pageSize() {
-        if (Build.isHost()) {
-            throw new UnsupportedOperationException("Cannot retrieve page size of target during build; it is not known");
+    private static final VarHandle BASE;
+    private static final VarHandle CELLSBUSY;
+    private static final VarHandle THREAD_PROBE;
+    static {
+        try {
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            BASE = l.findVarHandle(Striped64.class,
+                    "base", long.class);
+            CELLSBUSY = l.findVarHandle(Striped64.class,
+                    "cellsBusy", int.class);
+            l = java.security.AccessController.doPrivileged(
+                    new java.security.PrivilegedAction<>() {
+                        public MethodHandles.Lookup run() {
+                            try {
+                                return MethodHandles.privateLookupIn(Thread.class, MethodHandles.lookup());
+                            } catch (ReflectiveOperationException e) {
+                                throw new ExceptionInInitializerError(e);
+                            }
+                        }});
+            THREAD_PROBE = l.findVarHandle(Thread.class,
+                    "threadLocalRandomProbe", int.class);
+        } catch (ReflectiveOperationException e) {
+            throw new ExceptionInInitializerError(e);
         }
-        return UnsafeConstants.PAGE_SIZE;
     }
+
 }

@@ -32,14 +32,38 @@
 
 package java.util.concurrent;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
-import org.qbicc.runtime.patcher.RunTimeAspect;
+import org.qbicc.runtime.patcher.ReplaceInit;
 
-@PatchClass(Exchanger.class)
-@RunTimeAspect
-@Tracking("src/java.base/share/classes/java/util/concurrent/Exchanger.java")
-public class Exchanger$_runtime {
-    static final int NCPU = Runtime.getRuntime().availableProcessors();
-    static final int FULL = (NCPU >= (java.util.concurrent.Exchanger$_init.MMASK << 1)) ? java.util.concurrent.Exchanger$_init.MMASK : NCPU >>> 1;
+@PatchClass(Phaser.class)
+@ReplaceInit
+@Tracking("src/java.base/share/classes/java/util/concurrent/Phaser.java")
+public class Phaser$_init {
+
+    private static final int  MAX_PARTIES     = 0xffff;
+    private static final int  MAX_PHASE       = Integer.MAX_VALUE;
+    private static final int  PARTIES_SHIFT   = 16;
+    private static final int  PHASE_SHIFT     = 32;
+    private static final int  UNARRIVED_MASK  = 0xffff;      // to mask ints
+    private static final long PARTIES_MASK    = 0xffff0000L; // to mask longs
+    private static final long COUNTS_MASK     = 0xffffffffL;
+    private static final long TERMINATION_BIT = 1L << 63;
+    private static final int  ONE_ARRIVAL     = 1;
+    private static final int  ONE_PARTY       = 1 << PARTIES_SHIFT;
+    private static final int  ONE_DEREGISTER  = ONE_ARRIVAL|ONE_PARTY;
+    private static final int  EMPTY           = 1;
+
+    private static final VarHandle STATE;
+    static {
+        try {
+            MethodHandles.Lookup l = MethodHandles.lookup();
+            STATE = l.findVarHandle(Phaser.class, "state", long.class);
+        } catch (ReflectiveOperationException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 }

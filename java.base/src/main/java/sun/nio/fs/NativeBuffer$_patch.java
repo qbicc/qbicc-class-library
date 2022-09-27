@@ -71,4 +71,26 @@ class NativeBuffer$_patch {
             cleanable.clean();
         }
     }
+
+    @Replace
+    NativeBuffer$_patch(int size) {
+        this.address = unsafe.allocateMemory(size);
+        this.size = size;
+        if (Build.isHost()) {
+            // No need for a cleanable.  There are two cases:
+            //   1. The NativeBuffer is not serialized, so everything is just Java objects on the host JVM heap
+            //   2. The NativeBuffer is serialized, so the native memory becomes a part of the initial heap,
+            //       which means it is not malloced memory, so it is not valid to call free on it.
+            this.cleanable = null;
+        } else {
+            this.cleanable = CleanerFactory.cleaner().register(this, new NativeBuffer$_patch$Deallocator(address));
+        }
+    }
+
+    @Replace
+    void free() {
+        if (cleanable != null) {
+            cleanable.clean();
+        }
+    }
 }

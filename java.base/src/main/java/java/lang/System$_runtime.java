@@ -30,16 +30,46 @@
  * contributors.
  */
 
-package java.util.concurrent;
+package java.lang;
+
+import java.io.BufferedInputStream;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.PrintStream;
 
 import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.NoReflect;
+import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
+import org.qbicc.runtime.patcher.Replace;
 import org.qbicc.runtime.patcher.RunTimeAspect;
 
-@PatchClass(Exchanger.class)
+@PatchClass(System.class)
+@Tracking("src/java.base/share/classes/java/lang/System.java")
 @RunTimeAspect
-@Tracking("src/java.base/share/classes/java/util/concurrent/Exchanger.java")
-public class Exchanger$_runtime {
-    static final int NCPU = Runtime.getRuntime().availableProcessors();
-    static final int FULL = (NCPU >= (java.util.concurrent.Exchanger$_init.MMASK << 1)) ? java.util.concurrent.Exchanger$_init.MMASK : NCPU >>> 1;
+public final class System$_runtime {
+
+    @Replace
+    public static final InputStream in;
+    @Replace
+    public static final PrintStream err;
+    @Replace
+    public static final PrintStream out;
+    @Add
+    @NoReflect
+    static boolean trigger = true;
+
+    static {
+        FileInputStream fdIn = new FileInputStream(FileDescriptor.in);
+        FileOutputStream fdOut = new FileOutputStream(FileDescriptor.out);
+        FileOutputStream fdErr = new FileOutputStream(FileDescriptor.err);
+        in = new BufferedInputStream(fdIn);
+        // sun.stdout/err.encoding are set when the VM is associated with the terminal,
+        // thus they are equivalent to Console.charset(), otherwise the encoding
+        // defaults to Charset.defaultCharset()
+        out = System$_patch.newPrintStream(fdOut, System$_patch.props.getProperty("sun.stdout.encoding"));
+        err = System$_patch.newPrintStream(fdErr, System$_patch.props.getProperty("sun.stderr.encoding"));
+    }
 }

@@ -30,16 +30,21 @@
  * contributors.
  */
 
-package java.util.concurrent;
+package java.lang;
+
+import java.io.BufferedInputStream;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.PrintStream;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
-import org.qbicc.runtime.patcher.RunTimeAspect;
+import org.qbicc.runtime.patcher.ReplaceInit;
 
-@PatchClass(Exchanger.class)
-@RunTimeAspect
-@Tracking("src/java.base/share/classes/java/util/concurrent/Exchanger.java")
-public class Exchanger$_runtime {
-    static final int NCPU = Runtime.getRuntime().availableProcessors();
-    static final int FULL = (NCPU >= (java.util.concurrent.Exchanger$_init.MMASK << 1)) ? java.util.concurrent.Exchanger$_init.MMASK : NCPU >>> 1;
+@PatchClass(System.class)
+@Tracking("src/java.base/share/classes/java/lang/System.java")
+@ReplaceInit
+public final class System$_init {
 }

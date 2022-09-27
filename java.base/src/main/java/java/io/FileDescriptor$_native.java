@@ -111,10 +111,6 @@ public class FileDescriptor$_native {
         }
     }
 
-    private static void initIDs() {
-        // no operation
-    }
-
     public void sync() throws SyncFailedException {
         if (Build.isHost()) {
             try {
