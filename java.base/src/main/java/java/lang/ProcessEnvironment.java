@@ -64,6 +64,9 @@ final class ProcessEnvironment {
 
     @SerializeAsZero
     private static final EnvironmentMap theBuildtimeEnvironment;
+    @SerializeAsZero
+    private static final Map<String, String> theUnmodifiableBuildtimeEnvironment;
+
 
     static {
         assert Build.isHost();
@@ -77,6 +80,7 @@ final class ProcessEnvironment {
             }
         }
         theBuildtimeEnvironment = env;
+        theUnmodifiableBuildtimeEnvironment = Collections.unmodifiableMap(env);
     }
 
     private static Key makeKey(final String str) {
@@ -107,14 +111,20 @@ final class ProcessEnvironment {
 
     /* System.getenv() */
     static Map<String,String> getenv() {
-        // Do not want build-time environment to escape into the initial heap as a Map, so only support this API at runtime.
-        return ProcessEnvironment$_runtime.theUnmodifiableEnvironment;
+        if (Build.isHost()) {
+            return theUnmodifiableBuildtimeEnvironment;
+        } else {
+            return ProcessEnvironment$_runtime.theUnmodifiableEnvironment;
+        }
     }
 
     /* ProcessBuilder.environment() */
     static Map<String, String> environment() {
-        // Do not want build-time environment to escape into the initial heap as a Map, so only support this API at runtime.
-        return ProcessEnvironment$_runtime.theEnvironment.clone();
+        if (Build.isHost()) {
+            return theBuildtimeEnvironment.clone();
+        } else {
+            return ProcessEnvironment$_runtime.theEnvironment.clone();
+        }
     }
 
     /* Runtime.exec(*) / ProcessBuilder */
