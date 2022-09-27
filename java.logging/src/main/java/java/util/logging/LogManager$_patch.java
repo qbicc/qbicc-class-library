@@ -38,6 +38,7 @@ import org.qbicc.runtime.ReflectivelyAccesses;
 import org.qbicc.runtime.ReflectivelyAccessedElement;
 import org.qbicc.runtime.patcher.Annotate;
 import org.qbicc.runtime.patcher.PatchClass;
+import org.qbicc.runtime.patcher.Replace;
 
 @PatchClass(LogManager.class)
 @Tracking("src/java.logging/share/classes/java/util/LogManager.java")
@@ -49,4 +50,23 @@ import org.qbicc.runtime.patcher.PatchClass;
 @Annotate
 public class LogManager$_patch {
 
+    // alias
+    private volatile boolean readPrimordialConfiguration;
+    native void readConfiguration();
+
+    @Replace
+    private void readPrimordialConfiguration() { // must be called while holding configurationLock
+        if (!readPrimordialConfiguration) {
+            readPrimordialConfiguration = true;
+            try {
+                readConfiguration();
+
+                // Platform loggers begin to delegate to java.util.logging.Logger
+                jdk.internal.logger.BootstrapLogger.redirectTemporaryLoggers();
+
+            } catch (Exception ex) {
+                throw new AssertionError("Exception raised while reading logging configuration: ", ex);
+            }
+        }
+    }
 }
