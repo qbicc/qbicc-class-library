@@ -1,4 +1,7 @@
 /*
+ * This code is based on OpenJDK source file(s) which contain the following copyright notice:
+ *
+ * ------
  * Copyright (c) 2000, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -21,6 +24,10 @@
  * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
  * or visit www.oracle.com if you need additional information or have any
  * questions.
+ * ------
+ *
+ * This file may contain additional modifications which are Copyright (c) Red Hat and other
+ * contributors.
  */
 
 #warn This file is preprocessed before being compiled
@@ -29,6 +36,7 @@ package java.nio;
 
 import java.util.Objects;
 import jdk.internal.access.foreign.MemorySegmentProxy;
+import org.qbicc.rt.annotation.Tracking;
 
 /**
 #if[rw]
@@ -41,6 +49,7 @@ import jdk.internal.access.foreign.MemorySegmentProxy;
 #end[rw]
  */
 
+@Tracking("src/java.base/share/classes/java/nio/Heap-X-Buffer.java.template")
 class Heap$Type$Buffer$RW$
     extends {#if[ro]?Heap}$Type$Buffer
 {

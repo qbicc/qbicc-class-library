@@ -1,4 +1,7 @@
 /*
+ * This code is based on OpenJDK source file(s) which contain the following copyright notice:
+ *
+ * ------
  * Copyright (c) 2000, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
@@ -21,6 +24,10 @@
  * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
  * or visit www.oracle.com if you need additional information or have any
  * questions.
+ * ------
+ *
+ * This file may contain additional modifications which are Copyright (c) Red Hat and other
+ * contributors.
  */
 
 #warn This file is preprocessed before being compiled
@@ -36,7 +43,10 @@ import jdk.internal.misc.VM;
 import jdk.internal.ref.Cleaner;
 import sun.nio.ch.DirectBuffer;
 
+import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.Build;
 
+@Tracking("src/java.base/share/classes/java/nio/Direct-X-Buffer.java.template")
 class Direct$Type$Buffer$RW$$BO$
 #if[rw]
     extends {#if[byte]?Mapped$Type$Buffer:$Type$Buffer}
@@ -115,8 +125,8 @@ class Direct$Type$Buffer$RW$$BO$
     Direct$Type$Buffer$RW$(int cap) {                   // package-private
 #if[rw]
         super(-1, 0, cap, cap, null);
-        boolean pa = VM.isDirectMemoryPageAligned();
-        int ps = Bits.pageSize();
+        boolean pa = Build.isHost() ? false : VM.isDirectMemoryPageAligned();
+        int ps = Build.isHost() ? /* unused */ 0 : Bits.pageSize();
         long size = Math.max(1L, (long)cap + (pa ? ps : 0));
         Bits.reserveMemory(size, cap);
 
@@ -134,7 +144,7 @@ class Direct$Type$Buffer$RW$$BO$
         } else {
             address = base;
         }
-        cleaner = Cleaner.create(this, new Deallocator(base, size, cap));
+        cleaner = Build.isHost() ? null : Cleaner.create(this, new Deallocator(base, size, cap));
         att = null;
 #else[rw]
         super(cap);
