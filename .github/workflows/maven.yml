@@ -63,7 +63,7 @@ jobs:
         with:
           repository: qbicc/qbicc
           ref: ${{ env.QBICC_VERSION }}
-          path: qbicc
+          path: qbicc-${{ matrix.os }}-llvm${{ matrix.llvm-version }}
 
       - name: Run qbicc tests (Linux)
         if: matrix.os == 'ubuntu-latest'
@@ -71,8 +71,10 @@ jobs:
             LIBRARY_PATH: /usr/lib/gcc/x86_64-linux-gnu/11:/usr/lib/x86_64-linux-gnu
             CC: clang
         run: |
+          ulimit -c 819200 # 400mb
+          ../qbicc-class-library/ci/prepare_for_core_linux.sh
           mvn --batch-mode install -Dversion.qbicc.classlib=${{ env.CLASSLIB_VERSION }} -Dqbicc.test.clean-target=true
-        working-directory: qbicc
+        working-directory: qbicc-${{ matrix.os }}-llvm${{ matrix.llvm-version }}
 
       - name: Run qbicc tests (Mac OS)
         if: matrix.os == 'macos-latest'
@@ -80,8 +82,10 @@ jobs:
             LIBRARY_PATH: $(brew --prefix gcc)/lib/gcc/11
             CC: gcc
         run: |
+          ulimit -c 819200 # 400mb
+          ../qbicc-class-library/ci/prepare_for_core_macos.sh
           mvn --batch-mode install -Dversion.qbicc.classlib=${{ env.CLASSLIB_VERSION }} -Dqbicc.test.clean-target=true
-        working-directory: qbicc
+        working-directory: qbicc-${{ matrix.os }}-llvm${{ matrix.llvm-version }}
 
       - name: Prepare failure archive (if maven failed)
         if: failure()
@@ -93,4 +97,7 @@ jobs:
         if: failure()
         with:
           name: test-reports
-          path: 'test-reports.tgz'
+          path: |
+            'test-reports.tgz'
+            ./qbicc-*/core/*
+            ./qbicc-*/integration-tests/target/native/qbicc-integration-tests
