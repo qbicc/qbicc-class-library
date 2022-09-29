@@ -304,7 +304,9 @@ public class Thread$_patch {
         }
         // terminated - clear ALIVE and RUNNABLE and set TERMINATED in one swap
         addr_of(refToPtr(this).sel().threadStatus).getAndBitwiseXor(word(STATE_ALIVE | STATE_RUNNABLE | STATE_TERMINATED));
-        this.notifyAll(); // notify any threads that have called Thread.join() on me.
+        synchronized (this) {
+            this.notifyAll(); // notify any threads that have called Thread.join() on me.
+        }
     }
 
     @Replace
