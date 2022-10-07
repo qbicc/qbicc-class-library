@@ -151,7 +151,7 @@ public class GenerateBuffersMojo extends AbstractSppMojo {
         "double",  "seven"
     );
 
-    @Parameter(defaultValue = "${project.baseDir}/../../openjdk/src/java.base/share/classes")
+    @Parameter(defaultValue = "${project.baseDir}/../../java.base/src/main/java")
     File inputDirectory;
 
     @Parameter(defaultValue = "${project.build.directory}/generated-sources/spp")
