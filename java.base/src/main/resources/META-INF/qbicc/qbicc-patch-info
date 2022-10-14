@@ -22,6 +22,7 @@ java.io.FileDescriptor$_runtime
 java.io.FileDescriptor$_patch
 java.net.URL$DefaultFactory$_patch
 java.text.DateFormatSymbols$_patch
+java.util.ServiceLoader$_patch
 java.util.concurrent.atomic.Striped64$_init
 java.util.concurrent.atomic.Striped64$_runtime
 java.util.concurrent.ConcurrentHashMap$_init
