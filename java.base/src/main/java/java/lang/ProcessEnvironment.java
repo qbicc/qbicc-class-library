@@ -448,17 +448,16 @@ final class ProcessEnvironment {
         for (;;) {
             entry_ptr = env_ptr.loadUnshared();
             env_ptr = env_ptr.plus(1);
-            String key = makeString(b, entry_ptr);
-            if (key == null) {
+            String str = makeString(b, entry_ptr);
+            if (str == null) {
                 return;
             }
-            entry_ptr = env_ptr.loadUnshared();
-            env_ptr = env_ptr.plus(1);
-            String value = makeString(b, entry_ptr);
-            if (value == null) {
-                return;
+            int split = str.indexOf('=');
+            if (split != -1) {
+                String key = str.substring(0, split);
+                String value = str.substring(split+1);
+                env.put(key, value);
             }
-            env.put(key, value);
         }
     }
 
