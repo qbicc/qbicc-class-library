@@ -75,7 +75,7 @@ final class ProcessEnvironment {
         for (int i = 0; i < hostEnvironment.length; i += 2) {
             String key = hostEnvironment[i];
             String value = hostEnvironment[i + 1];
-            if (isValidEnvString(key) && isValidEnvString(value)) {
+            if (isValidName(key) && isValidValue(value)) {
                 env.put(key, value);
             }
         }
@@ -152,12 +152,28 @@ final class ProcessEnvironment {
 
     // Shared
 
-    static boolean isValidEnvString(final String string) {
+    static boolean isValidName(final String string) {
+        if (Build.Target.isWindows()) {
+            // An initial `=' indicates a magic Windows variable name -- OK
+            return string.indexOf('=', 1) == -1 && string.indexOf('\0') == -1;
+        } else {
+            return string.indexOf('=') == -1 && string.indexOf('\0') == -1;
+        }
+    }
+
+    static boolean isValidValue(final String string) {
         return string.indexOf('=') == -1 && string.indexOf('\0') == -1;
     }
 
-    static String validateEnvString(final String string) {
-        if (! isValidEnvString(string)) {
+    static String validateName(final String string) {
+        if (! isValidName(string)) {
+            throw new IllegalArgumentException("Invalid environment string");
+        }
+        return string;
+    }
+
+    static String validateValue(final String string) {
+        if (! isValidValue(string)) {
             throw new IllegalArgumentException("Invalid environment string");
         }
         return string;
@@ -168,8 +184,7 @@ final class ProcessEnvironment {
         private int hashCode;
 
         Key(final String string) {
-            validateEnvString(string);
-            this.string = string;
+            this.string = validateName(string);
         }
 
         public final boolean equals(final Object other) {
@@ -262,13 +277,13 @@ final class ProcessEnvironment {
         public String put(final String key, final String value) {
             Objects.requireNonNull(key, "key");
             Objects.requireNonNull(value, "value");
-            return env.put(makeKey(validateEnvString(key)), validateEnvString(value));
+            return env.put(makeKey(validateName(key)), validateValue(value));
         }
 
         public String putIfAbsent(final String key, final String value) {
             Objects.requireNonNull(key, "key");
             Objects.requireNonNull(value, "value");
-            return env.putIfAbsent(makeKey(validateEnvString(key)), validateEnvString(value));
+            return env.putIfAbsent(makeKey(validateName(key)), validateValue(value));
         }
 
         public String remove(final Object key) {
@@ -285,14 +300,14 @@ final class ProcessEnvironment {
         public String replace(final String key, final String value) {
             Objects.requireNonNull(key, "key");
             Objects.requireNonNull(value, "value");
-            return env.replace(makeKey(key), validateEnvString(value));
+            return env.replace(makeKey(key), validateValue(value));
         }
 
         public boolean replace(final String key, final String oldValue, final String newValue) {
             Objects.requireNonNull(key, "key");
             Objects.requireNonNull(oldValue, "oldValue");
             Objects.requireNonNull(newValue, "newValue");
-            return env.replace(makeKey(key), oldValue, validateEnvString(newValue));
+            return env.replace(makeKey(key), oldValue, validateValue(newValue));
         }
 
         public void clear() {
@@ -408,7 +423,7 @@ final class ProcessEnvironment {
         for (Map.Entry<String, String> entry : map.entrySet()) try {
             String key = entry.getKey();
             String value = entry.getValue();
-            if (! isValidEnvString(key) || ! isValidEnvString(value)) {
+            if (! isValidName(key) || ! isValidValue(value)) {
                 // skip the key for safety
                 continue;
             }
