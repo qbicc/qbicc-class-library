@@ -104,4 +104,10 @@ public final class Class$_native<T> {
     private java.security.ProtectionDomain getProtectionDomain0() {
         return null; // TODO: add instance field and store for real??
     }
+
+    private Class<?>[] getPermittedSubclasses0() {
+        // TODO: For now, just return null (means not sealed).
+        //       Eventually we need to extend qbicc to extract the information from the classfile.
+        return null;
+    }
 }
