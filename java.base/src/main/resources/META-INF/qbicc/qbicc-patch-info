@@ -33,6 +33,7 @@ java.util.concurrent.Exchanger$_runtime
 java.util.concurrent.Phaser$_init
 java.util.concurrent.Phaser$_runtime
 jdk.internal.loader.BootLoader$_patch
+jdk.internal.loader.BuiltinClassLoader$_patch
 jdk.internal.misc.UnsafeConstants$_patch
 jdk.internal.misc.UnsafeConstants$_runtime
 jdk.internal.misc.UnsafeParkUnpark
