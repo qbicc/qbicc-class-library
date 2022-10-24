@@ -43,18 +43,35 @@ import static org.qbicc.runtime.stdc.Stdint.*;
  */
 @Tracking("src/java.base/share/classes/java/lang/Class.java")
 @Tracking("src/java.base/share/native/libjava/Class.c")
+@Tracking("src/hotspot/share/classfile/systemDictionary.cpp")
 public final class Class$_native<T> {
 
     private static void registerNatives() {
         // no-op
     }
 
+    // loosely following load_* in systemDictionary.cpp, but simplified because at runtime
+    // qbicc's module suystem is alwasys fully booted and we can't load a new non-array class
     private static Class<?> forName0(String name, boolean initialize, ClassLoader loader, Class<?> caller) throws ClassNotFoundException {
-        Class<?> cls = VMHelpers.findLoadedClass(name, loader);
-        if (cls == null) {
-            throw new ClassNotFoundException(name);
+        if (name.startsWith("[")) {
+            // TODO: Deal with array case
+            // Strip down to element type; get the Class object; call getArrayClass() to build back up again.
+            throw new ClassNotFoundException("TODO: forName0 on arrays ");
+        } else {
+            Class<?> cls;
+            if (loader == null) {
+                cls = VMHelpers.findLoadedClass(name, null);
+            } else {
+                cls = loader.loadClass(name);
+                if (cls != null && !cls.getName().equals(name)) {
+                    cls = null; // user-defined classloader misbehaved; override
+                }
+            }
+            if (cls == null) {
+                throw new ClassNotFoundException(name);
+            }
+            return cls;
         }
-        return cls;
     }
 
     public boolean isInstance(Object obj) {
