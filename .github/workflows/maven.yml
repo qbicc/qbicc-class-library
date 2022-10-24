@@ -1,6 +1,6 @@
 name: qbicc-class-libraries Continuous Integration
 env:
-  CLASSLIB_VERSION: 17.alpha.0.39-SNAPSHOT
+  CLASSLIB_VERSION: 17.alpha.0.39
   QBICC_VERSION: 0.47.0
 on:
   push:
