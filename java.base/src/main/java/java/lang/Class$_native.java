@@ -139,4 +139,20 @@ public final class Class$_native<T> {
             throw new IllegalStateException("Class.getDeclaredConstructors0() should have been intercepted in the interpreter!");
         }
     }
+
+    byte[] getRawAnnotations() {
+        if (Build.isTarget()) {
+            throw new UnsupportedOperationException("Must register "+this+" for runtime reflection at compile time");
+        } else {
+            throw new IllegalStateException("Class.getRawAnnotations() should have been intercepted in the interpreter!");
+        }
+    }
+
+    byte[] getRawTypeAnnotations() {
+        if (Build.isTarget()) {
+            throw new UnsupportedOperationException("Must register "+this+" for runtime reflection at compile time");
+        } else {
+            throw new IllegalStateException("Class.getRawTypeAnnotations() should have been intercepted in the interpreter!");
+        }
+    }
 }
