@@ -31,7 +31,12 @@
  */
 package java.lang;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
 import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.Build;
 import org.qbicc.runtime.main.CompilerIntrinsics;
 import org.qbicc.runtime.main.VMHelpers;
 
@@ -126,5 +131,45 @@ public final class Class$_native<T> {
         // TODO: For now, just return null (means not sealed).
         //       Eventually we need to extend qbicc to extract the information from the classfile.
         return null;
+    }
+
+    private Field[] getDeclaredFields0(boolean publicOnly) {
+        if (Build.isTarget()) {
+            throw new UnsupportedOperationException("Must register "+this+" for runtime reflection at compile time");
+        } else {
+            throw new IllegalStateException("Class.getDeclaredFields0() should have been intercepted in the interpreter!");
+        }
+    }
+
+    private Method[] getDeclaredMethods0(boolean publicOnly) {
+        if (Build.isTarget()) {
+            throw new UnsupportedOperationException("Must register "+this+" for runtime reflection at compile time");
+        } else {
+            throw new IllegalStateException("Class.getDeclaredMethods0() should have been intercepted in the interpreter!");
+        }
+    }
+
+    private Constructor<T>[] getDeclaredConstructors0(boolean publicOnly) {
+        if (Build.isTarget()) {
+            throw new UnsupportedOperationException("Must register "+this+" for runtime reflection at compile time");
+        } else {
+            throw new IllegalStateException("Class.getDeclaredConstructors0() should have been intercepted in the interpreter!");
+        }
+    }
+
+    byte[] getRawAnnotations() {
+        if (Build.isTarget()) {
+            throw new UnsupportedOperationException("Must register "+this+" for runtime reflection at compile time");
+        } else {
+            throw new IllegalStateException("Class.getRawAnnotations() should have been intercepted in the interpreter!");
+        }
+    }
+
+    byte[] getRawTypeAnnotations() {
+        if (Build.isTarget()) {
+            throw new UnsupportedOperationException("Must register "+this+" for runtime reflection at compile time");
+        } else {
+            throw new IllegalStateException("Class.getRawTypeAnnotations() should have been intercepted in the interpreter!");
+        }
     }
 }

@@ -41,6 +41,7 @@ import static org.qbicc.runtime.posix.PThread.*;
 import static org.qbicc.runtime.posix.Time.*;
 import static org.qbicc.runtime.stdc.Errno.errno;
 import static org.qbicc.runtime.stdc.Stdint.*;
+import static org.qbicc.runtime.stdc.Stdio.*;
 import static org.qbicc.runtime.stdc.Time.*;
 
 import java.security.AccessControlContext;
@@ -272,6 +273,17 @@ public class Thread$_patch {
         begin();
         try {
             self.run();
+        } catch (Throwable t) {
+            Thread.UncaughtExceptionHandler handler = Thread.currentThread().getUncaughtExceptionHandler();
+            if (handler != null) {
+                try {
+                    handler.uncaughtException(Thread.currentThread(), t);
+                } catch (Throwable t2) {
+                    // exception handler threw an exception... just bail out then
+                    fprintf(stderr, utf8z("The uncaught exception handler threw an exception or error\n"));
+                    fflush(stderr);
+                }
+            }
         } finally {
             end();
         }

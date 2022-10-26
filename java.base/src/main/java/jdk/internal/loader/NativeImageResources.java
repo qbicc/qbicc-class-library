@@ -60,7 +60,7 @@ import org.qbicc.runtime.ReflectivelyAccessedElement;
 public class NativeImageResources {
     private static final HashMap<ClassLoader, HashMap<String, URL[]>> mappings = new HashMap<>();
     private static byte[][] resources = new byte[0][0];
-    private static final String resourcePrefix = "/resource/";
+    private static final boolean TRACE_ACCESS = false;
 
     // For now, keep this simple and sequential until it proves to be a bottleneck
     static synchronized URL addResource(ClassLoader cl, String resourceName, byte[] resourceBytes) {
@@ -80,7 +80,7 @@ public class NativeImageResources {
 
         // Next, make the URL
         try {
-            URL url = new URL("nativeimage://qbiccimage" + resourcePrefix + resourceNumber);
+            URL url = new URL("nativeimage://qbiccimage/resource/" + resourceNumber + "/" + resourceName);
 
             HashMap<String, URL[]> clMap = mappings.get(cl);
             if (clMap == null) {
@@ -109,35 +109,55 @@ public class NativeImageResources {
     }
 
     static URL findResource(ClassLoader cl, String resourceName) {
+        if (TRACE_ACCESS) System.out.println("findResource "+cl+" "+resourceName);
         HashMap<String, URL[]> clMap = mappings.get(cl);
         if (clMap == null) {
             return null;
         }
         URL[] resources = clMap.get(resourceName);
-        return resources == null ? null : resources[0];
+        if (resources == null) {
+            return null;
+        } else {
+            if (TRACE_ACCESS) System.out.println("\tfound "+resources[0]);
+            return resources[0];
+        }
     }
 
     static Enumeration<URL> findResources(ClassLoader cl, String resourceName) {
+        if (TRACE_ACCESS) System.out.println("findResources "+cl+" "+resourceName);
         HashMap<String, URL[]> clMap = mappings.get(cl);
         if (clMap == null) {
             return Collections.emptyEnumeration();
         }
         URL[] resources = clMap.get(resourceName);
-        return resources == null ? Collections.emptyEnumeration() : Collections.enumeration(List.of(resources));
+        if (resources == null) {
+            return Collections.emptyEnumeration();
+         } else {
+            if (TRACE_ACCESS) {
+                System.out.println("\tfound "+resources.length);
+                for (int i=0; i<resources.length; i++) {
+                    System.out.println("\t\t"+resources[i]);
+                }
+            }
+            return Collections.enumeration(List.of(resources));
+        }
     }
 
     public static byte[] getResourceBytes(URL url) {
+        if (TRACE_ACCESS) System.out.println("getResourceBytes "+url);
         if (!url.getProtocol().equals("nativeimage")) {
             return null;
         }
         String path = url.getPath();
-        if (!path.startsWith(resourcePrefix)) {
+        String[] parts = path.split("/", 4);
+        if (parts.length != 4 || !parts[0].isEmpty() || !parts[1].equals("resource")) {
             return null;
         }
-        int idx = Integer.parseInt(path.substring(resourcePrefix.length()));
+        int idx = Integer.parseInt(parts[2]);
         if (idx < 0 || idx >= resources.length) {
             return null;
         }
+        if (TRACE_ACCESS) System.out.println("Success: "+resources[idx].length);
         return resources[idx];
     }
 
