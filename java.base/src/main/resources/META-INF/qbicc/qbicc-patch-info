@@ -4,6 +4,8 @@ java.lang.Class$ReflectionData$_patch
 java.lang.Class$_patch
 java.lang.Object$_aliases
 java.lang.ProcessEnvironment$_runtime
+java.lang.ProcessHandleImpl$_init
+java.lang.ProcessHandleImpl$_runtime
 java.lang.Runtime$_runtime
 java.lang.StackFrameInfo$_patch
 java.lang.StackStreamFactory$AbstractStackWalker_patch

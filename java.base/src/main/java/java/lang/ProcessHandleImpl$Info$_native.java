@@ -31,12 +31,6 @@
  */
 package java.lang;
 
-import org.qbicc.rt.annotation.Tracking;
-
-@Tracking("src/java.base/aix/native/libjava/ProcessHandleImpl_aix.c")
-@Tracking("src/java.base/linux/native/libjava/ProcessHandleImpl_linux.c")
-@Tracking("src/java.base/macosx/native/libjava/ProcessHandleImpl_macosx.c")
-@Tracking("src/java.base/unix/native/libjava/ProcessHandleImpl_unix.c")
-@Tracking("src/java.base/windows/native/libjava/ProcessHandleImpl_win.c")
-public class ProcessHandleImpl$_native {
+public class ProcessHandleImpl$Info$_native {
+    static void initIDs() {}
 }

@@ -29,14 +29,21 @@
  * This file may contain additional modifications which are Copyright (c) Red Hat and other
  * contributors.
  */
+
 package java.lang;
 
-import org.qbicc.rt.annotation.Tracking;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentHashMap;
 
-@Tracking("src/java.base/aix/native/libjava/ProcessHandleImpl_aix.c")
-@Tracking("src/java.base/linux/native/libjava/ProcessHandleImpl_linux.c")
-@Tracking("src/java.base/macosx/native/libjava/ProcessHandleImpl_macosx.c")
-@Tracking("src/java.base/unix/native/libjava/ProcessHandleImpl_unix.c")
-@Tracking("src/java.base/windows/native/libjava/ProcessHandleImpl_win.c")
-public class ProcessHandleImpl$_native {
+import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.patcher.PatchClass;
+import org.qbicc.runtime.patcher.ReplaceInit;
+
+@Tracking("src/java.base/share/classes/java/lang/ProcessHandleImpl.java")
+@PatchClass(java.lang.ProcessHandleImpl.class)
+@ReplaceInit
+class ProcessHandleImpl$_init {
+    static long REAPER_DEFAULT_STACKSIZE = 128 * 1024;
+    static final int NOT_A_CHILD = -2;
+    static final ConcurrentMap<Long, Object/*ExitCompletion*/> completions = new ConcurrentHashMap<>();
 }
