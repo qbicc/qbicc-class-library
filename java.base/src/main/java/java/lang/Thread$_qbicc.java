@@ -1,6 +1,7 @@
 package java.lang;
 
 import static org.qbicc.runtime.CNative.*;
+import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.ThreadScoped;
 
 /**
@@ -30,6 +31,7 @@ class Thread$_qbicc {
      * @return null - this return value will not be used
      */
     @export
+    @Hidden
     static void_ptr qbiccThreadRunWrapper(void_ptr threadParam) {
         Object thrObj = ptrToRef(threadParam);
         _qbicc_bound_java_thread = (Thread)thrObj;
