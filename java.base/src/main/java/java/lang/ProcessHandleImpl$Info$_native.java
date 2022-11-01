@@ -31,37 +31,6 @@
  */
 package java.lang;
 
-import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.bsd.SysSysctl.*;
-import static org.qbicc.runtime.linux.Unistd.*;
-import static org.qbicc.runtime.posix.SysTypes.*;
-import static org.qbicc.runtime.posix.Unistd.*;
-import static org.qbicc.runtime.stdc.Stddef.*;
-
-import org.qbicc.runtime.Build;
-import org.qbicc.rt.annotation.Tracking;
-
-@Tracking("src/java.base/aix/native/libjava/ProcessHandleImpl_aix.c")
-@Tracking("src/java.base/linux/native/libjava/ProcessHandleImpl_linux.c")
-@Tracking("src/java.base/macosx/native/libjava/ProcessHandleImpl_macosx.c")
-@Tracking("src/java.base/unix/native/libjava/ProcessHandleImpl_unix.c")
-@Tracking("src/java.base/windows/native/libjava/ProcessHandleImpl_win.c")
-public class ProcessHandleImpl$_native {
-
-    private static long getCurrentPid0() {
-        if (Build.Target.isPosix()) {
-            return getpid().longValue();
-        } else {
-            throw new UnsupportedOperationException("getCurrentPid0");
-        }
-    }
-
-    private static long isAlive0(long jpid) {
-        // Very partial implementation...just enough to get netty's DefaultChannelId limping along.
-        if (jpid == getCurrentPid0()) {
-            return 0;
-        } else {
-            throw new UnsupportedOperationException("need a real impl of isAlive0");
-        }
-    }
+public class ProcessHandleImpl$Info$_native {
+    static void initIDs() {}
 }

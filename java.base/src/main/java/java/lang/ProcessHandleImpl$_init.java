@@ -29,39 +29,21 @@
  * This file may contain additional modifications which are Copyright (c) Red Hat and other
  * contributors.
  */
+
 package java.lang;
 
-import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.bsd.SysSysctl.*;
-import static org.qbicc.runtime.linux.Unistd.*;
-import static org.qbicc.runtime.posix.SysTypes.*;
-import static org.qbicc.runtime.posix.Unistd.*;
-import static org.qbicc.runtime.stdc.Stddef.*;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.qbicc.runtime.Build;
 import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.patcher.PatchClass;
+import org.qbicc.runtime.patcher.ReplaceInit;
 
-@Tracking("src/java.base/aix/native/libjava/ProcessHandleImpl_aix.c")
-@Tracking("src/java.base/linux/native/libjava/ProcessHandleImpl_linux.c")
-@Tracking("src/java.base/macosx/native/libjava/ProcessHandleImpl_macosx.c")
-@Tracking("src/java.base/unix/native/libjava/ProcessHandleImpl_unix.c")
-@Tracking("src/java.base/windows/native/libjava/ProcessHandleImpl_win.c")
-public class ProcessHandleImpl$_native {
-
-    private static long getCurrentPid0() {
-        if (Build.Target.isPosix()) {
-            return getpid().longValue();
-        } else {
-            throw new UnsupportedOperationException("getCurrentPid0");
-        }
-    }
-
-    private static long isAlive0(long jpid) {
-        // Very partial implementation...just enough to get netty's DefaultChannelId limping along.
-        if (jpid == getCurrentPid0()) {
-            return 0;
-        } else {
-            throw new UnsupportedOperationException("need a real impl of isAlive0");
-        }
-    }
+@Tracking("src/java.base/share/classes/java/lang/ProcessHandleImpl.java")
+@PatchClass(java.lang.ProcessHandleImpl.class)
+@ReplaceInit
+class ProcessHandleImpl$_init {
+    static long REAPER_DEFAULT_STACKSIZE = 128 * 1024;
+    static final int NOT_A_CHILD = -2;
+    static final ConcurrentMap<Long, Object/*ExitCompletion*/> completions = new ConcurrentHashMap<>();
 }
