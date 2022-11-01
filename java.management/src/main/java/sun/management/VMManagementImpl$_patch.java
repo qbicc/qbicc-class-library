@@ -79,4 +79,8 @@ public class VMManagementImpl$_patch {
         return FlightRecorder.initDoneTime;
     }
 
+    @Replace
+    public String[] getVmArguments0() {
+        return FlightRecorder.vmArgs;
+    }
 }

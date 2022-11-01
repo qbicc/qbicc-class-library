@@ -72,34 +72,21 @@ public final class Main {
             System$_patch.rtinitPhase2();
             System$_patch.rtinitPhase3();
 
+            // Parse the command line arguments and convert from C to Java
+            String[] userArgs = processArgs(argc, argv);
+
+            // TODO: We should process any non-Heap arguments in FlightRecorder.vmArgs here.
+
             // next execute additional initialization actions deferred from build time
             for (Runnable r: deferredInits) {
                 r.run();
             }
 
+            // Initialization completed
             FlightRecorder.initDoneTime = System.currentTimeMillis();
 
             // now cause the initial thread to invoke main
-            String[] args = new String[argc.intValue() - 1];
-            int cnt = 0;
-            boolean checkForVmArg = true;
-            for (int i = 1; i < argc.intValue(); i++) {
-                if (checkForVmArg) {
-                    if (strcmp(argv[i].cast(), utf8z("--")).isZero()) {
-                        checkForVmArg = false;
-                    } else if (Heap.isHeapArgument(argv[i].cast())) {
-                        continue;
-                    }
-                }
-                args[cnt++] = utf8zToJavaString(argv[i].cast());
-            }
-            if (cnt < args.length) {
-                args = Arrays.copyOf(args, cnt);
-            }
-            //todo: string construction
-            //String execName = utf8zToJavaString(argv[0].cast());
-
-            userMain(args);
+            userMain(userArgs);
         } catch (Throwable t) {
             Thread.UncaughtExceptionHandler handler = Thread.currentThread().getUncaughtExceptionHandler();
             if (handler != null) {
@@ -119,5 +106,35 @@ public final class Main {
         }
         // todo: windows
         throw new NotReachableException();
+    }
+
+    // Convert C args to Java Strings and separate the VM and user arguments
+    // Return the subset of argv that are arguments for the user main.
+    private static String[] processArgs(c_int argc, char_ptr[] argv) {
+        String[] userArgs = new String[argc.intValue() - 1];
+        String[] vmArgs = new String[0];
+        int userCount = 0;
+        boolean checkForVmArg = true;
+        for (int i=1; i<argc.intValue(); i++) {
+            String jarg = utf8zToJavaString(argv[i].cast());
+            if (checkForVmArg) {
+                if (!jarg.startsWith("--")) {
+                    checkForVmArg = false;
+                } else if (Heap.isHeapArgument(argv[i].cast())) {
+                    vmArgs = Arrays.copyOf(vmArgs, vmArgs.length+1);
+                    vmArgs[vmArgs.length - 1] = jarg;
+                    continue;
+                }
+                // TODO: Define additional vmargs (eg for setting properties)
+            }
+            userArgs[userCount++] = jarg;
+        }
+
+        if (userCount < userArgs.length) {
+            userArgs = Arrays.copyOf(userArgs, userCount);
+        }
+        FlightRecorder.vmArgs = vmArgs;
+
+        return userArgs;
     }
 }
