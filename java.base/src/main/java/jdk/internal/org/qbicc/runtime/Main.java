@@ -77,6 +77,8 @@ public final class Main {
                 r.run();
             }
 
+            FlightRecorder.initDoneTime = System.currentTimeMillis();
+
             // now cause the initial thread to invoke main
             String[] args = new String[argc.intValue() - 1];
             int cnt = 0;

@@ -30,4 +30,4 @@
  * contributors.
  */
 
-exports jdk.internal.org.qbicc.runtime to java.logging;
+exports jdk.internal.org.qbicc.runtime to java.logging, java.management;

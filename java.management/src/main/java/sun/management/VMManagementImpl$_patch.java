@@ -31,6 +31,8 @@
  */
 package sun.management;
 
+import jdk.internal.org.qbicc.runtime.FlightRecorder;
+
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
@@ -71,4 +73,10 @@ public class VMManagementImpl$_patch {
         gcNotificationSupport = false;
         remoteDiagnosticCommandsSupport = false;
     }
+
+    @Replace
+    public long getStartupTime() {
+        return FlightRecorder.initDoneTime;
+    }
+
 }
