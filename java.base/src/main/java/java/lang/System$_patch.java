@@ -253,10 +253,5 @@ public final class System$_patch {
     // The portions of System.initPhase3 that need to be  (re-)executed at runtime
     @Add
     public static void rtinitPhase3() {
-        /*
-        TODO (?)
-        // set TCCL
-        Thread.currentThread().setContextClassLoader(scl);
-        */
     }
 }
