@@ -51,6 +51,9 @@ public class Object {
     @NoReflect
     private Monitor monitor;
 
+    @NoReflect
+    int defaultHashCode;
+
     public Object() {}
 
     public final Class<?> getClass() {

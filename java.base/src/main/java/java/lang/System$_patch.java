@@ -32,6 +32,9 @@
 
 package java.lang;
 
+import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.stdc.Stdint.*;
+
 import java.io.BufferedInputStream;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -41,6 +44,7 @@ import java.io.PrintStream;
 import java.lang.invoke.StringConcatFactory;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicLong;
 
 import jdk.internal.misc.Unsafe;
 import jdk.internal.misc.VM;
@@ -53,6 +57,7 @@ import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.Annotate;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
+import org.qbicc.runtime.Build;
 import org.qbicc.runtime.SerializeAsZero;
 
 @PatchClass(System.class)
@@ -82,7 +87,8 @@ public final class System$_patch {
     // Alias
     private static native void setJavaLangAccess();
 
-
+    @Add
+    private static AtomicLong hashCodeSeed;
 
     @Replace
     public static SecurityManager getSecurityManager() {
@@ -105,6 +111,45 @@ public final class System$_patch {
         }
     }
 
+    @Replace
+    public static int identityHashCode(Object x) {
+        int hc = x.defaultHashCode;
+        if (hc != 0) {
+            return hc;
+        }
+
+        // Cacluation of proposed derived from Random.next()
+        long oldseed, nextseed;
+        AtomicLong seed = hashCodeSeed;
+        do {
+            oldseed = seed.get();
+            nextseed = (oldseed * 0x5DEECE66DL + 0xBL) & ((1L << 48) - 1);
+        } while (!seed.compareAndSet(oldseed, nextseed));
+        int proposed = (int)(nextseed >>> 16);
+
+        if (Build.isHost()) {
+            synchronized (System.class) { // ugh.  This is a hack.
+                if (x.defaultHashCode == 0) {
+                    x.defaultHashCode = proposed;
+                } else {
+                    proposed = x.defaultHashCode;
+                }
+            }
+            return proposed;
+        } else {
+            return setHashCode(x, proposed);
+        }
+    }
+
+    @Add
+    private static int setHashCode(Object x, int proposed) {
+        // Sigh.  This should be inline, but the scheduler allows the addr_of operation
+        //        to float outside of the else block, and that breaks the interpreter.
+        int32_t_ptr ptr = addr_of(refToPtr(x).sel().defaultHashCode).cast();
+        int oldVal = ptr.loadAcquire().intValue();
+        int witness = ptr.compareAndSwapRelease(word(oldVal), word(proposed)).intValue();
+        return witness == 0 ? proposed : witness;
+    }
 
     /**********************
      * JDK Initialization
@@ -112,6 +157,9 @@ public final class System$_patch {
 
     @Replace
     private static void initPhase1() {
+        // qbicc hashcode support
+        hashCodeSeed = new AtomicLong(8682522807148012L);
+
         // register the shared secrets - do this first, since SystemProps.initProperties
         // might initialize CharsetDecoders that rely on it
         setJavaLangAccess();
