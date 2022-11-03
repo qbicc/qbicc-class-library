@@ -191,10 +191,4 @@ public final class System$_native {
         }
         // todo: windows
     }
-
-    public static int identityHashCode(Object x) {
-        // TODO: obviously non-optimal; replace once we have object headers sorted out
-        return 0;
-    }
-
 }
