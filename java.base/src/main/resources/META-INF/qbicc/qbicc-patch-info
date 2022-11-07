@@ -40,6 +40,7 @@ jdk.internal.misc.UnsafeConstants$_patch
 jdk.internal.misc.UnsafeConstants$_runtime
 jdk.internal.misc.UnsafeParkUnpark
 jdk.internal.misc.UnsafeThreadAccess
+jdk.internal.misc.VM$_patch
 jdk.internal.ref.CleanerImpl$_patch
 sun.nio.ch.ByteBuffer$_aliases
 sun.nio.ch.FileDescriptor$_aliases
