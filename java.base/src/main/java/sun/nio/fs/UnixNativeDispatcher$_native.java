@@ -248,8 +248,9 @@ class UnixNativeDispatcher$_native {
     }
 
     static void mkdir0(long pathAddress, int mode) throws UnixException {
-        // todo: requires SysStat.mkdir()
-        throw new UnsupportedOperationException();
+        if (SysStat.mkdir(word(pathAddress), word(mode)) == word(-1)) {
+            throw new UnixException(errno);
+        }
     }
 
     static void rmdir0(long pathAddress) throws UnixException {
