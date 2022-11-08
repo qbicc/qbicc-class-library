@@ -37,22 +37,19 @@ import java.lang.reflect.*;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 
-@Tracking("src/java.base/share/classes/jdk/internal/reflect/NativeConstructorAccessorImpl.java")
-class NativeConstructorAccessorImpl$_native {
+@Tracking("src/java.base/share/classes/jdk/internal/reflect/NativeMethodAccessorImpl.java")
+class NativeMethodAccessorImpl$_native {
 
     // Hook this method to provide a user-friendly error message at runtime.
-    // If we get here, it means that the program has attempted to do
-    // newInstance() on a Class that was not registered for runtime reflection.
-    // Give an error message that includes the class name, to make it easier for
-    // the user to properly annotate that Class.
-    private static Object newInstance0(Constructor<?> c, Object[] args)
-            throws InstantiationException,
-            IllegalArgumentException,
-            InvocationTargetException {
+    // If we get here, it means that the program has attempted to call
+    // invoke on a Method that was not registered for runtime reflection.
+    // Give an error message that includes the Method, to make it easier for
+    // the user to properly register that Method.
+    private static Object invoke0(Method m, Object obj, Object[] args) {
         if (Build.isTarget()) {
-            throw new UnsupportedOperationException("Must register "+c+" for runtime reflection at compile time");
+            throw new UnsupportedOperationException("Must register "+m+" for runtime reflection at compile time");
         } else {
-            throw new IllegalStateException("NativeConstructorAccessorImpl.newInstance0() should have been intercepted in interpreter!");
+            throw new IllegalStateException("NativeMethodAccessorImpl.invoke0() should have been intercepted in interpreter!");
         }
     }
 }
