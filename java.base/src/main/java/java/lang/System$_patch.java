@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import jdk.internal.misc.Unsafe;
 import jdk.internal.misc.VM;
+import jdk.internal.misc.VM$_patch;
 import jdk.internal.module.ModuleBootstrap;
 import jdk.internal.util.StaticProperty;
 import jdk.internal.util.SystemProps;
@@ -277,6 +278,9 @@ public final class System$_patch {
         if (!System$_runtime.trigger) {
             throw new InternalError("Failed to initialize System.in/out/err");
         }
+
+        // Adjust now that we know the runtime -Xmx value
+        VM$_patch.updateDirectMemoryLimit();
 
         // Setup Java signal handlers for HUP, TERM, and INT (where available).
         Terminator.setup();
