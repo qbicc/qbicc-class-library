@@ -80,8 +80,6 @@ public abstract class Reference$_patch<T> {
     }
 
     // Alias
-    @Annotate
-    @SerializeAsZero
     private Object referent;
 
     @Replace
