@@ -201,6 +201,13 @@ class UnixFileSystem$_native {
         return accessRes.isNonZero();
     }
 
+    public boolean createDirectory(File f) {
+        final char_ptr pathPtr = mallocPath(f);
+        c_int mkdirRes = mkdir(pathPtr.cast(), word(0777));
+        free(pathPtr);
+        return mkdirRes.intValue() == 0;
+    }
+
     private static void initIDs() {
         // no operation
     }
