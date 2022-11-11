@@ -41,6 +41,7 @@ import static org.qbicc.runtime.posix.SysDirent.*;
 import static org.qbicc.runtime.posix.SysStat.*;
 import static org.qbicc.runtime.posix.SysTypes.*;
 import static org.qbicc.runtime.posix.Unistd.F_OK;
+import static org.qbicc.runtime.posix.Unistd.rmdir;
 import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stddef.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
@@ -256,8 +257,11 @@ class UnixNativeDispatcher$_native {
     }
 
     static void rmdir0(long pathAddress) throws UnixException {
-        // todo: requires Unistd.rmdir()
-        throw new UnsupportedOperationException();
+        const_char_ptr path = word(pathAddress);
+        c_int rc = rmdir(path);
+        if (rc.intValue() == -1) {
+            throw new UnixException(errno);
+        }
     }
 
     static byte[] readlink0(long pathAddress) throws UnixException {
