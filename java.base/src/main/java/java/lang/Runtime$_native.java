@@ -33,13 +33,13 @@
 package java.lang;
 
 import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.gc.heap.Heap;
 
 @Tracking("src/java.base/share/native/libjava/Runtime.c")
 class Runtime$_native {
 
     public long maxMemory() {
-        // todo: based on GC configuration
-        return Long.MAX_VALUE;
+        return Heap.getMaxHeapSize();
     }
 
     public void gc() {
