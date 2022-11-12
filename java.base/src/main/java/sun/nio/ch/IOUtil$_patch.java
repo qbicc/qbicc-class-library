@@ -1,6 +1,8 @@
 package sun.nio.ch;
 
-import static org.qbicc.runtime.CNative.addr_of;
+import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.Fcntl.*;
+import static org.qbicc.runtime.posix.Unistd.*;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -9,6 +11,7 @@ import java.nio.ByteBuffer;
 import jdk.internal.access.JavaNioAccess;
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.host.HostIO;
+import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
 
@@ -19,6 +22,13 @@ import org.qbicc.runtime.patcher.Replace;
 class IOUtil$_patch {
     // alias
     private static JavaNioAccess NIO_ACCESS;
+
+    @Add
+    static c_int configureBlocking(c_int fd, boolean blocking) {
+        c_int flags = fcntl(fd, F_GETFL);
+        c_int newFlags = word(blocking ? (flags.intValue() & ~ O_NONBLOCK.intValue()) : (flags.intValue() | O_NONBLOCK.intValue()));
+        return (flags == newFlags) ? zero() : fcntl(fd, F_SETFL, newFlags);
+    }
 
     @Replace
     static int read(FileDescriptor fd, ByteBuffer dst, long position, boolean directIO, boolean async,
