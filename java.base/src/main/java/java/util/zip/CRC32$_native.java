@@ -5,7 +5,7 @@ import static org.qbicc.runtime.zlib.ZLib.*;
 
 public class CRC32$_native {
     private static int update(int crc, int b) {
-        Bytef bf = word(b);
+        Bytef bf = auto(word(b));
         return crc32(word(crc), addr_of(bf), word(1)).intValue();
     }
 
