@@ -64,20 +64,22 @@ final class IOUtil$_native {
     static long makePipe(boolean blocking) throws IOException {
         // only called on POSIX.
         c_int[] fd = new c_int[2];
-        if (pipe(fd).intValue() < 0) {
+        if (pipe(addr_of(fd[0]).asArray()).intValue() < 0) {
             // todo: strerror
             throw new IOException("Pipe failed");
         }
+        c_int fd0 = addr_of(fd[0]).loadUnshared();
+        c_int fd1 = addr_of(fd[1]).loadUnshared();
         if (! blocking) {
-            if (IOUtil$_patch.configureBlocking(fd[0], false).intValue() < 0
-                 || IOUtil$_patch.configureBlocking(fd[1], false).intValue() < 0) {
-                close(fd[0]);
-                close(fd[1]);
+            if (IOUtil$_patch.configureBlocking(fd0, false).intValue() < 0
+                 || IOUtil$_patch.configureBlocking(fd1, false).intValue() < 0) {
+                close(fd0);
+                close(fd1);
                 // todo: strerror
                 throw new IOException("Configure blocking failed");
             }
         }
-        return fd[0].longValue() << 32 | fd[1].longValue();
+        return fd0.longValue() << 32 | fd1.longValue();
     }
 
     static int iovMax() {
