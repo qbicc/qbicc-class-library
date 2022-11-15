@@ -64,7 +64,6 @@ class Thread$_native {
         return ((Object$_aliases) obj).holdsLock();
     }
 
-    // TODO: private static native StackTraceElement[][] dumpThreads(Thread[] threads);
     // TODO: private static native Thread[] getThreads();
 
     private void setPriority0(int newPriority) {
