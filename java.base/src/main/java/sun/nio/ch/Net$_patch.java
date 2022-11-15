@@ -29,51 +29,52 @@
  * This file may contain additional modifications which are Copyright (c) Red Hat and other
  * contributors.
  */
-package java.io;
 
-import java.util.List;
+package sun.nio.ch;
+
+import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.Errno.*;
+import static org.qbicc.runtime.posix.SysSocket.*;
+
+import java.io.IOException;
+import java.net.BindException;
+import java.net.ConnectException;
+import java.net.NoRouteToHostException;
+import java.net.ProtocolException;
+import java.net.SocketException;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
-import org.qbicc.runtime.SerializeAsZero;
-import org.qbicc.runtime.SerializeBooleanAs;
-import org.qbicc.runtime.SerializeIntegralAs;
 
-@PatchClass(java.io.FileDescriptor.class)
-@Tracking("src/java.base/share/classes/java/io/FileDescriptor.java")
-public class FileDescriptor$_patch {
+@PatchClass(Net.class)
+@Tracking("src/java.base/unix/native/libnio/ch/Net.c")
+class Net$_patch {
 
-    @Replace
-    @SerializeIntegralAs(-1)
-    private int fd;
-
-    @Replace
-    @SerializeIntegralAs(-1)
-    private long handle;
-
-    @Replace
-    @SerializeAsZero
-    private Closeable parent;
-
-    @Replace
-    @SerializeAsZero
-    private List<Closeable> otherParents;
-
-    @Replace
-    @SerializeBooleanAs(true)
-    private boolean closed;
-
-    // For use of JDK "native" code that doesn't use the shared secrets mechanism
     @Add
-    public int getFD() {
-        return fd;
-    }
-
-    // For use of JDK "native" code that doesn't use the shared secrets mechanism
-    @Add
-    public void setFD(int value) {
-        fd = value;
+    static int handleSocketError(int errorValue) throws IOException {
+        if (errorValue == EINPROGRESS.intValue()) {
+            return 0;
+        } else if (errorValue == EPROTO.intValue()) {
+            // TODO: strerror
+            throw new ProtocolException();
+        } else if (errorValue == ECONNREFUSED.intValue() ||
+                    errorValue == ETIMEDOUT.intValue() ||
+                    errorValue == ENOTCONN.intValue()) {
+            // TODO: strerror
+            throw new ConnectException();
+        } else if (errorValue == EHOSTUNREACH.intValue()) {
+            // TODO: strerror
+            throw new NoRouteToHostException();
+        } else if (errorValue == EADDRINUSE.intValue() ||
+                    errorValue == EADDRNOTAVAIL.intValue() ||
+                    errorValue == EACCES.intValue()) {
+            // TODO: strerror
+            throw new BindException();
+        } else {
+            // TODO: strerror
+            throw new SocketException();
+        }
     }
 }
