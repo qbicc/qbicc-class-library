@@ -150,6 +150,13 @@ final class Class$_patch<T> {
     final int modifiers;
 
     /**
+     * The string to be returned from getGenericSignature0
+     */
+    @Add
+    @NoReflect
+    final String genericSignature;
+
+    /**
      * Injected constructor for "normal" class objects.
      *
      * @param id the instance ID
@@ -193,6 +200,7 @@ final class Class$_patch<T> {
         this.modifiers = modifiers;
         this.dimension = zero();
         this.qbiccReflectionData = new Class$ReflectionData$_patch<T>();
+        this.genericSignature = null;
     }
 
     @Add
@@ -228,6 +236,7 @@ final class Class$_patch<T> {
         this.modifiers = Modifier.PUBLIC | Modifier.ABSTRACT | Modifier.FINAL | refArrayClass.modifiers & 0xffff_0000;
         this.referenceBitMap = refArrayClass.referenceBitMap;
         this.qbiccReflectionData = new Class$ReflectionData$_patch<T>();
+        this.genericSignature = null;
     }
 
     @SuppressWarnings("ConstantConditions")

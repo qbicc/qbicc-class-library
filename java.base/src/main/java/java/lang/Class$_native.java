@@ -172,4 +172,12 @@ public final class Class$_native<T> {
             throw new IllegalStateException("Class.getRawTypeAnnotations() should have been intercepted in the interpreter!");
         }
     }
+
+    String getGenericSignature0() {
+        if (Build.isTarget()) {
+            return ((Class$_patch) (Object) this).genericSignature;
+        } else {
+            throw new IllegalStateException("Class.getGenericSignature0() should have been intercepted in the interpreter!");
+        }
+    }
 }
