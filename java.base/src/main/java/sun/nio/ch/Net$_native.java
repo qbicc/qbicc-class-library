@@ -32,6 +32,14 @@
 
 package sun.nio.ch;
 
+import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.NetinetIn.*;
+import static org.qbicc.runtime.posix.SysSocket.*;
+import static org.qbicc.runtime.posix.Unistd.*;
+import static org.qbicc.runtime.stdc.Errno.*;
+
+import java.io.IOException;
+import java.net.SocketException;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.posix.Poll;
@@ -98,6 +106,89 @@ class Net$_native {
             return 1;
         } else if (Build.Target.isLinux() || Build.Target.isMacOs()) {
             return -1;
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static boolean isIPv6Available0() {
+        // TODO: Figure this out for real
+        return false;
+    }
+
+    private static int socket0(boolean preferIPv6, boolean stream, boolean reuse,
+                               boolean fastLoopback) throws IOException {
+        if (Build.Target.isPosix()) {
+            c_int fd;
+            c_int type = stream ? SOCK_STREAM : SOCK_DGRAM;
+            c_int domain = (isIPv6Available0() && preferIPv6) ? AF_INET6 : AF_INET;
+
+            fd = socket(domain, type, word(0));
+            if (fd.intValue() < 0) {
+                return Net$_patch.handleSocketError(errno);
+            }
+
+            if (domain == AF_INET6 && true /* TODO!! should be ipv4_available() */) {
+                c_int arg = word(0);
+                c_int rc = setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, addr_of(arg).cast(), sizeof(arg).cast());
+                if (rc.intValue() < 0) {
+                    close(fd);
+                    throw new SocketException("Unable to set IPV6_V6ONLY");
+                }
+            }
+
+            if (reuse) {
+                c_int arg = word(1);
+                c_int rc = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, addr_of(arg).cast(), sizeof(arg).cast());
+                if (rc.intValue() < 0) {
+                    close(fd);
+                    throw new SocketException("Unable to set SO_REUSEADDR");
+                }
+            }
+
+            if (Build.Target.isLinux()) {
+                if (type == SOCK_DGRAM) {
+                    throw new UnsupportedOperationException("Finish SOCK_DRAM for linux");
+                    /* TODO: define IP_MULTICAST_ALL in linux CNative
+                    c_int arg = word(0);
+                    c_int level = (domain == AF_INET6) ? IPPROTO_IPV6 : IPPROTO_IP;
+                    c_int rc = setsockopt(fd, level, IP_MULTICAST_ALL, addr_of(arg).cast(), sizeof(arg).cast());
+                    if (rc.intValue() < 0 && errno != ENOPROTOOPT.intValue()) {
+                        close(fd);
+                        throw new SocketException("Unable to set IP_MULTICAST_ALL");
+                    }
+                    */
+                }
+
+                if (domain == AF_INET6 && type == SOCK_DGRAM) {
+                    c_int arg = word(1);
+                    c_int rc = setsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, addr_of(arg).cast(), sizeof(arg).cast());
+                    if (rc.intValue() < 0) {
+                        close(fd);
+                        throw new SocketException("Unable to set IPV6_MULTICAST_HOPS");
+                    }
+                }
+            }
+
+            if (Build.Target.isMacOs()) {
+                /*
+                 * Attempt to set SO_SNDBUF to a minimum size to allow sending large datagrams
+                 * (net.inet.udp.maxdgram defaults to 9216).
+                 */
+                if (type == SOCK_DGRAM) {
+                    c_int size = auto();
+                    socklen_t arglen = sizeof(size).cast();
+                    c_int rc = getsockopt(fd, SOL_SOCKET, SO_SNDBUF, addr_of(size).cast(), addr_of(arglen));
+                    if (rc.intValue() == 0) {
+                        c_int minSize = (domain == AF_INET6) ? word(65527)  : word(65507);
+                        if (size.intValue() < minSize.intValue()) {
+                            setsockopt(fd, SOL_SOCKET, SO_SNDBUF, addr_of(minSize).cast(), sizeof(minSize).cast());
+                        }
+                    }
+                }
+
+            }
+            return fd.intValue();
         } else {
             throw new UnsupportedOperationException();
         }

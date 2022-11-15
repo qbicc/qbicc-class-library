@@ -37,6 +37,7 @@ import static org.qbicc.runtime.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Limits.*;
 
 import java.io.FileDescriptor;
+import java.io.FileDescriptor$_patch;
 import java.io.IOException;
 
 import org.qbicc.rt.annotation.Tracking;
@@ -80,6 +81,14 @@ final class IOUtil$_native {
             }
         }
         return fd0.longValue() << 32 | fd1.longValue();
+    }
+
+    public static int fdVal(FileDescriptor fd) {
+        return ((FileDescriptor$_patch)(Object)fd).getFD();
+    }
+
+    static void setfdVal(FileDescriptor fd, int value) {
+        ((FileDescriptor$_patch)(Object)fd).setFD(value);
     }
 
     static int iovMax() {

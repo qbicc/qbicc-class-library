@@ -47,6 +47,7 @@ sun.nio.ch.ByteBuffer$_aliases
 sun.nio.ch.FileDescriptor$_aliases
 sun.nio.ch.FileDispatcherImpl$_runtime
 sun.nio.ch.IOUtil$_patch
+sun.nio.ch.Net$_patch
 sun.nio.fs.NativeBuffer$_patch
 sun.nio.fs.NativeBuffers$_patch
 sun.nio.fs.UnixFileAttributes$_aliases
