@@ -65,6 +65,9 @@ import org.qbicc.runtime.patcher.Replace;
 @PatchClass(Thread.class)
 @Tracking("src/java.base/share/classes/java/lang/Thread.java")
 public class Thread$_patch {
+    // alias statics
+    private static StackTraceElement[] EMPTY_STACK_TRACE;
+
     // alias fields
     String name;
     ThreadGroup group;
@@ -487,5 +490,17 @@ public class Thread$_patch {
             // no operation
             return;
         }
+    }
+
+    @Replace
+    private static StackTraceElement[][] dumpThreads(Thread[] threads) {
+        // TODO: We need safepoints to be working before we can do a real implementation.
+        //       Stub out the functionality so Quarkus doesn't go into an infinite loop
+        //       when it tries to exit with an erorr and dump the stacks of all threads.
+        StackTraceElement[][] res = new StackTraceElement[threads.length][];
+        for (int i=0; i<threads.length; i++) {
+            res[i] = EMPTY_STACK_TRACE;
+        }
+        return res;
     }
 }
