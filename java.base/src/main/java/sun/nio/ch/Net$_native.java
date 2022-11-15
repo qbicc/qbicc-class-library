@@ -129,7 +129,7 @@ class Net$_native {
             }
 
             if (domain == AF_INET6 && true /* TODO!! should be ipv4_available() */) {
-                c_int arg = word(0);
+                c_int arg = auto(word(0));
                 c_int rc = setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, addr_of(arg).cast(), sizeof(arg).cast());
                 if (rc.intValue() < 0) {
                     close(fd);
@@ -138,7 +138,7 @@ class Net$_native {
             }
 
             if (reuse) {
-                c_int arg = word(1);
+                c_int arg = auto(word(1));
                 c_int rc = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, addr_of(arg).cast(), sizeof(arg).cast());
                 if (rc.intValue() < 0) {
                     close(fd);
@@ -150,7 +150,7 @@ class Net$_native {
                 if (type == SOCK_DGRAM) {
                     throw new UnsupportedOperationException("Finish SOCK_DRAM for linux");
                     /* TODO: define IP_MULTICAST_ALL in linux CNative
-                    c_int arg = word(0);
+                    c_int arg = auto(word(0));
                     c_int level = (domain == AF_INET6) ? IPPROTO_IPV6 : IPPROTO_IP;
                     c_int rc = setsockopt(fd, level, IP_MULTICAST_ALL, addr_of(arg).cast(), sizeof(arg).cast());
                     if (rc.intValue() < 0 && errno != ENOPROTOOPT.intValue()) {
@@ -177,10 +177,10 @@ class Net$_native {
                  */
                 if (type == SOCK_DGRAM) {
                     c_int size = auto();
-                    socklen_t arglen = sizeof(size).cast();
+                    socklen_t arglen = auto(sizeof(size).cast());
                     c_int rc = getsockopt(fd, SOL_SOCKET, SO_SNDBUF, addr_of(size).cast(), addr_of(arglen));
                     if (rc.intValue() == 0) {
-                        c_int minSize = (domain == AF_INET6) ? word(65527)  : word(65507);
+                        c_int minSize = auto((domain == AF_INET6) ? word(65527)  : word(65507));
                         if (size.intValue() < minSize.intValue()) {
                             setsockopt(fd, SOL_SOCKET, SO_SNDBUF, addr_of(minSize).cast(), sizeof(minSize).cast());
                         }

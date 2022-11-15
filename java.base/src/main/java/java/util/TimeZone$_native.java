@@ -153,7 +153,7 @@ public class TimeZone$_native {
         if (Build.Target.isMacOs()) {
             struct_tm local_tm = auto();
 
-            time_t clock = time(zero());
+            time_t clock = auto(time(zero()));
             if (localtime_r(addr_of(clock), addr_of(local_tm)).isNull()) {
                 return "GMT";
             }
