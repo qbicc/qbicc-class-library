@@ -38,6 +38,8 @@ import static org.qbicc.runtime.stdc.Stdint.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
 import static org.qbicc.runtime.stdc.String.*;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Field$_patch;
 import java.security.ProtectionDomain;
 
 import org.qbicc.rt.annotation.Tracking;
@@ -196,6 +198,14 @@ public final class Unsafe$_native {
                 }
             }
         }
+    }
+
+    private long objectFieldOffset0(Field f) {
+        return ((Field$_patch)(Object)f).getOffset();
+    }
+
+    private long staticFieldOffset0(Field f) {
+        return ((Field$_patch)(Object)f).getOffset();
     }
 
     //TODO:
