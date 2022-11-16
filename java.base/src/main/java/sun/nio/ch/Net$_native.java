@@ -161,7 +161,7 @@ class Net$_native {
                 }
 
                 if (domain == AF_INET6 && type == SOCK_DGRAM) {
-                    c_int arg = word(1);
+                    c_int arg = auto(word(1));
                     c_int rc = setsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, addr_of(arg).cast(), sizeof(arg).cast());
                     if (rc.intValue() < 0) {
                         close(fd);
