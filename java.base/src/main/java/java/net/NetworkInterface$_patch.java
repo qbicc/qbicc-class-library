@@ -33,11 +33,30 @@
 package java.net;
 
 import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.patcher.PatchClass;
+import org.qbicc.runtime.patcher.Replace;
 
 @Tracking("src/java.base/unix/native/libnet/NetworkInterface.c")
 @Tracking("src/java.base/windows/native/libnet/NetworkInterface.c")
-public class NetworkInterface$_native {
+@PatchClass(NetworkInterface.class)
+public final class NetworkInterface$_patch {
+    // Alias fields
+    String name;
+    String displayName;
+    int index;
+    InetAddress addrs[];
+    InterfaceAddress bindings[];
+    NetworkInterface childs[];
+    NetworkInterface parent;
+    boolean virtual;
+
+    @Replace
     private static void init() {
         // no-op
+    }
+
+    @Replace
+    private static NetworkInterface[] getAll() throws SocketException {
+        return NetworkInterface$_qbicc.getAll();
     }
 }
