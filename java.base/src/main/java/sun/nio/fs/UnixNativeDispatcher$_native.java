@@ -37,7 +37,6 @@ import static org.qbicc.runtime.posix.Dirent.*;
 import static org.qbicc.runtime.posix.Errno.*;
 import static org.qbicc.runtime.posix.Limits.PATH_MAX;
 import static org.qbicc.runtime.posix.String.*;
-import static org.qbicc.runtime.posix.SysDirent.*;
 import static org.qbicc.runtime.posix.SysStat.*;
 import static org.qbicc.runtime.posix.SysTypes.*;
 import static org.qbicc.runtime.posix.Unistd.F_OK;
