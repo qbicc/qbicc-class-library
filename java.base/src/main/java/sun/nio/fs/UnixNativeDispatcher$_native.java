@@ -33,12 +33,14 @@
 package sun.nio.fs;
 
 import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.Dirent.*;
 import static org.qbicc.runtime.posix.Errno.*;
 import static org.qbicc.runtime.posix.Limits.PATH_MAX;
 import static org.qbicc.runtime.posix.String.*;
 import static org.qbicc.runtime.posix.SysStat.*;
 import static org.qbicc.runtime.posix.SysTypes.*;
 import static org.qbicc.runtime.posix.Unistd.F_OK;
+import static org.qbicc.runtime.posix.Unistd.rmdir;
 import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stddef.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
@@ -254,8 +256,11 @@ class UnixNativeDispatcher$_native {
     }
 
     static void rmdir0(long pathAddress) throws UnixException {
-        // todo: requires Unistd.rmdir()
-        throw new UnsupportedOperationException();
+        const_char_ptr path = word(pathAddress);
+        c_int rc = rmdir(path);
+        if (rc.intValue() == -1) {
+            throw new UnixException(errno);
+        }
     }
 
     static byte[] readlink0(long pathAddress) throws UnixException {
@@ -380,23 +385,47 @@ class UnixNativeDispatcher$_native {
     }
 
     static long opendir0(long pathAddress) throws UnixException {
-        // todo: requires Dirent.opendir()
-        throw new UnsupportedOperationException();
+        const_char_ptr path = word(pathAddress);
+        DIR_ptr dir = opendir(path);
+        if (dir.isNull()) {
+            throw new UnixException(errno);
+        }
+        return dir.longValue();
     }
 
     static long fdopendir(int dfd) throws UnixException {
-        // todo: requires Dirent.fdopendir()
-        throw new UnsupportedOperationException();
+        DIR_ptr dir = org.qbicc.runtime.posix.Dirent.fdopendir(word(dfd));
+        if (dir.isNull()) {
+            throw new UnixException(errno);
+        }
+        return dir.longValue();
     }
 
-    static void closedir(long dir) throws UnixException {
-        // todo: requires Dirent.closedir()
-        throw new UnsupportedOperationException();
+    static void closedir(long jdir) throws UnixException {
+        DIR_ptr dir = word(jdir);
+        c_int rc = org.qbicc.runtime.posix.Dirent.closedir(dir);
+        if (rc == word(-1) && errno != EINTR.intValue()) {
+            throw new UnixException(errno);
+        }
     }
 
-    static byte[] readdir(long dir) throws UnixException {
-        // todo: requires Dirent.readdir()
-        throw new UnsupportedOperationException();
+    static byte[] readdir(long jdir) throws UnixException {
+        DIR_ptr dir = word(jdir);
+
+        errno = 0;
+        struct_dirent_ptr dirent = auto(org.qbicc.runtime.posix.Dirent.readdir(dir));
+        if (dirent.isNull()) {
+            if (errno != 0) {
+                throw new UnixException(errno);
+            }
+            return null;
+        } else {
+            const_char_ptr np = addr_of(dirent.sel().d_name).cast();
+            size_t len = strlen(np);
+            byte[] bytes = new byte[len.intValue()];
+            memcpy(addr_of(bytes[0]).cast(), np.cast(), len);
+            return bytes;
+        }
     }
 
     static int read(int fildes, long buf, int nbyte) throws UnixException {
