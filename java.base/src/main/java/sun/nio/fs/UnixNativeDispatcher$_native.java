@@ -413,7 +413,7 @@ class UnixNativeDispatcher$_native {
         DIR_ptr dir = word(jdir);
 
         errno = 0;
-        struct_dirent_ptr dirent = org.qbicc.runtime.posix.Dirent.readdir(dir);
+        struct_dirent_ptr dirent = auto(org.qbicc.runtime.posix.Dirent.readdir(dir));
         if (dirent.isNull()) {
             if (errno != 0) {
                 throw new UnixException(errno);
