@@ -53,7 +53,7 @@ public final class PosixFileKey extends FileKey {
     private final long st_ino;    // Inode number
 
     PosixFileKey(final FileDescriptor fd) throws IOException {
-        struct_stat stat = zero();
+        struct_stat stat = auto(zero());
         c_int res;
         do {
             res = fstat(word(fdAccess.get(fd)), addr_of(stat));
