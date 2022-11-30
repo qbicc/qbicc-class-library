@@ -368,7 +368,7 @@ class NetworkInterface$_qbicc {
             if (ioctl(sock, SIOCGIFINDEX, addr_of(if2)).intValue() <0){
                 return word(-1);
             }
-            return if2.ifr_ifru.loadUnshared(c_int.class);
+            return addr_of(addr_of(if2).sel().ifr_ifru).loadUnshared(c_int.class);
         }
     }
 
