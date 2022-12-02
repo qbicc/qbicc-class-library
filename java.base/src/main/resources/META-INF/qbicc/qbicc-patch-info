@@ -23,6 +23,8 @@ java.lang.reflect.Field$_patch
 java.io.FileDescriptor$_init
 java.io.FileDescriptor$_runtime
 java.io.FileDescriptor$_patch
+java.net.Inet6Address$Inet6AddressHolder$_patch
+java.net.Inet6Address$_patch
 java.net.InterfaceAddress$_patch
 java.net.NetworkInterface$_patch
 java.net.URL$DefaultFactory$_patch

@@ -429,14 +429,14 @@ class NetworkInterface$_qbicc {
                 bindArr[bind_index++] = ibObj;
             }
             if (addrP.family == AF_INET6) {
-                Inet6Address ia6Obj = new Inet6Address();
-                iaObj = ia6Obj;
-                char_ptr addr = addr_of(addrP.addr.cast(struct_sockaddr_in6_ptr.class).sel().sin6_addr).cast();
-                NetUtil.setInet6Address_ipaddress(ia6Obj, addr);
+                iaObj = new Inet6Address();
+                Inet6Address$_patch ia6Obj = (Inet6Address$_patch)(Object)iaObj;
+                ptr<uint8_t> addr = addr_of(addr_of(addrP.addr.cast(struct_sockaddr_in6_ptr.class).sel().sin6_addr).sel().s6_addr[0]);
+                ia6Obj.setInet6Address_ipaddress(addr);
                 uint32_t scope = addr_of(addrP.addr.cast(struct_sockaddr_in6_ptr.class).sel().sin6_scope_id).loadUnshared(uint32_t.class);
                 if (scope.intValue() != 0) {
-                    NetUtil.setInet6Address_scopeid(ia6Obj, scope.intValue());
-                    NetUtil.setInet6Address_scopeifname(ia6Obj, (NetworkInterface)(Object)netifObj);
+                    ia6Obj.setInet6Address_scopeid(scope.intValue());
+                    ia6Obj.setInet6Address_scope_ifname((NetworkInterface)(Object)netifObj);
                 }
                 InterfaceAddress ibObj = new InterfaceAddress();
                 ((InterfaceAddress$_patch)(Object)ibObj).address = iaObj;

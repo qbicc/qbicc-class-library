@@ -33,27 +33,17 @@
 package java.net;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Unistd.*;
-import static org.qbicc.runtime.stdc.Stddef.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
 
 import org.qbicc.rt.annotation.Tracking;
-import org.qbicc.runtime.Build;
+import org.qbicc.runtime.patcher.Patch;
 
-@Tracking("src/java.base/unix/native/libnet/Inet6AddressImpl.c")
-public class Inet6AddressImpl$_native {
-
-    public String getLocalHostName() throws UnknownHostException {
-        c_char[] hostname = new c_char[256];
-        if (gethostname(addr_of(hostname[0]), word(255)).intValue() != 0) {
-            return "localhost";
-        } else {
-            hostname[255] = word('\0');
-            return utf8zToJavaString(addr_of(hostname[0]).cast());
-        }
-    }
-
-    public InetAddress[] lookupAllHostAddr(String hostname) throws UnknownHostException {
-        return Inet6AddressImpl$_qbicc.lookupAllHostAddr(hostname);
-    }
+@Tracking("java.base/classes/share/java/net/Inet6Address.java")
+@Patch("java/net/Inet6Address$Inet6AddressHolder")
+class Inet6Address$Inet6AddressHolder$_patch {
+    // alias
+    byte[] ipaddress;
+    int scope_id;
+    boolean scope_id_set;
+    NetworkInterface scope_ifname;
 }

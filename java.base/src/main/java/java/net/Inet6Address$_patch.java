@@ -33,27 +33,41 @@
 package java.net;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Unistd.*;
-import static org.qbicc.runtime.stdc.Stddef.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
 
 import org.qbicc.rt.annotation.Tracking;
-import org.qbicc.runtime.Build;
+import org.qbicc.runtime.patcher.Add;
+import org.qbicc.runtime.patcher.Patch;
+import org.qbicc.runtime.patcher.PatchClass;
 
-@Tracking("src/java.base/unix/native/libnet/Inet6AddressImpl.c")
-public class Inet6AddressImpl$_native {
+@Tracking("java.base/classes/share/java/net/Inet6Address.java")
+@Tracking("src/java.base/share/native/libnet/net_util.c")
+@PatchClass(Inet6Address.class)
+public final class Inet6Address$_patch {
 
-    public String getLocalHostName() throws UnknownHostException {
-        c_char[] hostname = new c_char[256];
-        if (gethostname(addr_of(hostname[0]), word(255)).intValue() != 0) {
-            return "localhost";
-        } else {
-            hostname[255] = word('\0');
-            return utf8zToJavaString(addr_of(hostname[0]).cast());
+    // alias
+    Inet6Address$Inet6AddressHolder$_patch holder6;
+
+    // NET_setInet6Address_ipaddress does approximately this via JNI
+    @Add
+    void setInet6Address_ipaddress(ptr<uint8_t> address) {
+        for (int i = 0; i < 15; i++) {
+            holder6.ipaddress[i] = address.get(i).byteValue();
         }
     }
 
-    public InetAddress[] lookupAllHostAddr(String hostname) throws UnknownHostException {
-        return Inet6AddressImpl$_qbicc.lookupAllHostAddr(hostname);
+    // NET_setInet6Address_scopeid does approximately this via JNI
+    @Add
+    void setInet6Address_scopeid(int scopeid) {
+        holder6.scope_id = scopeid;
+        if (scopeid > 0) {
+            holder6.scope_id_set = true;
+        }
+    }
+
+    // NET_setInet6Address_scope_ifname does approximately this via JNI
+    @Add
+    void setInet6Address_scope_ifname(NetworkInterface scope_ifname) {
+        holder6.scope_ifname = scope_ifname;
     }
 }
