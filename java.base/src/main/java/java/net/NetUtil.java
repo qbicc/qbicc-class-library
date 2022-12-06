@@ -33,8 +33,11 @@
 package java.net;
 
 import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.ArpaInet.*;
+import static org.qbicc.runtime.posix.NetinetIn.*;
 import static org.qbicc.runtime.posix.SysSocket.*;
 import static org.qbicc.runtime.posix.Unistd.*;
+import static org.qbicc.runtime.stdc.Stdint.*;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
@@ -96,56 +99,51 @@ class NetUtil {
         return IPV6Available;
     }
 
-
-    static boolean setInet6Address_ipaddress(Inet6Address iaObj, char_ptr address) {
-        // TODO: port the code below -- needed for IPv6
-        /*
-        jobject holder;
-        jbyteArray addr;
-
-        holder = (*env)->GetObjectField(env, iaObj, ia6_holder6ID);
-        CHECK_NULL_RETURN(holder, JNI_FALSE);
-        addr = (jbyteArray)(*env)->GetObjectField(env, holder, ia6_ipaddressID);
-        if (addr == NULL) {
-            addr = (*env)->NewByteArray(env, 16);
-            CHECK_NULL_RETURN(addr, JNI_FALSE);
-            (*env)->SetObjectField(env, holder, ia6_ipaddressID, addr);
+    // NET_IsIPv4Mapped
+    static boolean isIPv4Mapped(ptr<uint8_t> caddr) {
+        for (int i = 0; i < 10; i++) {
+            if (caddr.get(i).byteValue() != 0x00) {
+                return false;
+            }
         }
-        (*env)->SetByteArrayRegion(env, addr, 0, 16, (jbyte *)address);
-        (*env)->DeleteLocalRef(env, addr);
-        (*env)->DeleteLocalRef(env, holder);
-        return JNI_TRUE;
-         */
-        return true;
+
+        return ((caddr.get(10).byteValue() & 0xff) == 0xff) && ((caddr.get(11).byteValue() & 0xff) == 0xff);
     }
 
-    static boolean setInet6Address_scopeid(Inet6Address iaObj, int scopeid) {
-        /*
-        // TODO: port the code below -- needed for IPv6
-
-
-            jobject holder = (*env)->GetObjectField(env, iaObj, ia6_holder6ID);
-    CHECK_NULL_RETURN(holder, JNI_FALSE);
-    (*env)->SetIntField(env, holder, ia6_scopeidID, scopeid);
-    if (scopeid > 0) {
-        (*env)->SetBooleanField(env, holder, ia6_scopeidsetID, JNI_TRUE);
-    }
-    (*env)->DeleteLocalRef(env, holder);
-    return JNI_TRUE;
-         */
-        return true;
+    // NET_IPv4MappedToIPv4
+    static int IPv4MappedToIPv4(ptr<uint8_t> caddr) {
+        return ((caddr.get(12).byteValue() & 0xff) << 24) | ((caddr.get(13).byteValue() & 0xff) << 16)
+                | ((caddr.get(14).byteValue() & 0xff) << 8) | (caddr.get(15).byteValue() & 0xff);
     }
 
-    static boolean setInet6Address_scopeifname(Inet6Address iaObj, NetworkInterface scopeifname) {
-                /*
-        // TODO: port the code below -- needed for IPv6
-        jobject holder = (*env)->GetObjectField(env, iaObj, ia6_holder6ID);
-        CHECK_NULL_RETURN(holder, JNI_FALSE);
-        (*env)->SetObjectField(env, holder, ia6_scopeifnameID, scopeifname);
-        (*env)->DeleteLocalRef(env, holder);
-        return JNI_TRUE;
-                 */
-        return true;
-    }
+    // NET_SockaddrToInetAddress
+    static InetAddress sockaddrToInetAddress(/*SOCKADDRESS* */void_ptr sa, ptr<c_int> port) {
+        InetAddress iaObj;
+        c_int family = addr_of(sa.cast(struct_sockaddr_ptr.class).sel().sa_family).loadUnshared().cast();
+        if (family == AF_INET6) {
+            struct_sockaddr_in6_ptr sa6 = sa.cast();
+            ptr<uint8_t> caddr = addr_of(sa6.sel().sin6_addr.s6_addr[0]);
+            if (isIPv4Mapped(caddr)) {
+                iaObj = new Inet4Address();
+                iaObj.holder().family = InetAddress.IPv4;
+                iaObj.holder().address = IPv4MappedToIPv4(caddr);
+            } else {
+                iaObj = new Inet6Address();
+                Inet6Address$_patch ia6Obj = (Inet6Address$_patch)(Object)iaObj;
+                iaObj.holder().family = InetAddress.IPv6;
+                ia6Obj.setInet6Address_ipaddress(caddr);
+                ia6Obj.setInet6Address_scopeid(addr_of(sa6.sel().sin6_scope_id).loadUnshared().intValue());
+            }
+            port.storeUnshared(ntohs(addr_of(sa6.sel().sin6_port).loadUnshared().cast()).cast());
+        } else {
+            struct_sockaddr_in_ptr sa4 = sa.cast();
+            iaObj = new Inet4Address();
+            iaObj.holder().family = InetAddress.IPv4;
+            unsigned_int addr = ntohl(addr_of(sa4.sel().sin_addr.s_addr).loadUnshared().cast()).cast();
+            iaObj.holder().address = addr.intValue();
+            port.storeUnshared(ntohs(addr_of(sa4.sel().sin_port).loadUnshared().cast()).cast());
+        }
 
+        return iaObj;
+    }
 }
