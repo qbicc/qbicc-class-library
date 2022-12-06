@@ -57,11 +57,10 @@ public class ProcessHandleImpl$_native {
     }
 
     private static long isAlive0(long jpid) {
-        // Very partial implementation...just enough to get netty's DefaultChannelId limping along.
-        if (jpid == getCurrentPid0()) {
-            return 0;
-        } else {
-            throw new UnsupportedOperationException("need a real impl of isAlive0");
-        }
+        pid_t pid = word(jpid);
+        long totalTime = auto(-1L);
+        long startTime = auto(-1L);
+        pid_t ppid = ProcessHandleImpl$Info$_patch.getParentPidAndTimings(pid,  addr_of(totalTime), addr_of(startTime));
+        return ppid.intValue() < 0 ? -1 : startTime;
     }
 }
