@@ -112,8 +112,11 @@ class Net$_native {
     }
 
     private static boolean isIPv6Available0() {
-        // TODO: Figure this out for real
-        return false;
+        return java.net.NetUtil.ipv6_available();
+    }
+
+    private static boolean isReusePortAvailable0() {
+        return java.net.NetUtil.reuseport_supported();
     }
 
     private static int socket0(boolean preferIPv6, boolean stream, boolean reuse,

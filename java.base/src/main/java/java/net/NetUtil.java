@@ -47,14 +47,14 @@ import org.qbicc.runtime.Build;
 @Tracking("src/java.base/unix/native/libnet/SocketImpl.c")
 @Tracking("src/java.base/windows/native/libnet/net_util_md.c")
 @Tracking("src/java.base/windows/native/libnet/SocketImpl.c")
-class NetUtil {
+public class NetUtil {
     private static boolean IPV4Available;
     private static boolean IPV4AvailableComputed;
 
     private static boolean IPV6Available;
     private static boolean IPV6AvailableComputed;
 
-    static boolean reuseport_supported() {
+    public static boolean reuseport_supported() {
         if (Build.Target.isWindows()) {
             return false;
         } else if (Build.Target.isMacOs() || Build.Target.isLinux()) {
@@ -64,7 +64,7 @@ class NetUtil {
         }
     }
 
-    static boolean ipv4_available() {
+    public static boolean ipv4_available() {
         if (IPV4AvailableComputed) {
             return IPV4Available;
         }
@@ -85,7 +85,7 @@ class NetUtil {
         return IPV4Available;
     }
 
-    static boolean ipv6_available() {
+    public static boolean ipv6_available() {
         if (IPV6AvailableComputed) {
             return IPV6Available;
         }
