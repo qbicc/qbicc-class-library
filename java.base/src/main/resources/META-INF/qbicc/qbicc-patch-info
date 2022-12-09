@@ -6,6 +6,7 @@ java.lang.Object$_aliases
 java.lang.ProcessEnvironment$_runtime
 java.lang.ProcessHandleImpl$_init
 java.lang.ProcessHandleImpl$_runtime
+java.lang.ProcessHandleImpl$Info$_patch
 java.lang.Runtime$_runtime
 java.lang.StackFrameInfo$_patch
 java.lang.StackStreamFactory$AbstractStackWalker_patch
