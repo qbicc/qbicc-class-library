@@ -83,6 +83,7 @@ public class Thread$_patch {
     long stackSize;
     long tid;
     int threadStatus;
+    final Object blockerLock;
 
     // alias methods
     native void setPriority(final int priority);
@@ -125,6 +126,7 @@ public class Thread$_patch {
         }
         this.stackSize = stackSize;
         this.tid = nextThreadID();
+        this.blockerLock = new Object();
 
         // fields that contain pointers to OS/native resources are initialized in start0()
         // This allows Thread instances to be created (but not started) at build time.
