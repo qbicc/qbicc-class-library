@@ -40,7 +40,6 @@ import static org.qbicc.runtime.stdc.Errno.*;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
-import java.net.NetUtil;
 import java.net.SocketException;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
@@ -114,11 +113,11 @@ class Net$_native {
     }
 
     private static boolean isIPv6Available0() {
-        return java.net.NetUtil.ipv6_available();
+        return NetUtil$_aliases.ipv6_available();
     }
 
     private static boolean isReusePortAvailable0() {
-        return java.net.NetUtil.reuseport_supported();
+        return NetUtil$_aliases.reuseport_supported();
     }
 
     private static int socket0(boolean preferIPv6, boolean stream, boolean reuse,
@@ -229,7 +228,7 @@ class Net$_native {
         c_int rc;
         c_int cfd = word(((FileDescriptor$_aliases)(Object)fd).fd);
         if (mayNeedConversion) {
-            rc = NetUtil.getSockOpt(cfd, word(level), word(opt), arg, addr_of(arglen).cast());
+            rc = NetUtil$_aliases.getSockOpt(cfd, word(level), word(opt), arg, addr_of(arglen).cast());
         } else {
             rc = getsockopt(cfd, word(level), word(opt), arg, addr_of(arglen));
         }
@@ -281,7 +280,7 @@ class Net$_native {
         c_int rc;
         c_int cfd = word(((FileDescriptor$_aliases)(Object)fd).fd);
         if (mayNeedConversion) {
-            rc = NetUtil.setSockOpt(cfd, level, opt, parg, arglen.cast());
+            rc = NetUtil$_aliases.setSockOpt(cfd, level, opt, parg, arglen.cast());
         } else {
             rc = setsockopt(cfd, level, opt, parg, arglen);
         }

@@ -49,14 +49,14 @@ import org.qbicc.runtime.Build;
 @Tracking("src/java.base/unix/native/libnet/SocketImpl.c")
 @Tracking("src/java.base/windows/native/libnet/net_util_md.c")
 @Tracking("src/java.base/windows/native/libnet/SocketImpl.c")
-public class NetUtil {
+class NetUtil {
     private static boolean IPV4Available;
     private static boolean IPV4AvailableComputed;
 
     private static boolean IPV6Available;
     private static boolean IPV6AvailableComputed;
 
-    public static boolean reuseport_supported() {
+    static boolean reuseport_supported() {
         if (Build.Target.isWindows()) {
             return false;
         } else if (Build.Target.isMacOs() || Build.Target.isLinux()) {
@@ -66,7 +66,7 @@ public class NetUtil {
         }
     }
 
-    public static boolean ipv4_available() {
+    static boolean ipv4_available() {
         if (IPV4AvailableComputed) {
             return IPV4Available;
         }
@@ -87,7 +87,7 @@ public class NetUtil {
         return IPV4Available;
     }
 
-    public static boolean ipv6_available() {
+    static boolean ipv6_available() {
         if (IPV6AvailableComputed) {
             return IPV6Available;
         }
@@ -150,7 +150,7 @@ public class NetUtil {
     }
 
     // NET_GetSockOpt
-    public static c_int getSockOpt(c_int fd, c_int level, c_int opt, void_ptr result, ptr<c_int> len) {
+    static c_int getSockOpt(c_int fd, c_int level, c_int opt, void_ptr result, ptr<c_int> len) {
         socklen_t socklen = auto(len.loadUnshared().cast());
         c_int rv = getsockopt(fd, level, opt, result, addr_of(socklen));
         len.storeUnshared(socklen.cast());
@@ -192,7 +192,7 @@ public class NetUtil {
     }
 
     // NET_SetSockOpt
-    public static c_int setSockOpt(c_int fd, c_int level, c_int  opt, const_void_ptr arg, c_int len) {
+    static c_int setSockOpt(c_int fd, c_int level, c_int  opt, const_void_ptr arg, c_int len) {
         if (level == IPPROTO_IP && opt == IP_TOS) {
             if (Build.Target.isLinux() && ipv6_available()) {
                 throw new UnsupportedOperationException("TODO: finish Linux port of setSockOpt");
