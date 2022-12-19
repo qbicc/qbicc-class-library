@@ -38,6 +38,7 @@ import static org.qbicc.runtime.posix.SysSocket.*;
 import static org.qbicc.runtime.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.net.SocketException;
 import org.qbicc.rt.annotation.Tracking;
@@ -112,8 +113,11 @@ class Net$_native {
     }
 
     private static boolean isIPv6Available0() {
-        // TODO: Figure this out for real
-        return false;
+        return NetUtil$_aliases.ipv6_available();
+    }
+
+    private static boolean isReusePortAvailable0() {
+        return NetUtil$_aliases.reuseport_supported();
     }
 
     private static int socket0(boolean preferIPv6, boolean stream, boolean reuse,
@@ -191,6 +195,97 @@ class Net$_native {
             return fd.intValue();
         } else {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    private static int getIntOption0(FileDescriptor fd, boolean mayNeedConversion, int level, int opt) throws IOException {
+        c_int result = auto();
+        struct_linger linger = auto();
+        c_char carg = auto();
+        void_ptr arg = auto(addr_of(result).cast());
+        socklen_t arglen = auto(sizeof(result)).cast();
+
+        if (level == IPPROTO_IP.intValue() &&
+                (opt == IP_MULTICAST_TTL.intValue() || opt == IP_MULTICAST_LOOP.intValue())) {
+            throw new UnsupportedOperationException("TODO: fix casting of carg in getIntOption0");
+
+            /*
+            TODO: This generates invalid LLVM IR from qbicc
+            arg = addr_of(carg).cast();
+            arglen = sizeof(carg).cast();
+            */
+        }
+
+        if (level == SOL_SOCKET.intValue() && opt == SO_LINGER.intValue()) {
+            throw new UnsupportedOperationException("TODO: fix casting of linger in getIntOption0");
+            /*
+            TODO: This generates invalid LLVM IR from qbicc
+            arg = addr_of(linger).cast();
+            arglen = sizeof(linger).cast();
+             */
+        }
+
+        c_int rc;
+        c_int cfd = word(((FileDescriptor$_aliases)(Object)fd).fd);
+        if (mayNeedConversion) {
+            rc = NetUtil$_aliases.getSockOpt(cfd, word(level), word(opt), arg, addr_of(arglen).cast());
+        } else {
+            rc = getsockopt(cfd, word(level), word(opt), arg, addr_of(arglen));
+        }
+        if (rc.intValue() < 0) {
+            throw new SocketException("sun.nio.ch.Net.getIntOption");
+        }
+
+        if (level == IPPROTO_IP.intValue() &&
+                (opt == IP_MULTICAST_TTL.intValue() || opt == IP_MULTICAST_LOOP.intValue())) {
+            return carg.intValue();
+        }
+
+        if (level == SOL_SOCKET.intValue() && opt == SO_LINGER.intValue()) {
+            return linger.l_onoff.booleanValue() ? linger.l_linger.intValue() : -1;
+        }
+
+        return result.intValue();
+    }
+
+    private static void setIntOption0(FileDescriptor fd, boolean mayNeedConversion, int jlevel, int jopt, int jarg, boolean isIPv6) throws IOException {
+        struct_linger linger = auto();
+        c_char carg = auto();
+        c_int arg = auto(word(jarg));
+        c_int level = word(jlevel);
+        c_int opt = word(jopt);
+
+        /* Option value is an int except for a few specific cases */
+        const_void_ptr parg = addr_of(arg).cast();
+        socklen_t arglen = sizeof(arg).cast();
+
+        if (level == IPPROTO_IP && (opt == IP_MULTICAST_TTL || opt == IP_MULTICAST_LOOP)) {
+            parg = addr_of(carg).cast();
+            arglen = sizeof(carg).cast();
+            carg = arg.cast();
+        }
+
+        if (level == SOL_SOCKET && opt == SO_LINGER) {
+            parg = addr_of(linger).cast();
+            arglen = sizeof(linger).cast();
+            if (jarg >= 0) {
+                linger.l_onoff = word(1);
+                linger.l_linger = arg;
+            } else {
+                linger.l_onoff = word(0);
+                linger.l_linger = word(0);
+            }
+        }
+
+        c_int rc;
+        c_int cfd = word(((FileDescriptor$_aliases)(Object)fd).fd);
+        if (mayNeedConversion) {
+            rc = NetUtil$_aliases.setSockOpt(cfd, level, opt, parg, arglen.cast());
+        } else {
+            rc = setsockopt(cfd, level, opt, parg, arglen);
+        }
+        if (rc.intValue() < 0) {
+            throw new SocketException("sun.nio.ch.Net.setIntOption");
         }
     }
 }

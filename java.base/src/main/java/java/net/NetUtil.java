@@ -33,10 +33,12 @@
 package java.net;
 
 import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.bsd.SysSysctl.*;
 import static org.qbicc.runtime.posix.ArpaInet.*;
 import static org.qbicc.runtime.posix.NetinetIn.*;
 import static org.qbicc.runtime.posix.SysSocket.*;
 import static org.qbicc.runtime.posix.Unistd.*;
+import static org.qbicc.runtime.stdc.Stddef.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
 
 import org.qbicc.rt.annotation.Tracking;
@@ -145,5 +147,110 @@ class NetUtil {
         }
 
         return iaObj;
+    }
+
+    // NET_GetSockOpt
+    static c_int getSockOpt(c_int fd, c_int level, c_int opt, void_ptr result, ptr<c_int> len) {
+        socklen_t socklen = auto(len.loadUnshared().cast());
+        c_int rv = getsockopt(fd, level, opt, result, addr_of(socklen));
+        len.storeUnshared(socklen.cast());
+
+        if (rv.intValue() < 0) {
+            return rv;
+        }
+
+        if (Build.Target.isLinux()) {
+            if ((level == SOL_SOCKET) && ((opt == SO_SNDBUF) || (opt == SO_RCVBUF))) {
+                c_int n = result.loadUnshared(c_int.class);
+                n = word(n.intValue() / 2);
+                result.cast(int_ptr.class).storeUnshared(n);
+            }
+        }
+
+        if (Build.Target.isMacOs()) {
+            if (level == SOL_SOCKET && opt == SO_LINGER) {
+                throw new UnsupportedOperationException("TODO: getting casting to work in getSockOpt");
+                /*
+
+                The C code here is:
+
+                struct linger* to_cast = (struct linger*)result;
+                to_cast->l_linger = (unsigned short)to_cast->l_linger;
+
+                The Java below (and several variants of it) all pass Java compilation but cause
+                an "Invalid field dereference of 'l_linger'" error from qbicc.
+
+                ptr<struct_linger> to_cast = result.cast();
+                c_int tmp = to_cast.sel().l_linger);
+                unsigned_short tmp2 = tmp.cast();
+                to_cast.sel().l_linger = tmp2.cast();
+                 */
+            }
+        }
+
+        return rv;
+    }
+
+    // NET_SetSockOpt
+    static c_int setSockOpt(c_int fd, c_int level, c_int  opt, const_void_ptr arg, c_int len) {
+        if (level == IPPROTO_IP && opt == IP_TOS) {
+            if (Build.Target.isLinux() && ipv6_available()) {
+                throw new UnsupportedOperationException("TODO: finish Linux port of setSockOpt");
+                // Commented out: missing constants in qbicc runtime headers...
+                /*
+                c_int optval = auto(word(1));
+                if (setsockopt(fd, IPPROTO_IPV6, IPV6FLOW_INFO_SEND, addr_of(optval).cast(), sizeof(optval)).intValue() < 0) {
+                    return -1;
+                }
+                if (setsockopt(fd, IPPROTO_IPV6, IPV6_TCLASS, arg, len).intValue() < 0) {
+                    return -1;
+                }
+
+                 */
+            }
+
+            ptr<c_int> iptos = arg.cast();
+            int iptos_tos_mask = defined(IPTOS_TOS_MASK) ? IPTOS_TOS_MASK.intValue() : 0x1e;
+            int iptos_prec_mask = defined(IPTOS_PREC_MASK) ? IPTOS_PREC_MASK.intValue() : 0xe0;
+            iptos.storeUnshared(word(iptos.loadUnshared().intValue() & (iptos_tos_mask | iptos_prec_mask)));
+        }
+
+        if (Build.Target.isLinux() && level == SOL_SOCKET && opt == SO_RCVBUF) {
+            ptr<c_int> bufsize = arg.cast();
+            if (bufsize.loadUnshared().intValue() < 1024) {
+                bufsize.storeUnshared(word(1024));
+            }
+        }
+
+        if (Build.Target.isMacOs() && level == SOL_SOCKET && (opt == SO_SNDBUF || opt == SO_RCVBUF)) {
+            c_int[] mib = new c_int[] { CTL_KERN, KERN_IPC, KIPC_MAXSOCKBUF };
+            c_int maxsockbuf = auto(word(-1));
+            size_t rlen = auto(sizeof(maxsockbuf));
+            if (sysctl(addr_of(mib[0]), word(3), addr_of(maxsockbuf), addr_of(rlen), word(0), word(0)).intValue() == -1) {
+                maxsockbuf = word(1024);
+            }
+            maxsockbuf = word((maxsockbuf.intValue()/5)*4);
+
+            ptr<c_int> bufsize = arg.cast();
+            if (bufsize.loadUnshared().isGt(maxsockbuf)) {
+                bufsize.storeUnshared(maxsockbuf);
+            }
+            if (opt == SO_RCVBUF && bufsize.loadUnshared().intValue() < 1024) {
+                bufsize.storeUnshared(word(1024));
+            }
+        }
+
+        if (Build.Target.isMacOs() && level == SOL_SOCKET && opt == SO_REUSEADDR) {
+            c_int sotype = auto();
+            socklen_t arglen = auto(sizeof(sotype).cast());
+            if (getsockopt(fd, SOL_SOCKET, SO_TYPE, addr_of(sotype).cast(), addr_of(arglen)).intValue() < 0) {
+                return word(-1);
+            }
+            if (sotype == SOCK_DGRAM) {
+                setsockopt(fd, level, SO_REUSEPORT, arg, len.cast());
+            }
+        }
+
+        return setsockopt(fd, level, opt, arg, len.cast());
     }
 }
