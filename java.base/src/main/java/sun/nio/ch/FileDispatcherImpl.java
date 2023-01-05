@@ -295,7 +295,18 @@ class FileDispatcherImpl extends FileDispatcher {
 
     // Shared with SocketDispatcher and DatagramDispatcher but
     // NOT used by FileDispatcherImpl
-    static native void close0(FileDescriptor fd) throws IOException;
+    static void close0(FileDescriptor fd) throws IOException {
+        int fdNum = fdAccess.get(fd);
+        if (fdNum != -1) {
+            if (Build.Target.isPosix()) {
+                if (Unistd.close(word(fdNum)).intValue() < 0) {
+                    throw new IOException("Close failed");
+                }
+            } else {
+                throw new UnsupportedOperationException("todo: windows");
+            }
+        }
+    }
 
     static native void closeIntFD(int fd) throws IOException;
 
