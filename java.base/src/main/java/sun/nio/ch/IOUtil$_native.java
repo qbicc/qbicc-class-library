@@ -32,8 +32,11 @@
 package sun.nio.ch;
 
 import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.Errno.*;
 import static org.qbicc.runtime.posix.Fcntl.*;
+import static org.qbicc.runtime.posix.SysTypes.*;
 import static org.qbicc.runtime.posix.Unistd.*;
+import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Limits.*;
 
 import java.io.FileDescriptor;
@@ -81,6 +84,21 @@ final class IOUtil$_native {
             }
         }
         return fd0.longValue() << 32 | fd1.longValue();
+    }
+
+    static int write1(int fd, byte b) throws IOException {
+        c_char c = auto(word(b));
+        ssize_t rc = write(word(fd), addr_of(c).cast(), word(1));
+        if (rc.intValue() < 0) {
+            if (errno == EAGAIN.intValue() || errno == EWOULDBLOCK.intValue()) {
+                return IOStatus.UNAVAILABLE;
+            } else if (errno == EINTR.intValue()) {
+                return IOStatus.INTERRUPTED;
+            } else {
+                throw new IOException("Write failed");
+            }
+        }
+        return rc.intValue();
     }
 
     public static int fdVal(FileDescriptor fd) {
