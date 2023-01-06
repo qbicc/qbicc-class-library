@@ -148,6 +148,10 @@ class FileDispatcherImpl extends FileDispatcher {
         preClose0(fd);
     }
 
+    void dup(FileDescriptor fd1, FileDescriptor fd2) throws IOException {
+        dup0(fd1, fd2);
+    }
+
     FileDescriptor duplicateForMapping(FileDescriptor fd) throws IOException {
         if (Build.Target.isWindows()) {
             // on Windows we need to keep a handle to the file
@@ -291,7 +295,18 @@ class FileDispatcherImpl extends FileDispatcher {
 
     // Shared with SocketDispatcher and DatagramDispatcher but
     // NOT used by FileDispatcherImpl
-    static native void close0(FileDescriptor fd) throws IOException;
+    static void close0(FileDescriptor fd) throws IOException {
+        int fdNum = fdAccess.get(fd);
+        if (fdNum != -1) {
+            if (Build.Target.isPosix()) {
+                if (Unistd.close(word(fdNum)).intValue() < 0) {
+                    throw new IOException("Close failed");
+                }
+            } else {
+                throw new UnsupportedOperationException("todo: windows");
+            }
+        }
+    }
 
     static native void closeIntFD(int fd) throws IOException;
 
@@ -300,6 +315,8 @@ class FileDispatcherImpl extends FileDispatcher {
     // UNIX-specific
 
     static native void preClose0(FileDescriptor fd) throws IOException;
+
+    static native void dup0(FileDescriptor fd1, FileDescriptor fd2) throws IOException;
 
     static native long writev0(FileDescriptor fd, long address, int len)
         throws IOException;
