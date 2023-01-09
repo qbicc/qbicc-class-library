@@ -33,6 +33,7 @@
 package sun.nio.ch;
 
 import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.Errno.*;
 import static org.qbicc.runtime.posix.NetinetIn.*;
 import static org.qbicc.runtime.posix.SysSocket.*;
 import static org.qbicc.runtime.posix.Unistd.*;
@@ -40,10 +41,13 @@ import static org.qbicc.runtime.stdc.Errno.*;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.net.BindException;
+import java.net.InetAddress;
 import java.net.SocketException;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.posix.Poll;
+import org.qbicc.runtime.posix.SysSocket;
 
 @Tracking("src/java.base/unix/native/libnio/ch/Net.c")
 class Net$_native {
@@ -196,6 +200,67 @@ class Net$_native {
         } else {
             throw new UnsupportedOperationException();
         }
+    }
+
+    private static void bind0(FileDescriptor fd, boolean preferIPv6, boolean useExclBind, InetAddress iao, int port) throws IOException {
+        struct_sockaddr_in6 sa = auto(); // in OpenJDK, this local is a union of sockaddr, sockaddr_in, and sockaddr_in6.  Pick the biggest....
+        c_int sa_len = auto();
+
+        if (NetUtil$_aliases.inetAddressToSockaddr(iao, port, addr_of(sa).cast(), addr_of(sa_len), preferIPv6).intValue() != 0) {
+            return;
+        }
+
+        c_int cfd = word(((FileDescriptor$_aliases)(Object)fd).fd);
+        if (NetUtil$_aliases.bind(cfd, addr_of(sa).cast(), sa_len).intValue() != 0) {
+            if (errno == EADDRINUSE.intValue() || errno == EADDRNOTAVAIL.intValue() || errno == EACCES.intValue()) {
+                throw new BindException("NioSocketError");
+            } else {
+                throw new SocketException("NioSocketError");
+            }
+        }
+    }
+
+    static void listen(FileDescriptor fd, int backlog) throws IOException {
+        c_int cfd = word(((FileDescriptor$_aliases)(Object)fd).fd);
+        if (SysSocket.listen(cfd, word(backlog)).intValue() < 0) {
+            if (errno == EACCES.intValue()) {
+                throw new BindException("NioSocketError");
+            } else {
+                throw new SocketException("NioSocketError");
+            }
+        }
+    }
+
+    private static int localPort(FileDescriptor fd) throws IOException {
+        struct_sockaddr_in6 sa = auto(); // in OpenJDK, this local is a union of sockaddr, sockaddr_in, and sockaddr_in6.  Pick the biggest....
+        socklen_t sa_len = auto(sizeof(sa).cast());
+        c_int cfd = word(((FileDescriptor$_aliases)(Object)fd).fd);
+        c_int port = auto();
+
+        if (getsockname(cfd, addr_of(sa).cast(), addr_of(sa_len).cast()).intValue() < 0) {
+            if (Build.Target.isMacOs()) {
+                // TODO: port errorno == ECONNRESET adjustment in Net.c
+            }
+            throw new SocketException("NioSocketError");
+        }
+
+        return NetUtil$_aliases.getPortFromSockaddr(addr_of(sa).cast()).intValue();
+    }
+
+    private static InetAddress localInetAddress(FileDescriptor fd) throws IOException {
+        struct_sockaddr_in6 sa = auto(); // in OpenJDK, this local is a union of sockaddr, sockaddr_in, and sockaddr_in6.  Pick the biggest....
+        socklen_t sa_len = auto(sizeof(sa).cast());
+        c_int cfd = word(((FileDescriptor$_aliases)(Object)fd).fd);
+        c_int port = auto();
+
+        if (getsockname(cfd, addr_of(sa).cast(), addr_of(sa_len).cast()).intValue() < 0) {
+            if (Build.Target.isMacOs()) {
+                // TODO: port errorno == ECONNRESET adjustment in Net.c
+            }
+            throw new SocketException("NioSocketError");
+        }
+
+        return NetUtil$_aliases.sockaddrToInetAddress(addr_of(sa).cast(), addr_of(port));
     }
 
     private static int getIntOption0(FileDescriptor fd, boolean mayNeedConversion, int level, int opt) throws IOException {

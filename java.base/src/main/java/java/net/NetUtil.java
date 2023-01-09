@@ -34,15 +34,19 @@ package java.net;
 
 import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.bsd.SysSysctl.*;
+import static org.qbicc.runtime.posix.Errno.*;
 import static org.qbicc.runtime.posix.ArpaInet.*;
 import static org.qbicc.runtime.posix.NetinetIn.*;
 import static org.qbicc.runtime.posix.SysSocket.*;
 import static org.qbicc.runtime.posix.Unistd.*;
+import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stddef.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
+import static org.qbicc.runtime.stdc.String.*;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
+import org.qbicc.runtime.posix.SysSocket;
 
 @Tracking("src/java.base/share/native/libnet/net_util.c")
 @Tracking("src/java.base/unix/native/libnet/net_util_md.c")
@@ -116,6 +120,42 @@ class NetUtil {
     static int IPv4MappedToIPv4(ptr<uint8_t> caddr) {
         return ((caddr.get(12).byteValue() & 0xff) << 24) | ((caddr.get(13).byteValue() & 0xff) << 16)
                 | ((caddr.get(14).byteValue() & 0xff) << 8) | (caddr.get(15).byteValue() & 0xff);
+    }
+
+    // NET_GetPortFromSockaddr
+    static c_int getPortFromSockaddr(/*SOCKETADDRESS* */ void_ptr sa) {
+        c_int family = addr_of(sa.cast(struct_sockaddr_ptr.class).sel().sa_family).loadUnshared().cast();
+        if (family == AF_INET6) {
+            struct_sockaddr_in6_ptr sa6 = sa.cast();
+            return ntohs(addr_of(sa6.sel().sin6_port).loadUnshared().cast()).cast();
+        } else {
+            struct_sockaddr_in_ptr sa4 = sa.cast();
+            return ntohs(addr_of(sa4.sel().sin_port).loadUnshared().cast()).cast();
+        }
+    }
+
+    // NET_InetAddressToSockaddr
+    static c_int inetAddressToSockaddr(InetAddress iaObj, int port, /*SOCKETADDRESS* */ void_ptr sa,
+                                       ptr<c_int> len, boolean v4MappedAddress) throws SocketException {
+        int family = iaObj.holder().family;
+
+        if (ipv6_available()) {
+            memset(sa.cast(), word(0), sizeof(struct_sockaddr_in6.class));
+            throw new UnsupportedOperationException("TODO: Need to port IPv6 code path from unix/net_util_md.c");
+        } else {
+            if (family != InetAddress.IPv4) {
+                throw new SocketException("Protocol family unavailable");
+            }
+            memset(sa.cast(), word(0), sizeof(struct_sockaddr_in.class));
+            int address = iaObj.holder().address;
+            sa.cast(struct_sockaddr_in_ptr.class).sel().sin_port = htons(word(port)).cast();
+            sa.cast(struct_sockaddr_in_ptr.class).sel().sin_addr.s_addr = htonl(word(address)).cast();
+            sa.cast(struct_sockaddr_in_ptr.class).sel().sin_family = AF_INET.cast();
+            if (!len.isNull()) {
+                len.storeUnshared(sizeof(struct_sockaddr_in.class).cast());
+            }
+        }
+        return word(0);
     }
 
     // NET_SockaddrToInetAddress
@@ -253,4 +293,19 @@ class NetUtil {
 
         return setsockopt(fd, level, opt, arg, len.cast());
     }
+
+    // NET_Bind
+    static c_int bind(c_int fd, /*SOCKETADDRESS* */ void_ptr sa, c_int len) {
+        if (Build.Target.isLinux()) {
+            c_int family = addr_of(sa.cast(struct_sockaddr_ptr.class).sel().sa_family).loadUnshared().cast();
+            if (family == AF_INET) {
+                if ((ntohl(sa.cast(struct_sockaddr_in_ptr.class).sel().sin_addr.s_addr.cast()).intValue() & 0x7f0000ff) == 0x7f0000ff) {
+                    errno = EADDRNOTAVAIL.intValue();
+                    return word(-1);
+                }
+            }
+        }
+        return SysSocket.bind(fd, sa.cast(const_struct_sockaddr_ptr.class), len.cast(socklen_t.class));
+    }
+
 }
