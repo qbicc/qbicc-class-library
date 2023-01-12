@@ -7,7 +7,7 @@ import org.qbicc.runtime.ThreadScoped;
 /**
  * Logically these declarations belongs in Thread, however our patching/compiler support
  * has some gaps that make delcaring them in a separate class expedient.
- *   1. @ThreadScoped fields can't be declated on Thrad (circular dependency)
+ *   1. @ThreadScoped fields can't be declated on Thread (circular dependency)
  *   2. The @Add annotation doesn't preserve the other annotations (like @export).
  */
 class Thread$_qbicc {
