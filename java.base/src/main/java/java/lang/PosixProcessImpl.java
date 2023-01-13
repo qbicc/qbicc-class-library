@@ -31,6 +31,10 @@
  */
 package java.lang;
 
+import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.Signal.*;
+import static org.qbicc.runtime.stdc.Signal.*;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -50,7 +54,9 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import jdk.internal.org.qbicc.runtime.Main;
 import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.Build;
 import sun.security.action.GetPropertyAction;
 
 @Tracking("src/java.base/unix/classes/java/lang/ProcessImpl.java")
@@ -119,12 +125,13 @@ final class PosixProcessImpl extends ProcessImpl {
         }
 
         static Platform get() {
+            if (Build.Target.isLinux()) {
+                return LINUX;
+            } else if (Build.Target.isMacOs()) {
+                return BSD;
+            }
+
             String osName = GetPropertyAction.privilegedGetProperty("os.name");
-
-            if (osName.equals("Linux")) {return LINUX;}
-            if (osName.contains("OS X")) {return BSD;}
-            if (osName.equals("AIX")) {return AIX;}
-
             throw new Error(osName + " is not a supported OS platform.");
         }
     }
@@ -531,7 +538,24 @@ final class PosixProcessImpl extends ProcessImpl {
             .append("]").toString();
     }
 
-    private static native void init();
+    private static void setSIGCHLDHandler() {
+        struct_sigaction sa = auto();
+        sa.sa_handler = SIG_DFL;
+        sigemptyset(addr_of(sa.sa_mask));
+        sa.sa_flags = word(SA_NOCLDSTOP.intValue() | SA_RESTART.intValue());
+        if (sigaction(SIGCHLD, addr_of(sa), word(0)).intValue() < 0) {
+            throw new InternalError("Can't set SIGCHLD handler");
+        }
+    }
+
+    private static void init() {
+        Main.deferInitAction(() -> {
+            // TODO: The JDK native init method also pre-computes and caches a native
+            //       parent path that is passed to posix_spawn inside fork_and_exec.
+
+            setSIGCHLDHandler();
+        });
+    }
 
     static {
         init();
