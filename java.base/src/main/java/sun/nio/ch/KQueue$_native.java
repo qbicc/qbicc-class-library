@@ -77,7 +77,7 @@ class KQueue$_native {
 
     static int register(int kqfd, int fd, int filter, int flags) {
         struct_kevent changes = auto();
-        changes.ident = word(kqfd);
+        changes.ident = word(fd);
         changes.filter = word(filter);
         changes.flags = word(flags);
         c_int result;
