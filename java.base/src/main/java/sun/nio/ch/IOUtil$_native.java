@@ -101,6 +101,40 @@ final class IOUtil$_native {
         return rc.intValue();
     }
 
+    static boolean drain(int fd) throws IOException {
+        int bufSize = 16;
+        c_char[] buf = new c_char[bufSize];
+        int tn = 0;
+
+        for (;;) {
+            ssize_t n = read(word(fd), addr_of(buf[0]).cast(), word(bufSize));
+            tn += n.intValue();
+            if ((n.intValue() < 0) && (errno != EAGAIN.intValue() && errno != EWOULDBLOCK.intValue())) {
+                throw new IOException("Drain");
+            }
+            if (n.intValue() == bufSize) {
+                continue;
+            }
+            return tn > 0;
+        }
+    }
+
+    static int drain1(int fd) throws IOException {
+        c_char buf = auto();
+        int res = read(word(fd), addr_of(buf).cast(), word(1)).intValue();
+        if (res < 0) {
+            if (errno == EAGAIN.intValue() || errno == EWOULDBLOCK.intValue()) {
+                res = 0;
+            } else if (errno == EINTR.intValue()) {
+                return IOStatus.INTERRUPTED;
+            } else {
+                throw new IOException("read");
+            }
+        }
+        return res;
+    }
+
+
     public static int fdVal(FileDescriptor fd) {
         return ((FileDescriptor$_patch)(Object)fd).getFD();
     }
