@@ -304,53 +304,55 @@ class Net$_native {
     }
 
     private static int getIntOption0(FileDescriptor fd, boolean mayNeedConversion, int level, int opt) throws IOException {
-        c_int result = auto();
-        struct_linger linger = auto();
-        c_char carg = auto();
-        void_ptr arg = auto(addr_of(result).cast());
-        socklen_t arglen = auto(sizeof(result)).cast();
+        // This code has more copy & paste duplicated logic than the original C version to
+        // workaround a qbicc bug that produces invalid llvm ir when we have block-args that contain addresses.
+
+        c_int cfd = word(((FileDescriptor$_aliases)(Object)fd).fd);
 
         if (level == IPPROTO_IP.intValue() &&
                 (opt == IP_MULTICAST_TTL.intValue() || opt == IP_MULTICAST_LOOP.intValue())) {
-            throw new UnsupportedOperationException("TODO: fix casting of carg in getIntOption0");
-
-            /*
-            TODO: This generates invalid LLVM IR from qbicc
-            arg = addr_of(carg).cast();
-            arglen = sizeof(carg).cast();
-            */
+            c_char arg = auto();
+            socklen_t arglen = auto(sizeof(arg)).cast();
+            c_int rc;
+            if (mayNeedConversion) {
+                rc = NetUtil$_aliases.getSockOpt(cfd, word(level), word(opt), addr_of(arg).cast(), addr_of(arglen).cast());
+            } else {
+                rc = getsockopt(cfd, word(level), word(opt), addr_of(arg).cast(), addr_of(arglen));
+            }
+            if (rc.intValue() < 0) {
+                throw new SocketException("sun.nio.ch.Net.getIntOption");
+            }
+            return arg.intValue();
         }
 
         if (level == SOL_SOCKET.intValue() && opt == SO_LINGER.intValue()) {
-            throw new UnsupportedOperationException("TODO: fix casting of linger in getIntOption0");
-            /*
-            TODO: This generates invalid LLVM IR from qbicc
-            arg = addr_of(linger).cast();
-            arglen = sizeof(linger).cast();
-             */
+            struct_linger arg = auto();
+            socklen_t arglen = auto(sizeof(arg)).cast();
+            c_int rc;
+            if (mayNeedConversion) {
+                rc = NetUtil$_aliases.getSockOpt(cfd, word(level), word(opt), addr_of(arg).cast(), addr_of(arglen).cast());
+            } else {
+                rc = getsockopt(cfd, word(level), word(opt), addr_of(arg).cast(), addr_of(arglen));
+            }
+            if (rc.intValue() < 0) {
+                throw new SocketException("sun.nio.ch.Net.getIntOption");
+            }
+            return arg.l_onoff.booleanValue() ? arg.l_linger.intValue() : -1;
         }
 
+        c_int arg = auto();
+        socklen_t arglen = auto(sizeof(arg)).cast();
         c_int rc;
-        c_int cfd = word(((FileDescriptor$_aliases)(Object)fd).fd);
         if (mayNeedConversion) {
-            rc = NetUtil$_aliases.getSockOpt(cfd, word(level), word(opt), arg, addr_of(arglen).cast());
+            rc = NetUtil$_aliases.getSockOpt(cfd, word(level), word(opt), addr_of(arg).cast(), addr_of(arglen).cast());
         } else {
-            rc = getsockopt(cfd, word(level), word(opt), arg, addr_of(arglen));
+            rc = getsockopt(cfd, word(level), word(opt), addr_of(arg).cast(), addr_of(arglen));
         }
         if (rc.intValue() < 0) {
             throw new SocketException("sun.nio.ch.Net.getIntOption");
         }
 
-        if (level == IPPROTO_IP.intValue() &&
-                (opt == IP_MULTICAST_TTL.intValue() || opt == IP_MULTICAST_LOOP.intValue())) {
-            return carg.intValue();
-        }
-
-        if (level == SOL_SOCKET.intValue() && opt == SO_LINGER.intValue()) {
-            return linger.l_onoff.booleanValue() ? linger.l_linger.intValue() : -1;
-        }
-
-        return result.intValue();
+        return arg.intValue();
     }
 
     private static void setIntOption0(FileDescriptor fd, boolean mayNeedConversion, int jlevel, int jopt, int jarg, boolean isIPv6) throws IOException {
