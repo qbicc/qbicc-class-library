@@ -224,8 +224,24 @@ class FileDispatcherImpl extends FileDispatcher {
     static native long readv0(FileDescriptor fd, long address, int len)
         throws IOException;
 
-    static native int write0(FileDescriptor fd, long address, int len)
-        throws IOException;
+    static int write0(FileDescriptor fd, long address, int len) throws IOException {
+        if (Build.Target.isPosix()) {
+            int fdNum = fdAccess.get(fd);
+            int retVal = Unistd.write(word(fdNum), word(address), word(len)).intValue();
+            if (retVal >= 0) {
+                return retVal;
+            }
+            if (errno == EAGAIN.intValue() || errno == EWOULDBLOCK.intValue()) {
+                return IOStatus.UNAVAILABLE;
+            } else if (errno == EINTR.intValue()) {
+                return IOStatus.INTERRUPTED;
+            } else {
+                throw new IOException("Write failed");
+            }
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
 
     static native int pwrite0(FileDescriptor fd, long address, int len,
                              long position) throws IOException;
