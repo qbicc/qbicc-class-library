@@ -43,6 +43,7 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
@@ -229,6 +230,45 @@ class Net$_native {
                 throw new SocketException("NioSocketError");
             }
         }
+    }
+
+    public static int accept(FileDescriptor fd, FileDescriptor newfd, InetSocketAddress[] isaa) throws IOException {
+        c_int cfd = word(((FileDescriptor$_aliases)(Object)fd).fd);
+        struct_sockaddr_in6 sa = auto(); // in OpenJDK, this local is a union of sockaddr, sockaddr_in, and sockaddr_in6.  Pick the biggest....
+        socklen_t sa_len = auto(sizeof(sa).cast());
+
+        int newfdInt;
+
+        /* accept connection but ignore ECONNABORTED */
+        for (;;) {
+            newfdInt = SysSocket.accept(cfd, addr_of(sa).cast(), addr_of(sa_len)).intValue();
+            if (newfdInt >= 0) {
+                break;
+            }
+            if (errno != ECONNABORTED.intValue()) {
+                break;
+            }
+            /* ECONNABORTED => restart accept */
+        }
+
+        if (newfdInt < 0) {
+            if (errno == EAGAIN.intValue() || errno == EWOULDBLOCK.intValue()) {
+                return IOStatus.UNAVAILABLE;
+            } else if (errno == EINTR.intValue()) {
+                return IOStatus.INTERRUPTED;
+            } else {
+                throw new IOException("Accept failed");
+            }
+        }
+
+        ((FileDescriptor$_aliases)(Object)newfd).fd = newfdInt;
+
+        c_int remote_port = auto(word(0));
+        InetAddress remote_ia = NetUtil$_aliases.sockaddrToInetAddress(addr_of(sa).cast(), addr_of(remote_port));
+        InetSocketAddress isa = new InetSocketAddress(remote_ia, remote_port.intValue());
+        isaa[0] = isa;
+
+        return 1;
     }
 
     private static int localPort(FileDescriptor fd) throws IOException {
