@@ -32,20 +32,30 @@
 
 package sun.nio.ch;
 
+import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.Errno.*;
+import static org.qbicc.runtime.posix.SysUio.*;
+import static org.qbicc.runtime.posix.Unistd.*;
+import static org.qbicc.runtime.stdc.Errno.*;
+
 import java.io.FileDescriptor;
 import java.io.IOException;
 
 import jdk.internal.access.JavaIOFileDescriptorAccess;
 import jdk.internal.access.SharedSecrets;
+import sun.net.ConnectionResetException;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
+import org.qbicc.runtime.posix.SysUio;
+import org.qbicc.runtime.posix.Unistd;
 
 /**
  * Allows different platforms to call different native methods
  * for read and write operations.
  */
 @Tracking("src/java.base/unix/classes/sun/nio/ch/SocketDispatcher.java")
+@Tracking("src/java.base/unix/native/libnio/SocketDispatcher.c")
 @Tracking("src/java.base/windows/classes/sun/nio/ch/SocketDispatcher.java")
 class SocketDispatcher extends NativeDispatcher {
     private static final JavaIOFileDescriptorAccess fdAccess =
@@ -120,11 +130,49 @@ class SocketDispatcher extends NativeDispatcher {
 
     // -- Native methods --
 
-    private static native int read0(FileDescriptor fd, long address, int len)
-            throws IOException;
+    private static int read0(FileDescriptor fdo, long address, int len) throws IOException {
+        if (Build.Target.isUnix()) {
+            c_int fd = word(((FileDescriptor$_aliases)(Object)fdo).fd);
+            int n = Unistd.read(fd, word(address), word(len)).intValue();
+            if ((n == -1) && (errno == ECONNRESET.intValue() || errno == EPIPE.intValue())) {
+                throw new ConnectionResetException("Connection reset");
+            } else if (n > 0) {
+                return n;
+            } else if (n == 0) {
+                return IOStatus.EOF;
+            } else if (errno == EAGAIN.intValue() || errno == EWOULDBLOCK.intValue()) {
+                return IOStatus.UNAVAILABLE;
+            } else if (errno == EINTR.intValue()) {
+                return IOStatus.INTERRUPTED;
+            } else {
+                throw new IOException("Read failed");
+            }
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
 
-    private static native long readv0(FileDescriptor fd, long address, int len)
-            throws IOException;
+    private static long readv0(FileDescriptor fdo, long address, int len) throws IOException {
+        if (Build.Target.isUnix()) {
+            c_int fd = word(((FileDescriptor$_aliases)(Object)fdo).fd);
+            int n = SysUio.readv(fd, word(address), word(len)).intValue();
+            if ((n == -1) && (errno == ECONNRESET.intValue() || errno == EPIPE.intValue())) {
+                throw new ConnectionResetException("Connection reset");
+            } else if (n > 0) {
+                return n;
+            } else if (n == 0) {
+                return IOStatus.EOF;
+            } else if (errno == EAGAIN.intValue() || errno == EWOULDBLOCK.intValue()) {
+                return IOStatus.UNAVAILABLE;
+            } else if (errno == EINTR.intValue()) {
+                return IOStatus.INTERRUPTED;
+            } else {
+                throw new IOException("Read failed");
+            }
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
 
     private static native int write0(FileDescriptor fd, long address, int len)
             throws IOException;
