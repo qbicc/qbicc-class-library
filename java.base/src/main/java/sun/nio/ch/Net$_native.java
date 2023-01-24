@@ -35,6 +35,7 @@ package sun.nio.ch;
 import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.posix.Errno.*;
 import static org.qbicc.runtime.posix.NetinetIn.*;
+import static org.qbicc.runtime.posix.Poll.*;
 import static org.qbicc.runtime.posix.SysSocket.*;
 import static org.qbicc.runtime.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
@@ -413,6 +414,26 @@ class Net$_native {
         }
         if (rc.intValue() < 0) {
             throw new SocketException("sun.nio.ch.Net.setIntOption");
+        }
+    }
+
+    static int poll(FileDescriptor fd, int events, long timeout) throws IOException {
+        struct_pollfd pfd = auto();
+        pfd.fd = word(((FileDescriptor$_aliases) (Object) fd).fd);
+        pfd.events = word(events);
+        if (timeout < -1) {
+            timeout = -1;
+        } else if (timeout > Integer.MAX_VALUE) {
+            timeout = Integer.MAX_VALUE;
+        }
+        c_int rv = Poll.poll(addr_of(pfd), word(1), word(timeout));
+
+        if (rv.intValue() >= 0) {
+            return pfd.revents.intValue();
+        } else if (errno == EINTR.intValue()) {
+            return 0;
+        } else {
+            throw new SocketException();
         }
     }
 }
