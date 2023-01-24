@@ -420,22 +420,25 @@ final class ProcessEnvironment {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         OutputStreamWriter w = new OutputStreamWriter(baos, StandardCharsets.UTF_8);
         int cnt = 0;
-        for (Map.Entry<String, String> entry : map.entrySet()) try {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            if (! isValidName(key) || ! isValidValue(value)) {
-                // skip the key for safety
-                continue;
-            }
-            cnt++;
-            w.write(key);
-            w.write('\0');
-            w.write(value);
-            w.write('\0');
-            w.flush();
-        } catch (IOException e) {
-            // impossible
-            throw new IllegalStateException();
+        if (map != null) {
+            for (Map.Entry<String, String> entry : map.entrySet())
+                try {
+                    String key = entry.getKey();
+                    String value = entry.getValue();
+                    if (!isValidName(key) || !isValidValue(value)) {
+                        // skip the key for safety
+                        continue;
+                    }
+                    cnt++;
+                    w.write(key);
+                    w.write('\0');
+                    w.write(value);
+                    w.write('\0');
+                    w.flush();
+                } catch (IOException e) {
+                    // impossible
+                    throw new IllegalStateException();
+                }
         }
         envCnt[0] = cnt;
         return baos.toByteArray();
