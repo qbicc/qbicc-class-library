@@ -42,8 +42,10 @@ import static org.qbicc.runtime.stdc.Errno.*;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.net.BindException;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NoRouteToHostException;
 import java.net.SocketException;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
@@ -267,6 +269,35 @@ class Net$_native {
         InetAddress remote_ia = NetUtil$_aliases.sockaddrToInetAddress(addr_of(sa).cast(), addr_of(remote_port));
         InetSocketAddress isa = new InetSocketAddress(remote_ia, remote_port.intValue());
         isaa[0] = isa;
+
+        return 1;
+    }
+
+    private static int connect0(boolean preferIPv6, FileDescriptor fd, InetAddress remote, int remotePort) throws IOException {
+        struct_sockaddr_in6 sa = auto(); // in OpenJDK, this local is a union of sockaddr, sockaddr_in, and sockaddr_in6.  Pick the biggest....
+        socklen_t sa_len = auto(sizeof(sa).cast());
+        c_int cfd = word(((FileDescriptor$_aliases)(Object)fd).fd);
+
+        if (NetUtil$_aliases.inetAddressToSockaddr(remote, remotePort, addr_of(sa).cast(), addr_of(sa_len).cast(), preferIPv6).isNonZero()) {
+            throw new SocketException("connect0");
+        }
+
+        c_int rv = SysSocket.connect(cfd, addr_of(sa).cast(), sa_len);
+        if (rv.isNonZero()) {
+            if (errno == EINPROGRESS.intValue()) {
+                return IOStatus.UNAVAILABLE;
+            } else if (errno == EINTR.intValue()) {
+                return IOStatus.INTERRUPTED;
+            } else if (errno == ECONNREFUSED.intValue() || errno == ETIMEDOUT.intValue() || errno == ENOTCONN.intValue()) {
+                throw new ConnectException();
+            } else if (errno == EHOSTUNREACH.intValue()) {
+                throw new NoRouteToHostException();
+            } else if (errno == EADDRINUSE.intValue() || errno == EADDRNOTAVAIL.intValue() || errno == EACCES.intValue()) {
+                throw new BindException();
+            } else {
+                throw new SocketException();
+            }
+        }
 
         return 1;
     }
