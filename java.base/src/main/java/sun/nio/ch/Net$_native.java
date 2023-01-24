@@ -35,6 +35,7 @@ package sun.nio.ch;
 import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.posix.Errno.*;
 import static org.qbicc.runtime.posix.NetinetIn.*;
+import static org.qbicc.runtime.posix.Poll.*;
 import static org.qbicc.runtime.posix.SysSocket.*;
 import static org.qbicc.runtime.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
@@ -42,8 +43,10 @@ import static org.qbicc.runtime.stdc.Errno.*;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.net.BindException;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NoRouteToHostException;
 import java.net.SocketException;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
@@ -271,6 +274,49 @@ class Net$_native {
         return 1;
     }
 
+    static void shutdown(FileDescriptor fd, int how) throws IOException {
+        c_int cfd = word(((FileDescriptor$_aliases)(Object)fd).fd);
+        c_int chow = switch(how) {
+            case Net.SHUT_RD -> SHUT_RD;
+            case Net.SHUT_WR -> SHUT_WR;
+            default -> SHUT_RDWR;
+        };
+        if (SysSocket.shutdown(cfd, chow).intValue() < 0) {
+            if (errno != ENOTCONN.intValue()) {
+                throw new SocketException();
+            }
+        }
+    }
+
+    private static int connect0(boolean preferIPv6, FileDescriptor fd, InetAddress remote, int remotePort) throws IOException {
+        struct_sockaddr_in6 sa = auto(); // in OpenJDK, this local is a union of sockaddr, sockaddr_in, and sockaddr_in6.  Pick the biggest....
+        socklen_t sa_len = auto(sizeof(sa).cast());
+        c_int cfd = word(((FileDescriptor$_aliases)(Object)fd).fd);
+
+        if (NetUtil$_aliases.inetAddressToSockaddr(remote, remotePort, addr_of(sa).cast(), addr_of(sa_len).cast(), preferIPv6).isNonZero()) {
+            throw new SocketException("connect0");
+        }
+
+        c_int rv = SysSocket.connect(cfd, addr_of(sa).cast(), sa_len);
+        if (rv.isNonZero()) {
+            if (errno == EINPROGRESS.intValue()) {
+                return IOStatus.UNAVAILABLE;
+            } else if (errno == EINTR.intValue()) {
+                return IOStatus.INTERRUPTED;
+            } else if (errno == ECONNREFUSED.intValue() || errno == ETIMEDOUT.intValue() || errno == ENOTCONN.intValue()) {
+                throw new ConnectException();
+            } else if (errno == EHOSTUNREACH.intValue()) {
+                throw new NoRouteToHostException();
+            } else if (errno == EADDRINUSE.intValue() || errno == EADDRNOTAVAIL.intValue() || errno == EACCES.intValue()) {
+                throw new BindException();
+            } else {
+                throw new SocketException();
+            }
+        }
+
+        return 1;
+    }
+
     private static int localPort(FileDescriptor fd) throws IOException {
         struct_sockaddr_in6 sa = auto(); // in OpenJDK, this local is a union of sockaddr, sockaddr_in, and sockaddr_in6.  Pick the biggest....
         socklen_t sa_len = auto(sizeof(sa).cast());
@@ -382,6 +428,26 @@ class Net$_native {
         }
         if (rc.intValue() < 0) {
             throw new SocketException("sun.nio.ch.Net.setIntOption");
+        }
+    }
+
+    static int poll(FileDescriptor fd, int events, long timeout) throws IOException {
+        struct_pollfd pfd = auto();
+        pfd.fd = word(((FileDescriptor$_aliases) (Object) fd).fd);
+        pfd.events = word(events);
+        if (timeout < -1) {
+            timeout = -1;
+        } else if (timeout > Integer.MAX_VALUE) {
+            timeout = Integer.MAX_VALUE;
+        }
+        c_int rv = Poll.poll(addr_of(pfd), word(1), word(timeout));
+
+        if (rv.intValue() >= 0) {
+            return pfd.revents.intValue();
+        } else if (errno == EINTR.intValue()) {
+            return 0;
+        } else {
+            throw new SocketException();
         }
     }
 }

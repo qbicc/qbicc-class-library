@@ -209,22 +209,10 @@ class NetUtil {
 
         if (Build.Target.isMacOs()) {
             if (level == SOL_SOCKET && opt == SO_LINGER) {
-                throw new UnsupportedOperationException("TODO: getting casting to work in getSockOpt");
-                /*
-
-                The C code here is:
-
-                struct linger* to_cast = (struct linger*)result;
-                to_cast->l_linger = (unsigned short)to_cast->l_linger;
-
-                The Java below (and several variants of it) all pass Java compilation but cause
-                an "Invalid field dereference of 'l_linger'" error from qbicc.
-
                 ptr<struct_linger> to_cast = result.cast();
-                c_int tmp = to_cast.sel().l_linger);
+                c_int tmp = to_cast.sel().l_linger;
                 unsigned_short tmp2 = tmp.cast();
                 to_cast.sel().l_linger = tmp2.cast();
-                 */
             }
         }
 
