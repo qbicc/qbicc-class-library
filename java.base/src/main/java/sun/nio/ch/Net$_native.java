@@ -274,6 +274,20 @@ class Net$_native {
         return 1;
     }
 
+    static void shutdown(FileDescriptor fd, int how) throws IOException {
+        c_int cfd = word(((FileDescriptor$_aliases)(Object)fd).fd);
+        c_int chow = switch(how) {
+            case Net.SHUT_RD -> SHUT_RD;
+            case Net.SHUT_WR -> SHUT_WR;
+            default -> SHUT_RDWR;
+        };
+        if (SysSocket.shutdown(cfd, chow).intValue() < 0) {
+            if (errno != ENOTCONN.intValue()) {
+                throw new SocketException();
+            }
+        }
+    }
+
     private static int connect0(boolean preferIPv6, FileDescriptor fd, InetAddress remote, int remotePort) throws IOException {
         struct_sockaddr_in6 sa = auto(); // in OpenJDK, this local is a union of sockaddr, sockaddr_in, and sockaddr_in6.  Pick the biggest....
         socklen_t sa_len = auto(sizeof(sa).cast());
