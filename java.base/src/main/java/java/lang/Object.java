@@ -49,6 +49,12 @@ import org.qbicc.runtime.main.VMHelpers;
 public class Object {
 
     @NoReflect
+    header_type header;
+
+    @NoReflect
+    type_id typeId;
+
+    @NoReflect
     private Monitor monitor;
 
     @NoReflect
