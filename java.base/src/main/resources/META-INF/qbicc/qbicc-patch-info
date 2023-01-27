@@ -20,7 +20,10 @@ java.lang.invoke.MethodHandle$_patch
 java.lang.invoke.MethodHandleNatives$CallSiteContext$_patch
 java.lang.ref.Reference$_patch
 java.lang.ref.Finalizer$_patch
+java.lang.reflect.Constructor$_patch
 java.lang.reflect.Field$_patch
+java.lang.reflect.Method$_patch
+java.lang.reflect.MethodHandleAccessorFactory$_aliases
 java.io.FileDescriptor$_init
 java.io.FileDescriptor$_runtime
 java.io.FileDescriptor$_patch
