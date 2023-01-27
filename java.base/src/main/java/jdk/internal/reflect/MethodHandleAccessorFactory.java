@@ -57,7 +57,7 @@ final class MethodHandleAccessorFactory {
      *
      * To simplify the backport, all support for CallerSensitive methods has been dropped.
      */
-    static MethodAccessorImpl newMethodAccessor(Method method, boolean callerSensitive) {
+    static MethodAccessor newMethodAccessor(Method method, boolean callerSensitive) {
         if (callerSensitive) throw new UnsupportedOperationException("Support for callerSensitive methods not backported to qbicc");
         try {
             var dmh = getDirectMethod(method);
@@ -70,7 +70,7 @@ final class MethodHandleAccessorFactory {
     /**
      * Creates a ConstructorAccessor for the given reflected constructor.
      */
-    static ConstructorAccessorImpl newConstructorAccessor(Constructor<?> ctor) {
+    static ConstructorAccessor newConstructorAccessor(Constructor<?> ctor) {
         try {
             MethodHandle mh = MethodAccessorBackdoor.unreflectConstructor(ctor);
             int paramCount = mh.type().parameterCount();
