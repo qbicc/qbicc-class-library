@@ -21,6 +21,7 @@ java.lang.invoke.MethodHandleNatives$CallSiteContext$_patch
 java.lang.ref.Reference$_patch
 java.lang.ref.Finalizer$_patch
 java.lang.reflect.Constructor$_patch
+java.lang.reflect.Executable$_patch
 java.lang.reflect.Field$_patch
 java.lang.reflect.Method$_patch
 java.lang.reflect.MethodHandleAccessorFactory$_aliases
