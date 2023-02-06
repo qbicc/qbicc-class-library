@@ -39,6 +39,7 @@ import static org.qbicc.runtime.posix.SysStat.*;
 import static org.qbicc.runtime.posix.Fcntl.SEEK_CUR;
 import static org.qbicc.runtime.posix.SysStat.*;
 import static org.qbicc.runtime.posix.SysTypes.*;
+import static org.qbicc.runtime.posix.SysUio.*;
 import static org.qbicc.runtime.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
@@ -53,6 +54,7 @@ import org.qbicc.runtime.Build;
 import jdk.internal.access.JavaIOFileDescriptorAccess;
 import jdk.internal.access.SharedSecrets;
 import org.qbicc.runtime.host.HostIO;
+import org.qbicc.runtime.posix.SysUio;
 import org.qbicc.runtime.posix.Unistd;
 import sun.security.action.GetPropertyAction;
 
@@ -334,8 +336,20 @@ class FileDispatcherImpl extends FileDispatcher {
 
     static native void dup0(FileDescriptor fd1, FileDescriptor fd2) throws IOException;
 
-    static native long writev0(FileDescriptor fd, long address, int len)
-        throws IOException;
+    static long writev0(FileDescriptor fd, long address, int len) throws IOException {
+        int fdNum = fdAccess.get(fd);
+        ssize_t retVal = SysUio.writev(word(fdNum), word(address).cast(), word(len));
+        if (retVal.longValue() >= 0) {
+            return retVal.longValue();
+        } else if (errno == EAGAIN.intValue() || errno == EWOULDBLOCK.intValue()) {
+            return IOStatus.UNAVAILABLE;
+        } else if (errno == EINTR.intValue()) {
+            return IOStatus.INTERRUPTED;
+        } else {
+            // TODO: include errno
+            throw new IOException("Write failed");
+        }
+    }
 
     // Windows-specific
 
