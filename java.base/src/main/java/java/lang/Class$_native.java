@@ -38,6 +38,7 @@ import java.lang.reflect.Method;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.main.CompilerIntrinsics;
+import org.qbicc.runtime.main.ObjectModel;
 import org.qbicc.runtime.main.VMHelpers;
 
 import static org.qbicc.runtime.CNative.*;
@@ -56,12 +57,36 @@ public final class Class$_native<T> {
     }
 
     // loosely following load_* in systemDictionary.cpp, but simplified because at runtime
-    // qbicc's module suystem is alwasys fully booted and we can't load a new non-array class
+    // (1) qbicc's module suystem is always fully booted and (2) we can't load a new non-array class
     private static Class<?> forName0(String name, boolean initialize, ClassLoader loader, Class<?> caller) throws ClassNotFoundException {
         if (name.startsWith("[")) {
-            // TODO: Deal with array case
-            // Strip down to element type; get the Class object; call getArrayClass() to build back up again.
-            throw new ClassNotFoundException("TODO: forName0 on arrays ");
+            String originalName = name;
+            int dims = 0;
+            while (name.startsWith("[")) {
+                name = name.substring(1);
+                dims++;
+            }
+            if (dims > 254) {
+                throw new ClassNotFoundException(originalName);
+            }
+            Class<?> cls;
+            if (name.startsWith("L") && name.endsWith(";")) {
+                name = name.substring(1, name.length()-1);
+                cls = forName0(name, false, loader, caller);
+            } else {
+                cls = switch(name) {
+                    case "B" -> byte.class;
+                    case "Z" -> boolean.class;
+                    case "C" -> char.class;
+                    case "S" -> short.class;
+                    case "I" -> int.class;
+                    case "F" -> float.class;
+                    case "J" -> long.class;
+                    case "D" -> double.class;
+                    default -> throw new ClassNotFoundException(originalName);
+                };
+            }
+            return ObjectModel.getArrayClassOfDimension(cls, word(dims));
         } else {
             Class<?> cls;
             if (loader == null) {
