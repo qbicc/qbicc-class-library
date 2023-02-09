@@ -46,9 +46,18 @@ import org.qbicc.runtime.patcher.Replace;
 @PatchClass(Executable.class)
 @Tracking("src/java.base/share/classes/java/lang/reflect/Executable.java")
 public class Executable$_patch {
+    @Add
+    byte[] typeAnnotationBytes;
 
     @Replace
     private Parameter[] getParameters0() {
+        // TODO: Returning null causes the caller to cons up synthetic parameters.
+        //       So far this has been good enough, but we may eventually need to do more.
         return null;
+    }
+
+    @Replace
+    byte[] getTypeAnnotationBytes0() {
+        return typeAnnotationBytes;
     }
 }
