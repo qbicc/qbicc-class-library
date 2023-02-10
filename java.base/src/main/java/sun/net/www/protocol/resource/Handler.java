@@ -30,7 +30,7 @@
  * contributors.
  */
 
-package sun.net.www.protocol.nativeimage;
+package sun.net.www.protocol.resource;
 
 import java.net.URLConnection;
 import java.net.URL;
@@ -42,7 +42,7 @@ import java.io.IOException;
 import jdk.internal.loader.NativeImageResources;
 
 /**
- * Open an nativeimage input stream for a URL
+ * Open a resource input stream for a URL
  */
 public class Handler extends URLStreamHandler {
 
@@ -55,6 +55,6 @@ public class Handler extends URLStreamHandler {
         if (backingBytes == null) {
             throw new IOException("Unable to connect to: " + u.toExternalForm());
         }
-        return new NativeimageURLConnection(u, backingBytes);
+        return new ResourceURLConnection(u, backingBytes);
     }
 }

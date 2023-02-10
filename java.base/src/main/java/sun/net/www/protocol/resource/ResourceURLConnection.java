@@ -23,19 +23,19 @@
  * questions.
  */
 
-package sun.net.www.protocol.nativeimage;
+package sun.net.www.protocol.resource;
 
 import java.net.URL;
 import java.net.URLConnection;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-public class NativeimageURLConnection extends URLConnection {
+public class ResourceURLConnection extends URLConnection {
 
     InputStream is;
     final byte[] bytes;
 
-    protected NativeimageURLConnection(URL u, byte[] bytes) {
+    protected ResourceURLConnection(URL u, byte[] bytes) {
         super(u);
         this.bytes = bytes;
     }
