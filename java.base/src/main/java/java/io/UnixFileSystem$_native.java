@@ -201,6 +201,24 @@ class UnixFileSystem$_native {
         return accessRes.isNonZero();
     }
 
+    public long getLength(File f) {
+        if (Build.isHost()) {
+            try {
+                return HostIO.stat(f.toString(), true).size();
+            } catch (IOException e) {
+                return 0;
+            }
+        }
+        final char_ptr pathPtr = mallocPath(f);
+        struct_stat sb = auto();
+        long rv = 0;
+        if (stat(pathPtr.cast(), addr_of(sb)).isZero()) {
+            rv = sb.st_size.longValue();
+        }
+        free(pathPtr);
+        return rv;
+    }
+
     public boolean createDirectory(File f) {
         final char_ptr pathPtr = mallocPath(f);
         c_int mkdirRes = mkdir(pathPtr.cast(), word(0777));
