@@ -28,6 +28,7 @@ java.lang.reflect.MethodHandleAccessorFactory$_aliases
 java.io.FileDescriptor$_init
 java.io.FileDescriptor$_runtime
 java.io.FileDescriptor$_patch
+java.io.RandomAccessFile$_patch
 java.net.Inet6Address$Inet6AddressHolder$_patch
 java.net.Inet6Address$_patch
 java.net.InterfaceAddress$_patch

@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 1995, 2010, Oracle and/or its affiliates. All rights reserved.
+ * This code is based on OpenJDK source file(s) which contain the following copyright notice:
+ *
+ * ------
+ * Copyright (c) 1994, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -21,42 +24,37 @@
  * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
  * or visit www.oracle.com if you need additional information or have any
  * questions.
+ * ------
+ *
+ * This file may contain additional modifications which are Copyright (c) Red Hat and other
+ * contributors.
  */
 
-package sun.net.www.protocol.nativeimage;
+package sun.net.www.protocol.resource;
 
-import java.net.URL;
 import java.net.URLConnection;
-import java.io.ByteArrayInputStream;
+import java.net.URL;
+import java.net.Proxy;
+import java.net.URLStreamHandler;
 import java.io.InputStream;
+import java.io.IOException;
 
-public class NativeimageURLConnection extends URLConnection {
+import jdk.internal.loader.NativeImageResources;
 
-    InputStream is;
-    final byte[] bytes;
+/**
+ * Open a resource input stream for a URL
+ */
+public class Handler extends URLStreamHandler {
 
-    protected NativeimageURLConnection(URL u, byte[] bytes) {
-        super(u);
-        this.bytes = bytes;
+    public synchronized URLConnection openConnection(URL u) throws IOException {
+        return openConnection(u, null);
     }
 
-    public void connect() {
-        if (!connected) {
-            is = new ByteArrayInputStream(bytes);
-            connected = true;
+    public synchronized URLConnection openConnection(URL u, Proxy p) throws IOException {
+        byte[] backingBytes = NativeImageResources.getResourceBytes(u);
+        if (backingBytes == null) {
+            throw new IOException("Unable to connect to: " + u.toExternalForm());
         }
-    }
-
-    public int getContentLength() {
-        return bytes.length;
-    }
-
-    public long getContentLengthLong() {
-        return bytes.length;
-    }
-
-    public synchronized InputStream getInputStream() {
-        connect();
-        return is;
+        return new ResourceURLConnection(u, backingBytes);
     }
 }

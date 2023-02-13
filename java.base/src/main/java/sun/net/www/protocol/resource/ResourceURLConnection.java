@@ -1,8 +1,5 @@
 /*
- * This code is based on OpenJDK source file(s) which contain the following copyright notice:
- *
- * ------
- * Copyright (c) 2001, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1995, 2010, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -24,19 +21,42 @@
  * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
  * or visit www.oracle.com if you need additional information or have any
  * questions.
- * ------
- *
- * This file may contain additional modifications which are Copyright (c) Red Hat and other
- * contributors.
  */
-package java.io;
 
-import org.qbicc.rt.annotation.Tracking;
+package sun.net.www.protocol.resource;
 
-@Tracking("src/java.base/share/native/libjava/RandomAccessFile.c")
-public class RandomAccessFile$_native {
+import java.net.URL;
+import java.net.URLConnection;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 
-    private static void initIDs() {
-        // no operation
+public class ResourceURLConnection extends URLConnection {
+
+    InputStream is;
+    final byte[] bytes;
+
+    protected ResourceURLConnection(URL u, byte[] bytes) {
+        super(u);
+        this.bytes = bytes;
+    }
+
+    public void connect() {
+        if (!connected) {
+            is = new ByteArrayInputStream(bytes);
+            connected = true;
+        }
+    }
+
+    public int getContentLength() {
+        return bytes.length;
+    }
+
+    public long getContentLengthLong() {
+        return bytes.length;
+    }
+
+    public synchronized InputStream getInputStream() {
+        connect();
+        return is;
     }
 }

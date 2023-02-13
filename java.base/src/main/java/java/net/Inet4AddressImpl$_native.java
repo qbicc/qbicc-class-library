@@ -2,7 +2,7 @@
  * This code is based on OpenJDK source file(s) which contain the following copyright notice:
  *
  * ------
- * Copyright (c) 1994, 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2001, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -30,31 +30,28 @@
  * contributors.
  */
 
-package sun.net.www.protocol.nativeimage;
+package java.net;
 
-import java.net.URLConnection;
-import java.net.URL;
-import java.net.Proxy;
-import java.net.URLStreamHandler;
-import java.io.InputStream;
-import java.io.IOException;
+import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.Unistd.*;
+import static org.qbicc.runtime.stdc.Stddef.*;
+import static org.qbicc.runtime.stdc.Stdint.*;
 
-import jdk.internal.loader.NativeImageResources;
+import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.Build;
 
-/**
- * Open an nativeimage input stream for a URL
- */
-public class Handler extends URLStreamHandler {
+@Tracking("src/java.base/unix/native/libnet/Inet4AddressImpl.c")
+public class Inet4AddressImpl$_native {
 
-    public synchronized URLConnection openConnection(URL u) throws IOException {
-        return openConnection(u, null);
-    }
-
-    public synchronized URLConnection openConnection(URL u, Proxy p) throws IOException {
-        byte[] backingBytes = NativeImageResources.getResourceBytes(u);
-        if (backingBytes == null) {
-            throw new IOException("Unable to connect to: " + u.toExternalForm());
+    public String getLocalHostName() throws UnknownHostException {
+        c_char[] hostname = new c_char[256];
+        if (gethostname(addr_of(hostname[0]), word(255)).intValue() != 0) {
+            return "localhost";
+        } else {
+            hostname[255] = word('\0');
+            return utf8zToJavaString(addr_of(hostname[0]).cast());
         }
-        return new NativeimageURLConnection(u, backingBytes);
     }
+
+
 }
