@@ -32,7 +32,6 @@
 package java.lang;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.bsd.SysSysctl.*;
 import static org.qbicc.runtime.linux.Unistd.*;
 import static org.qbicc.runtime.posix.SysTypes.*;
 import static org.qbicc.runtime.posix.Unistd.*;
