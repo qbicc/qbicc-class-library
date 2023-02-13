@@ -55,8 +55,13 @@ public final class Unsafe$_native {
 
     int getLoadAverage0(double[] loadavg, int nelems) {
         if (Build.Target.isLinux()) {
-            _Float64[] values = new _Float64[nelems];
-            return getloadavg(values, word(nelems)).intValue();
+            _Float64[] values = new _Float64[3];
+            int n = nelems < 3 ? nelems : 3;
+            int res = getloadavg(addr_of(values[0]), word(n)).intValue();
+            for (int i=0; i<n; i++) {
+                loadavg[i] = values[i].doubleValue();
+            }
+            return res;
         }
         return 0;
     }
