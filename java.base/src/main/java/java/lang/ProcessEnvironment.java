@@ -162,7 +162,7 @@ final class ProcessEnvironment {
     }
 
     static boolean isValidValue(final String string) {
-        return string.indexOf('=') == -1 && string.indexOf('\0') == -1;
+        return string.indexOf('\0') == -1;
     }
 
     static String validateName(final String string) {
