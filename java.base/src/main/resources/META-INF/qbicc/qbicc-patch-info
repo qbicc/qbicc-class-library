@@ -15,6 +15,7 @@ java.lang.System$_init
 java.lang.System$_runtime
 java.lang.Thread$_patch
 java.lang.invoke.DirectMethodHandle$_patch
+java.lang.invoke.InnerClassLambdaMetafactory$_patch
 java.lang.invoke.MemberName$_patch
 java.lang.invoke.MethodHandle$_patch
 java.lang.invoke.MethodHandleNatives$CallSiteContext$_patch
