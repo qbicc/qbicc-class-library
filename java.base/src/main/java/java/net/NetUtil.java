@@ -287,7 +287,8 @@ class NetUtil {
         if (Build.Target.isLinux()) {
             c_int family = addr_of(sa.cast(struct_sockaddr_ptr.class).sel().sa_family).loadUnshared().cast();
             if (family == AF_INET) {
-                if ((ntohl(sa.cast(struct_sockaddr_in_ptr.class).sel().sin_addr.s_addr.cast()).intValue() & 0x7f0000ff) == 0x7f0000ff) {
+                struct_sockaddr_in_ptr sa_in = sa.cast(struct_sockaddr_in_ptr.class);
+                if ((ntohl(addr_of(sa_in.sel().sin_addr).loadUnshared(struct_in_addr.class).s_addr.cast()).intValue() & 0x7f0000ff) == 0x7f0000ff) {
                     errno = EADDRNOTAVAIL.intValue();
                     return word(-1);
                 }

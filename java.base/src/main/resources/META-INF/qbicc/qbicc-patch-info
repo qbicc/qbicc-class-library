@@ -55,6 +55,8 @@ jdk.internal.misc.UnsafeThreadAccess
 jdk.internal.misc.VM$_patch
 jdk.internal.ref.CleanerImpl$_patch
 sun.nio.ch.ByteBuffer$_aliases
+sun.nio.ch.EPollSelectorImpl$_init
+sun.nio.ch.EPollSelectorImpl$_runtime
 sun.nio.ch.FileDescriptor$_aliases
 sun.nio.ch.FileDispatcherImpl$_runtime
 sun.nio.ch.IOUtil$_patch

@@ -69,38 +69,43 @@ class ProcessHandleImpl$Info$_patch {
     @Replace
     static void initIDs() {}
 
+    @Add(when = Build.Target.IsMacOs.class)
+    private static pid_t getParentPidAndTimings_MacOS(pid_t pid, int64_t_ptr totalTime, int64_t_ptr startTime) {
+        pid_t ppid = word(-1);
+        struct_kinfo_proc kp = auto();
+        size_t bufSize = auto(sizeof(kp));
+        c_int[] mib = new c_int[]{ CTL_KERN, KERN_PROC, KERN_PROC_PID, pid.cast()};
+
+        if (sysctl(addr_of(mib[0]), word(4), addr_of(kp), addr_of(bufSize), word(0), word(0)).intValue() < 0) {
+            throw new RuntimeException("sysctl failed");
+        }
+
+        if (bufSize.intValue() > 0 && kp.kp_proc.p_pid == pid) {
+            struct_timeval tv = addr_of(kp.kp_proc.p_un).cast(struct_timeval_ptr.class).loadUnshared();
+            long st = tv.tv_sec.longValue() * 1000 + tv.tv_usec.longValue() / 1000;
+            startTime.storeUnshared(word(st));
+            ppid = kp.kp_eproc.e_ppid;
+        }
+
+        // Get cputime if for current process
+        if (pid == getpid()) {
+            struct_rusage usage = auto();
+            if (getrusage(RUSAGE_SELF, addr_of(usage)).intValue() == 0) {
+                long microsecs = usage.ru_utime.tv_sec.longValue() * 1000 * 1000 + usage.ru_utime.tv_usec.longValue() +
+                        usage.ru_stime.tv_sec.longValue() * 1000 * 1000 + usage.ru_stime.tv_usec.longValue();
+                totalTime.storeUnshared(word(microsecs * 1000));
+            }
+        }
+	return ppid;
+    }
+
     @Add
     static pid_t getParentPidAndTimings(pid_t pid, int64_t_ptr totalTime, int64_t_ptr startTime) {
-        pid_t ppid = word(-1);
         if (Build.Target.isMacOs()) {
-            struct_kinfo_proc kp = auto();
-            size_t bufSize = auto(sizeof(kp));
-            c_int[] mib = new c_int[]{ CTL_KERN, KERN_PROC, KERN_PROC_PID, pid.cast()};
-
-            if (sysctl(addr_of(mib[0]), word(4), addr_of(kp), addr_of(bufSize), word(0), word(0)).intValue() < 0) {
-                throw new RuntimeException("sysctl failed");
-            }
-
-            if (bufSize.intValue() > 0 && kp.kp_proc.p_pid == pid) {
-                struct_timeval tv = addr_of(kp.kp_proc.p_un).cast(struct_timeval_ptr.class).loadUnshared();
-                long st = tv.tv_sec.longValue() * 1000 + tv.tv_usec.longValue() / 1000;
-                startTime.storeUnshared(word(st));
-                ppid = kp.kp_eproc.e_ppid;
-            }
-
-            // Get cputime if for current process
-            if (pid == getpid()) {
-                struct_rusage usage = auto();
-                if (getrusage(RUSAGE_SELF, addr_of(usage)).intValue() == 0) {
-                    long microsecs = usage.ru_utime.tv_sec.longValue() * 1000 * 1000 + usage.ru_utime.tv_usec.longValue() +
-                            usage.ru_stime.tv_sec.longValue() * 1000 * 1000 + usage.ru_stime.tv_usec.longValue();
-                    totalTime.storeUnshared(word(microsecs * 1000));
-                }
-            }
-        } else {
+	    return getParentPidAndTimings_MacOS(pid, totalTime, startTime);
+	} else {
             throw new UnsupportedOperationException("TODO: getParentPidAndTimings");
         }
-        return ppid;
     }
 
     @Add

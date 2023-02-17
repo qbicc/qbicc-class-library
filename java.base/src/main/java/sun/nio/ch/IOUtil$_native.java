@@ -34,6 +34,7 @@ package sun.nio.ch;
 import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.posix.Errno.*;
 import static org.qbicc.runtime.posix.Fcntl.*;
+import static org.qbicc.runtime.posix.SysResource.*;
 import static org.qbicc.runtime.posix.SysTypes.*;
 import static org.qbicc.runtime.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
@@ -141,6 +142,18 @@ final class IOUtil$_native {
 
     static void setfdVal(FileDescriptor fd, int value) {
         ((FileDescriptor$_patch)(Object)fd).setFD(value);
+    }
+
+    static int fdLimit() throws IOException {
+        struct_rlimit rlp = auto();
+        if (getrlimit(RLIMIT_NOFILE, addr_of(rlp)).intValue() < 0) {
+            throw new IOException("getrlimit failed");
+        }
+        if (rlp.rlim_max == RLIM_INFINITY || rlp.rlim_max.isGt(word(Integer.MAX_VALUE))) {
+            return Integer.MAX_VALUE;
+        } else {
+            return rlp.rlim_max.intValue();
+        }
     }
 
     static int iovMax() {
