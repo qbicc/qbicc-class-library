@@ -34,8 +34,10 @@ package java.net;
 
 import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.bsd.Ifaddrs.*;
+import static org.qbicc.runtime.posix.ArpaInet.*;
 import static org.qbicc.runtime.posix.Netdb.*;
 import static org.qbicc.runtime.posix.NetIf.*;
+import static org.qbicc.runtime.posix.NetinetIn.*;
 import static org.qbicc.runtime.posix.SysSocket.*;
 import static org.qbicc.runtime.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
@@ -195,9 +197,122 @@ class Inet6AddressImpl$_qbicc {
                 // TODO: strerror in detailed message.
                 throw new UnknownHostException(host);
             } else {
-                // TODO: This else branch corresponds to a hunk of about 120 lines in Inet6AddressImpl.c
-                //       that needs to be ported and tested by someone with easy access to a non-MacOS POSIX system.
-                throw new UnsupportedOperationException("TODO: non-MacOS impl of InetAddress.lookupAllHostAddr");
+                int i = 0;
+                int inetCount = 0;
+                int inet6Count = 0;
+                int inetIndex = 0;
+                int inet6Index = 0;
+                int originalIndex = 0;
+                int addressPreference = InetAddress.preferIPv6Address;
+
+                iterator = res;
+                while (!iterator.isNull()) {
+                    // skip duplicates
+                    boolean skip = false;
+                    struct_addrinfo_ptr iteratorNew = resNew;
+                    while (!iteratorNew.isNull()) {
+                        if (iterator.sel().ai_family == iteratorNew.sel().ai_family &&
+                                iterator.sel().ai_addrlen == iteratorNew.sel().ai_addrlen) {
+                            if (iteratorNew.sel().ai_family == AF_INET) { /* AF_INET */
+                                ptr<struct_sockaddr_in> addr1 = iterator.sel().ai_addr.cast();
+                                ptr<struct_sockaddr_in> addr2 = iteratorNew.sel().ai_addr.cast();
+                                if (addr1.sel().sin_addr.s_addr == addr2.sel().sin_addr.s_addr) {
+                                    skip = true;
+                                    break;
+                                }
+                            } else {
+                                int t;
+                                ptr<struct_sockaddr_in6> addr1 = iterator.sel().ai_addr.cast();
+                                ptr<struct_sockaddr_in6> addr2 = iteratorNew.sel().ai_addr.cast();
+                                for (t = 0; t < 16; t++) {
+                                    if (addr1.sel().sin6_addr.s6_addr[t] != addr2.sel().sin6_addr.s6_addr[t]) {
+                                        break;
+                                    }
+                                }
+                                if (t < 16) {
+                                    iteratorNew = iteratorNew.sel().ai_next.cast();
+                                    continue;
+                                } else {
+                                    skip = true;
+                                    break;
+                                }
+                            }
+                        } else if (iterator.sel().ai_family != AF_INET && iterator.sel().ai_family != AF_INET6) {
+                            // we can't handle other family types
+                            skip = true;
+                            break;
+                        }
+                        iteratorNew = iteratorNew.sel().ai_next.cast();
+                    }
+
+                    if (!skip) {
+                        struct_addrinfo_ptr next = malloc(sizeof(struct_addrinfo.class));
+                        if (next.isNull()) {
+                            throw new OutOfMemoryError("Native heap allocation failed");
+                        }
+                        memcpy(next.cast(), iterator.cast(), sizeof(struct_addrinfo.class));
+                        next.sel().ai_next = word(0);
+                        if (resNew.isNull()) {
+                            resNew = next;
+                        } else {
+                            last.sel().ai_next = next;
+                        }
+                        last = next;
+                        i++;
+                        if (iterator.sel().ai_family == AF_INET) {
+                            inetCount++;
+                        } else if (iterator.sel().ai_family == AF_INET6) {
+                            inet6Count++;
+                        }
+                    }
+                    iterator = iterator.sel().ai_next.cast();
+                }
+
+                // allocate array - at this point i contains the number of addresses
+                ret = new InetAddress[i];
+
+                if (addressPreference == InetAddress.PREFER_IPV6_VALUE) {
+                    inetIndex = inet6Count;
+                    inet6Index = 0;
+                } else if (addressPreference == InetAddress.PREFER_IPV4_VALUE) {
+                    inetIndex = 0;
+                    inet6Index = inetCount;
+                } else if (addressPreference == InetAddress.PREFER_SYSTEM_VALUE) {
+                    inetIndex = inet6Index = originalIndex = 0;
+                }
+
+                iterator = resNew;
+                while (!iterator.isNull()) {
+                    if (iterator.sel().ai_family == AF_INET) {
+                        Inet4Address iaObj = new Inet4Address();
+                        ptr<struct_sockaddr_in> addr1 = iterator.sel().ai_addr.cast();
+                        iaObj.holder().address = ntohl(addr_of(addr1.sel().sin_addr.s_addr).loadUnshared(uint32_t.class)).intValue();
+                        iaObj.holder().hostName = host;
+                        iaObj.holder().originalHostName = host;
+                        ret[inetIndex | originalIndex] = iaObj;
+                        inetIndex++;
+                    } else if (iterator.sel().ai_family == AF_INET6) {
+                        Inet6Address iaObj = new Inet6Address();
+                        Inet6Address$_patch ia6Obj = (Inet6Address$_patch)(Object)iaObj;
+                        ptr<struct_sockaddr_in6> addr6 = iterator.sel().ai_addr.cast();
+                        ptr<uint8_t> addr = addr_of(addr6.sel().sin6_addr.s6_addr[0]);
+                        ia6Obj.setInet6Address_ipaddress(addr);
+                        int scope = addr6.sel().sin6_scope_id.intValue();
+                        if (scope != 0) {
+                            ia6Obj.setInet6Address_scopeid(scope);
+                        }
+                        iaObj.holder().hostName = host;
+                        iaObj.holder().originalHostName = host;
+                        ret[inet6Index | originalIndex] = iaObj;
+                        inet6Index++;
+                    }
+                    if (addressPreference == InetAddress.PREFER_SYSTEM_VALUE) {
+                        originalIndex++;
+                        inetIndex = inet6Index = 0;
+                    }
+                    iterator = iterator.sel().ai_next.cast();
+                }
+                return ret;
             }
         } finally {
             // cleanup native memory
