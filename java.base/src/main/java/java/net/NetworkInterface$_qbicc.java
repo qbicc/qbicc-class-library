@@ -238,9 +238,9 @@ class NetworkInterface$_qbicc {
             return word(0);
         }
         short prefix = 0;
-        unsigned_int mask = ntohl(addr_of(addr.sel().sin_addr).loadUnshared(struct_in_addr.class).s_addr.cast()).cast();
-        while (mask.intValue() != 0) {
-            mask = word(mask.intValue() << 1);
+        int mask = ntohl(addr.sel().sin_addr.s_addr.cast()).intValue();
+        while (mask != 0) {
+            mask = mask << 1;
             prefix++;
         }
         return word(prefix);
@@ -283,7 +283,7 @@ class NetworkInterface$_qbicc {
                 for (int i = 0; i < ifc.ifc_len.intValue() / sizeof(struct_ifreq.class).intValue(); i++, ifreqP = ifreqP.plus(1)) {
                     struct_sockaddr addr = auto();
                     struct_sockaddr broadaddr = auto();
-                    ptr<struct_sockaddr> broadaddrP = auto(word(0));
+                    ptr<struct_sockaddr> broadaddrP = auto();
                     c_short prefix = word(0);
 
                     // ignore non IPv4 addresses
