@@ -310,7 +310,7 @@ class NetworkInterface$_qbicc {
 
                     // determine netmask
                     if (ioctl(sock, SIOCGIFNETMASK, ifreqP).intValue() == 0) {
-                        prefix = translateIPv4AddressToPrefix(addr_of(ifreqP.sel().ifr_ifru).loadUnshared(struct_sockaddr_in_ptr.class));
+                        prefix = translateIPv4AddressToPrefix(addr_of(ifreqP.sel().ifr_ifru).cast(struct_sockaddr_in_ptr.class));
                     }
 
                     // add interface to the list
