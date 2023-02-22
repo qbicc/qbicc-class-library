@@ -311,13 +311,10 @@ class FileDispatcherImpl extends FileDispatcher {
     static native void release0(FileDescriptor fd, long pos, long size)
         throws IOException;
 
-    // Shared with SocketDispatcher and DatagramDispatcher but
-    // NOT used by FileDispatcherImpl
-    static void close0(FileDescriptor fd) throws IOException {
-        int fdNum = fdAccess.get(fd);
-        if (fdNum != -1) {
+    private static void closeFileDescriptor(int fd) throws IOException {
+        if (fd != -1) {
             if (Build.Target.isPosix()) {
-                if (Unistd.close(word(fdNum)).intValue() < 0) {
+                if (Unistd.close(word(fd)).intValue() < 0) {
                     throw new IOException("Close failed");
                 }
             } else {
@@ -326,7 +323,15 @@ class FileDispatcherImpl extends FileDispatcher {
         }
     }
 
-    static native void closeIntFD(int fd) throws IOException;
+    // Shared with SocketDispatcher and DatagramDispatcher but
+    // NOT used by FileDispatcherImpl
+    static void close0(FileDescriptor fd) throws IOException {
+        closeFileDescriptor(fdAccess.get(fd));
+    }
+
+    static void closeIntFD(int fd) throws IOException {
+        closeFileDescriptor(fd);
+    }
 
     static native int setDirect0(FileDescriptor fd) throws IOException;
 
