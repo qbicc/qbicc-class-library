@@ -8,7 +8,7 @@
     <groupId>org.qbicc.rt</groupId>
     <artifactId>qbicc-rt-parent</artifactId>
     <!-- IMPORTANT: when updating this value, also update .github/workflows/maven.yml -->
-    <version>17.alpha.0.49-SNAPSHOT</version>
+    <version>17.alpha.0.50-SNAPSHOT</version>
 
     <name>Qbicc Run Time: Parent POM</name>
     <description>Parent POM of Qbicc run time libraries</description>
