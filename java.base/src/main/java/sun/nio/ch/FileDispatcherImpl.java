@@ -33,7 +33,8 @@
 package sun.nio.ch;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.linux.SysIoctl.*;
+import static org.qbicc.runtime.linux.SysIoctl.BLKGETSIZE64;
+import static org.qbicc.runtime.posix.SysIoctl.*;
 import static org.qbicc.runtime.posix.Errno.*;
 import static org.qbicc.runtime.posix.SysStat.*;
 import static org.qbicc.runtime.posix.Fcntl.SEEK_CUR;
