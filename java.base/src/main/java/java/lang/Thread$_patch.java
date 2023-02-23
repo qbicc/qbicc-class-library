@@ -53,7 +53,6 @@ import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.Inline;
 import org.qbicc.runtime.NoReflect;
 import org.qbicc.runtime.SerializeAsZero;
-import org.qbicc.runtime.main.CompilerIntrinsics;
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.Annotate;
 import org.qbicc.runtime.patcher.PatchClass;
@@ -138,12 +137,14 @@ public class Thread$_patch {
     public void initializeNativeFields() {
         if (Build.isTarget() && ! Build.Target.isLinux()) {
             // mutex type does not matter
-            c_int res = pthread_mutex_init(addr_of(refToPtr(this).sel().mutex), zero());
+            ptr<pthread_mutex_t> mutexPtr = addr_of(refToPtr(this).sel().mutex);
+            c_int res = pthread_mutex_init(mutexPtr, zero().cast());
             if (res.isNonNull()) {
                 throw new InternalError("Failed to initialize thread park mutex");
             }
             // cond type does not matter either
-            res = pthread_cond_init(addr_of(refToPtr(this).sel().cond), zero());
+            ptr<pthread_cond_t> condPtr = addr_of(refToPtr(this).sel().cond);
+            res = pthread_cond_init(condPtr, zero());
             if (res.isNonNull()) {
                 throw new InternalError("Failed to initialize thread park condition");
             }
@@ -250,10 +251,9 @@ public class Thread$_patch {
         initializeNativeFields();
 
         addr_of(refToPtr(this).sel().threadStatus).storeSingleRelease(word(STATE_ALIVE));
-        void_ptr_unaryoperator_function_ptr threadWrapper = CompilerIntrinsics.nativeFunctionPointer("java.lang.Thread$_qbicc", "qbiccThreadRunWrapper");
         ptr<Thread> thisPtr = refToPtr(this).cast();
         ptr<pthread_t> pthreadPtr = addr_of(refToPtr(this).sel().thread);
-        int result = pthread_create(pthreadPtr.cast(), zero(), threadWrapper.cast(), thisPtr.cast()).intValue();
+        int result = pthread_create(pthreadPtr, zero(), addr_of(function.of(Thread$_qbicc::qbiccThreadRunWrapper)), thisPtr.cast()).intValue();
         if (result != 0) {
             // terminated - clear ALIVE and set TERMINATED in one swap
             addr_of(refToPtr(this).sel().threadStatus).getAndBitwiseXor(word(STATE_ALIVE | STATE_TERMINATED));
@@ -344,7 +344,7 @@ public class Thread$_patch {
     static void park(boolean isAbsolute, long time) {
         Thread thread = Thread.currentThread();
         Thread$_patch patchThread = (Thread$_patch) (Object) thread;
-        int32_t_ptr ptr = addr_of(refToPtr(patchThread).sel().threadStatus).cast();
+        ptr<int32_t> ptr = addr_of(refToPtr(patchThread).sel().threadStatus).cast();
         int oldVal, newVal, witness, setFlags;
         oldVal = ptr.loadAcquire().intValue();
         setFlags = STATE_PARKED | STATE_WAITING | (time == 0 && ! isAbsolute ? STATE_WAITING_INDEFINITELY : STATE_WAITING_WITH_TIMEOUT);
@@ -393,12 +393,12 @@ public class Thread$_patch {
             } else if (Build.Target.isPosix()) {
                 // block via condition.
                 struct_timespec timespec = auto();
-                pthread_mutex_t_ptr mutexPtr = addr_of(refToPtr(patchThread).sel().mutex);
+                ptr<pthread_mutex_t> mutexPtr = addr_of(refToPtr(patchThread).sel().mutex);
                 if (pthread_mutex_lock(mutexPtr).isNonZero()) {
                     throw new InternalError("mutex operation failed");
                 }
                 try {
-                    pthread_cond_t_ptr condPtr = addr_of(refToPtr(patchThread).sel().cond);
+                    ptr<pthread_cond_t> condPtr = addr_of(refToPtr(patchThread).sel().cond);
                     if (isAbsolute) {
                         // time is in milliseconds since epoch
                         timespec.tv_sec = word(time / 1_000L);
@@ -435,7 +435,7 @@ public class Thread$_patch {
 
     @Add
     void unpark() {
-        int32_t_ptr ptr = addr_of(refToPtr(this).sel().threadStatus).cast();
+        ptr<int32_t> ptr = addr_of(refToPtr(this).sel().threadStatus).cast();
         int oldVal, newVal, witness;
         oldVal = ptr.loadSingleAcquire().intValue();
         for (;;) {
@@ -457,12 +457,12 @@ public class Thread$_patch {
                     futex_wake_all(ptr.cast());
                 } else if (Build.Target.isPosix()) {
                     // wake
-                    pthread_mutex_t_ptr mutexPtr = addr_of(refToPtr(this).sel().mutex);
+                    ptr<pthread_mutex_t> mutexPtr = addr_of(refToPtr(this).sel().mutex);
                     if (pthread_mutex_lock(mutexPtr).isNonZero()) {
                         throw new InternalError("mutex operation failed");
                     }
                     try {
-                        pthread_cond_t_ptr condPtr = addr_of(refToPtr(this).sel().cond);
+                        ptr<pthread_cond_t> condPtr = addr_of(refToPtr(this).sel().cond);
                         if (pthread_cond_broadcast(condPtr).isNonZero()) {
                             throw new InternalError("mutex condition operation failed");
                         }
