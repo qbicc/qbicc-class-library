@@ -327,23 +327,22 @@ class NetworkInterface$_qbicc {
             }
 
             try {
-                for (struct_ifaddrs_ptr ifa = origifa; !ifa.isNull(); ifa = addr_of(ifa.sel().ifa_next).loadUnshared().cast()) {
+                for (struct_ifaddrs_ptr ifa = origifa; !ifa.isNull(); ifa = ifa.sel().ifa_next.cast()) {
                     ptr<struct_sockaddr> broadaddrP = word(0);
 
                     // ignore non IPv4 addresses
-                    if (addr_of(ifa.sel().ifa_addr).loadUnshared().isNull() ||
-                            addr_of(addr_of(ifa.sel().ifa_addr).loadUnshared().sel().sa_family).loadUnshared().intValue() != AF_INET.intValue()) {
+                    if (ifa.sel().ifa_addr.isNull() || ifa.sel().ifa_addr.sel().sa_family.intValue() != AF_INET.intValue()) {
                         continue;
                     }
 
                     // set ifa_broadaddr, if there is one
-                    if ((addr_of(ifa.sel().ifa_flags).loadUnshared().intValue() & IFF_POINTOPOINT.intValue()) == 0 &&
-                            (addr_of(ifa.sel().ifa_flags).loadUnshared().intValue() & IFF_BROADCAST.intValue()) != 0) {
-                        broadaddrP = addr_of(ifa.sel().ifa_dstaddr).loadUnshared();
+                    if ((ifa.sel().ifa_flags.intValue() & IFF_POINTOPOINT.intValue()) == 0 &&
+                            (ifa.sel().ifa_flags.intValue() & IFF_BROADCAST.intValue()) != 0) {
+                        broadaddrP = ifa.sel().ifa_dstaddr;
                     }
 
-                    ifs = addif(sock, addr_of(ifa.sel().ifa_name).loadUnshared().cast(), ifs, addr_of(ifa.sel().ifa_addr).loadUnshared(),
-                            broadaddrP, AF_INET, translateIPv4AddressToPrefix(addr_of(ifa.sel().ifa_netmask).loadUnshared().cast()));
+                    ifs = addif(sock, ifa.sel().ifa_name.cast(), ifs, ifa.sel().ifa_addr,
+                            broadaddrP, AF_INET, translateIPv4AddressToPrefix(ifa.sel().ifa_netmask.cast()));
                 }
             } finally {
                 freeifaddrs(origifa);
@@ -415,13 +414,13 @@ class NetworkInterface$_qbicc {
             InetAddress iaObj = null;
             if (addrP.family == AF_INET) {
                 iaObj = new Inet4Address();
-                unsigned_int tmpAddr = htonl(addr_of(addrP.addr.cast(struct_sockaddr_in_ptr.class).sel().sin_addr).loadUnshared(struct_in_addr.class).s_addr.cast()).cast();
+                unsigned_int tmpAddr = htonl(addrP.addr.cast(struct_sockaddr_in_ptr.class).sel().sin_addr.s_addr.cast()).cast();
                 iaObj.holder().address = tmpAddr.intValue();
                 InterfaceAddress ibObj = new InterfaceAddress();
                 ((InterfaceAddress$_patch)(Object)ibObj).address = iaObj;
                 if (!addrP.brdcast.isNull()) {
                     Inet4Address ia2Obj = new Inet4Address();
-                    unsigned_int tmpBAddr = htonl(addr_of(addrP.brdcast.cast(struct_sockaddr_in_ptr.class).sel().sin_addr).loadUnshared(struct_in_addr.class).s_addr.cast()).cast();
+                    unsigned_int tmpBAddr = htonl(addrP.brdcast.cast(struct_sockaddr_in_ptr.class).sel().sin_addr.s_addr.cast()).cast();
                     ia2Obj.holder().address = tmpBAddr.intValue();
                     ((InterfaceAddress$_patch)(Object)ibObj).broadcast = ia2Obj;
                 }
@@ -433,7 +432,7 @@ class NetworkInterface$_qbicc {
                 Inet6Address$_patch ia6Obj = (Inet6Address$_patch)(Object)iaObj;
                 ptr<uint8_t> addr = addr_of(addr_of(addrP.addr.cast(struct_sockaddr_in6_ptr.class).sel().sin6_addr).sel().s6_addr[0]);
                 ia6Obj.setInet6Address_ipaddress(addr);
-                uint32_t scope = addr_of(addrP.addr.cast(struct_sockaddr_in6_ptr.class).sel().sin6_scope_id).loadUnshared(uint32_t.class);
+                uint32_t scope = addrP.addr.cast(struct_sockaddr_in6_ptr.class).sel().sin6_scope_id.cast();
                 if (scope.intValue() != 0) {
                     ia6Obj.setInet6Address_scopeid(scope.intValue());
                     ia6Obj.setInet6Address_scope_ifname((NetworkInterface)(Object)netifObj);
