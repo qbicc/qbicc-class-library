@@ -106,11 +106,11 @@ class Inet6AddressImpl$_qbicc {
              * exclude them in the normal case, but return them if we don't get an IP
              * address.
              */
-            for (struct_ifaddrs_ptr iter = ifa.cast(); !iter.isNull(); iter = addr_of(iter.sel().ifa_next).loadUnshared().cast()) {
-                if (!addr_of(iter.sel().ifa_addr).loadUnshared().isNull()) {
-                    int family = addr_of(addr_of(iter.sel().ifa_addr).loadUnshared().sel().sa_family).loadUnshared().intValue();
+            for (struct_ifaddrs_ptr iter = ifa.cast(); !iter.isNull(); iter = iter.sel().ifa_next.cast()) {
+                if (!iter.sel().ifa_addr.isNull()) {
+                    int family = iter.sel().ifa_addr.sel().sa_family.intValue();
                     if (addr_of(iter.sel().ifa_name).loadUnshared().asArray()[0] != word('\0')) {
-                        boolean isLoopback = (addr_of(iter.sel().ifa_flags).loadUnshared().intValue() & IFF_LOOPBACK.intValue()) != 0;
+                        boolean isLoopback = (iter.sel().ifa_flags.intValue() & IFF_LOOPBACK.intValue()) != 0;
                         if (family == AF_INET.intValue()) {
                             addrs4++;
                             if (isLoopback) numV4Loopbacks++;
@@ -142,16 +142,16 @@ class Inet6AddressImpl$_qbicc {
             }
 
             // Now loop around the ifaddrs
-            for (struct_ifaddrs_ptr iter = ifa.cast(); !iter.isNull(); iter = addr_of(iter.sel().ifa_next).loadUnshared().cast()) {
-                if (!addr_of(iter.sel().ifa_addr).loadUnshared().isNull()) {
-                    int family = addr_of(addr_of(iter.sel().ifa_addr).loadUnshared().sel().sa_family).loadUnshared().intValue();
-                    boolean isLoopback = (addr_of(iter.sel().ifa_flags).loadUnshared().intValue() & IFF_LOOPBACK.intValue()) != 0;
+            for (struct_ifaddrs_ptr iter = ifa.cast(); !iter.isNull(); iter = iter.sel().ifa_next.cast()) {
+                if (!iter.sel().ifa_addr.isNull()) {
+                    int family = iter.sel().ifa_addr.sel().sa_family.intValue();
+                    boolean isLoopback = (iter.sel().ifa_flags.intValue() & IFF_LOOPBACK.intValue()) != 0;
                     if (addr_of(iter.sel().ifa_name).loadUnshared().asArray()[0] != word('\0') &&
                             (family == AF_INET.intValue() || (family == AF_INET6.intValue() && includeV6)) &&
                             (!isLoopback || includeLoopback)) {
                         c_int port = auto();
                         int index = (family == AF_INET.intValue()) ? i++ : j++;
-                        InetAddress o = NetUtil.sockaddrToInetAddress(addr_of(iter.sel().ifa_addr).loadUnshared().cast(), addr_of(port));
+                        InetAddress o = NetUtil.sockaddrToInetAddress(iter.sel().ifa_addr.cast(), addr_of(port));
                         o.holder().hostName = name;
                         result[index] = o;
                     }
@@ -286,7 +286,7 @@ class Inet6AddressImpl$_qbicc {
                     if (iterator.sel().ai_family == AF_INET) {
                         Inet4Address iaObj = new Inet4Address();
                         ptr<struct_sockaddr_in> addr1 = iterator.sel().ai_addr.cast();
-                        iaObj.holder().address = ntohl(addr_of(addr1.sel().sin_addr.s_addr).loadUnshared(uint32_t.class)).intValue();
+                        iaObj.holder().address = ntohl(addr1.sel().sin_addr.s_addr.cast()).intValue();
                         iaObj.holder().hostName = host;
                         iaObj.holder().originalHostName = host;
                         ret[inetIndex | originalIndex] = iaObj;

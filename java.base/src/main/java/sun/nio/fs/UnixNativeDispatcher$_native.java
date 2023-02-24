@@ -528,30 +528,30 @@ class UnixNativeDispatcher$_native {
 
     private static void prepAttributes(final ptr<struct_stat> statBuf, final UnixFileAttributes attrs) {
         UnixFileAttributes$_aliases attrsAlias = (UnixFileAttributes$_aliases)(Object)attrs;
-        attrsAlias.st_mode = addr_of(statBuf.sel().st_mode).loadUnshared().intValue();
-        attrsAlias.st_ino = addr_of(statBuf.sel().st_ino).loadUnshared().longValue();
-        attrsAlias.st_dev = addr_of(statBuf.sel().st_dev).loadUnshared().longValue();
-        attrsAlias.st_rdev = addr_of(statBuf.sel().st_rdev).loadUnshared().longValue();
-        attrsAlias.st_nlink = addr_of(statBuf.sel().st_nlink).loadUnshared().intValue();
-        attrsAlias.st_uid = addr_of(statBuf.sel().st_uid).loadUnshared().intValue();
-        attrsAlias.st_gid = addr_of(statBuf.sel().st_gid).loadUnshared().intValue();
-        attrsAlias.st_size = addr_of(statBuf.sel().st_size).loadUnshared().longValue();
-        attrsAlias.st_atime_sec = addr_of(statBuf.sel().st_atime).loadUnshared().longValue();
-        attrsAlias.st_mtime_sec = addr_of(statBuf.sel().st_mtime).loadUnshared().longValue();
-        attrsAlias.st_ctime_sec = addr_of(statBuf.sel().st_ctime).loadUnshared().longValue();
+        attrsAlias.st_mode = statBuf.sel().st_mode.intValue();
+        attrsAlias.st_ino = statBuf.sel().st_ino.longValue();
+        attrsAlias.st_dev = statBuf.sel().st_dev.longValue();
+        attrsAlias.st_rdev = statBuf.sel().st_rdev.longValue();
+        attrsAlias.st_nlink = statBuf.sel().st_nlink.intValue();
+        attrsAlias.st_uid = statBuf.sel().st_uid.intValue();
+        attrsAlias.st_gid = statBuf.sel().st_gid.intValue();
+        attrsAlias.st_size = statBuf.sel().st_size.longValue();
+        attrsAlias.st_atime_sec = statBuf.sel().st_atime.longValue();
+        attrsAlias.st_mtime_sec = statBuf.sel().st_mtime.longValue();
+        attrsAlias.st_ctime_sec = statBuf.sel().st_ctime.longValue();
         // todo: if (defined(_DARWIN_FEATURE_64_BIT_INODE)) {
-        // todo:     attrs.st_birthtime = addr_of(statBuf.sel().st_birthtime).loadUnshared().longValue();
+        // todo:     attrs.st_birthtime = statBuf.sel().st_birthtime.longValue();
         // todo: }
         // --
         // todo: missing platform-dependent members
         // if (Build.Target.isMacOs()) {
-        //     attrs.st_atime_nsec = addr_of(statBuf.sel().st_atim.tv_nsec).loadUnshared().longValue();
-        //     attrs.st_mtime_nsec = addr_of(statBuf.sel().st_mtim.tv_nsec).loadUnshared().longValue();
-        //     attrs.st_ctime_nsec = addr_of(statBuf.sel().st_ctim.tv_nsec).loadUnshared().longValue();
+        //     attrs.st_atime_nsec = statBuf.sel().st_atim.tv_nsec.longValue();
+        //     attrs.st_mtime_nsec = statBuf.sel().st_mtim.tv_nsec.longValue();
+        //     attrs.st_ctime_nsec = statBuf.sel().st_ctim.tv_nsec.longValue();
         // } else {
-        //     attrs.st_atime_nsec = addr_of(statBuf.sel().st_atimespec.tv_nsec).loadUnshared().longValue();
-        //     attrs.st_mtime_nsec = addr_of(statBuf.sel().st_mtimespec.tv_nsec).loadUnshared().longValue();
-        //     attrs.st_ctime_nsec = addr_of(statBuf.sel().st_ctimespec.tv_nsec).loadUnshared().longValue();
+        //     attrs.st_atime_nsec = statBuf.sel().st_atimespec.tv_nsec).longValue();
+        //     attrs.st_mtime_nsec = statBuf.sel().st_mtimespec.tv_nsec.longValue();
+        //     attrs.st_ctime_nsec = statBuf.sel().st_ctimespec.tv_nsec.longValue();
         // }
     }
 

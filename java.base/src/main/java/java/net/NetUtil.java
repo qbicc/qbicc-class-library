@@ -124,13 +124,13 @@ class NetUtil {
 
     // NET_GetPortFromSockaddr
     static c_int getPortFromSockaddr(/*SOCKETADDRESS* */ void_ptr sa) {
-        c_int family = addr_of(sa.cast(struct_sockaddr_ptr.class).sel().sa_family).loadUnshared().cast();
+        c_int family = sa.cast(struct_sockaddr_ptr.class).sel().sa_family.cast();
         if (family == AF_INET6) {
             struct_sockaddr_in6_ptr sa6 = sa.cast();
-            return ntohs(addr_of(sa6.sel().sin6_port).loadUnshared().cast()).cast();
+            return ntohs(sa6.sel().sin6_port.cast()).cast();
         } else {
             struct_sockaddr_in_ptr sa4 = sa.cast();
-            return ntohs(addr_of(sa4.sel().sin_port).loadUnshared().cast()).cast();
+            return ntohs(sa4.sel().sin_port.cast()).cast();
         }
     }
 
@@ -161,7 +161,7 @@ class NetUtil {
     // NET_SockaddrToInetAddress
     static InetAddress sockaddrToInetAddress(/*SOCKADDRESS* */void_ptr sa, ptr<c_int> port) {
         InetAddress iaObj;
-        c_int family = addr_of(sa.cast(struct_sockaddr_ptr.class).sel().sa_family).loadUnshared().cast();
+        c_int family = sa.cast(struct_sockaddr_ptr.class).sel().sa_family.cast();
         if (family == AF_INET6) {
             struct_sockaddr_in6_ptr sa6 = sa.cast();
             ptr<uint8_t> caddr = addr_of(sa6.sel().sin6_addr.s6_addr[0]);
@@ -174,16 +174,16 @@ class NetUtil {
                 Inet6Address$_patch ia6Obj = (Inet6Address$_patch)(Object)iaObj;
                 iaObj.holder().family = InetAddress.IPv6;
                 ia6Obj.setInet6Address_ipaddress(caddr);
-                ia6Obj.setInet6Address_scopeid(addr_of(sa6.sel().sin6_scope_id).loadUnshared().intValue());
+                ia6Obj.setInet6Address_scopeid(sa6.sel().sin6_scope_id.intValue());
             }
-            port.storeUnshared(ntohs(addr_of(sa6.sel().sin6_port).loadUnshared().cast()).cast());
+            port.storeUnshared(ntohs(sa6.sel().sin6_port.cast()).cast());
         } else {
             struct_sockaddr_in_ptr sa4 = sa.cast();
             iaObj = new Inet4Address();
             iaObj.holder().family = InetAddress.IPv4;
-            unsigned_int addr = ntohl(addr_of(sa4.sel().sin_addr.s_addr).loadUnshared().cast()).cast();
+            unsigned_int addr = ntohl(sa4.sel().sin_addr.s_addr.cast()).cast();
             iaObj.holder().address = addr.intValue();
-            port.storeUnshared(ntohs(addr_of(sa4.sel().sin_port).loadUnshared().cast()).cast());
+            port.storeUnshared(ntohs(sa4.sel().sin_port.cast()).cast());
         }
 
         return iaObj;
@@ -285,10 +285,10 @@ class NetUtil {
     // NET_Bind
     static c_int bind(c_int fd, /*SOCKETADDRESS* */ void_ptr sa, c_int len) {
         if (Build.Target.isLinux()) {
-            c_int family = addr_of(sa.cast(struct_sockaddr_ptr.class).sel().sa_family).loadUnshared().cast();
+            c_int family = sa.cast(struct_sockaddr_ptr.class).sel().sa_family.cast();
             if (family == AF_INET) {
                 struct_sockaddr_in_ptr sa_in = sa.cast(struct_sockaddr_in_ptr.class);
-                if ((ntohl(addr_of(sa_in.sel().sin_addr).loadUnshared(struct_in_addr.class).s_addr.cast()).intValue() & 0x7f0000ff) == 0x7f0000ff) {
+                if ((ntohl(sa_in.sel().sin_addr.s_addr.cast()).intValue() & 0x7f0000ff) == 0x7f0000ff) {
                     errno = EADDRNOTAVAIL.intValue();
                     return word(-1);
                 }
