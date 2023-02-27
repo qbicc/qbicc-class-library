@@ -10,7 +10,7 @@ java.lang.ProcessHandleImpl$Info$_patch
 java.lang.ProcessHandleImpl$Info$_runtime
 java.lang.Runtime$_runtime
 java.lang.StackFrameInfo$_patch
-java.lang.StackStreamFactory$AbstractStackWalker_patch
+java.lang.StackStreamFactory$AbstractStackWalker$_patch
 java.lang.System$_patch
 java.lang.System$_init
 java.lang.System$_runtime
