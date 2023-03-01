@@ -35,7 +35,7 @@ package java.net;
 import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.bsd.Ifaddrs.*;
 import static org.qbicc.runtime.bsd.NetIf.*;
-import static org.qbicc.runtime.linux.NetIf.*;
+import static org.qbicc.runtime.linux.SysIoctl.*;
 import static org.qbicc.runtime.posix.ArpaInet.*;
 import static org.qbicc.runtime.posix.Errno.*;
 import static org.qbicc.runtime.posix.SysIoctl.*;
