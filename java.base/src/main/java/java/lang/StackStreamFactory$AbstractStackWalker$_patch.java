@@ -46,7 +46,7 @@ import static org.qbicc.runtime.CNative.*;
 @Tracking("src/java.base/share/native/libjava/StackStreamFactory.c")
 @Tracking("src/java.base/share/classes/java/lang/StackStreamFactory.java")
 @PatchClass(java.lang.StackStreamFactory.AbstractStackWalker.class)
-abstract class StackStreamFactory$AbstractStackWalker_patch<R,T> {
+abstract class StackStreamFactory$AbstractStackWalker$_patch<R,T> {
 
     // Alias constants of StackStreamFactory.java
     private static final int DEFAULT_MODE              = 0x0;
