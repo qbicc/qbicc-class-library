@@ -33,9 +33,11 @@ package java.io;
 
 import static java.io.FileSystem.*;
 import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.Errno.*;
 import static org.qbicc.runtime.posix.SysStat.*;
 import static org.qbicc.runtime.posix.SysTypes.*;
 import static org.qbicc.runtime.posix.Unistd.*;
+import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
 
 import java.nio.charset.StandardCharsets;
@@ -217,6 +219,46 @@ class UnixFileSystem$_native {
         }
         free(pathPtr);
         return rv;
+    }
+
+    public boolean setPermission(File f, int access, boolean enable, boolean owneronly) {
+        if (Build.isHost()) {
+            return true; // Ignore permissions when simulating with HostIO
+        }
+        int amode = switch (access) {
+            case FileSystem.ACCESS_READ ->
+                    owneronly ? S_IRUSR.intValue() : S_IRUSR.intValue() | S_IRGRP.intValue() | S_IROTH.intValue();
+            case FileSystem.ACCESS_WRITE ->
+                    owneronly ? S_IWUSR.intValue() : S_IWUSR.intValue() | S_IWGRP.intValue() | S_IWOTH.intValue();
+            case FileSystem.ACCESS_EXECUTE ->
+                    owneronly ? S_IXUSR.intValue() : S_IXUSR.intValue() | S_IXGRP.intValue() | S_IXOTH.intValue();
+            default ->
+                throw new IllegalArgumentException("Unrecognized access mode "+access);
+        };
+
+        final char_ptr pathPtr = mallocPath(f);
+        try {
+            struct_stat sb = auto();
+            if (!stat(pathPtr.cast(), addr_of(sb)).isZero()) {
+                return false;
+            }
+            int mode = sb.st_mode.intValue();
+            if (enable) {
+                mode |= amode;
+            } else {
+                mode &= ~amode;
+            }
+            while (true) {
+                c_int res = chmod(pathPtr.cast(), word(mode));
+                if (res.isZero()) {
+                    return true;
+                } else if (errno != EINTR.intValue()) {
+                    return false;
+                }
+            }
+        } finally {
+            free(pathPtr);
+        }
     }
 
     public boolean createDirectory(File f) {
