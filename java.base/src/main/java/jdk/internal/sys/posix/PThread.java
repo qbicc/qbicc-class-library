@@ -8,7 +8,7 @@ import static org.qbicc.runtime.stdc.Time.*;
 import org.qbicc.runtime.NoReturn;
 
 /**
- *
+ * See <a href="https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/pthread.h.html">the specification</a>.
  */
 @include("<pthread.h>")
 @lib("pthread")
@@ -24,18 +24,24 @@ public final class PThread {
     public static class pthread_cond_t extends word {}
     public static class pthread_condattr_t extends word {}
 
+    public static final pthread_mutex_t PTHREAD_MUTEX_INITIALIZER = constant();
+    public static final pthread_cond_t PTHREAD_COND_INITIALIZER = constant();
+
     public static native c_int pthread_attr_init(ptr<pthread_attr_t> attr);
     public static native c_int pthread_attr_destroy(ptr<pthread_attr_t> attr);
 
     public static native c_int pthread_attr_getstack(ptr<@c_const pthread_attr_t> attr, ptr<ptr<?>> stackAddr, ptr<size_t> stackSize);
     public static native c_int pthread_attr_setstack(ptr<pthread_attr_t> attr, ptr<?> stackAddr, size_t stackSize);
 
+    public static native c_int pthread_attr_getstacksize(@restrict ptr<@c_const pthread_attr_t> attr, @restrict ptr<size_t> size_ptr);
+    public static native c_int pthread_attr_setstacksize(ptr<pthread_attr_t> attr, size_t size);
+
     public static native c_int pthread_create(ptr<pthread_t> thread, ptr<@c_const pthread_attr_t> attr,
-                                              ptr<function<pthread_run>> start_routine, void_ptr arg);
+                                              ptr<function<pthread_run>> start_routine, ptr<?> arg);
 
     @FunctionalInterface
     public interface pthread_run {
-        void_ptr run(void_ptr arg);
+        ptr<?> run(ptr<?> arg);
     }
 
     public static native pthread_t pthread_self();
@@ -43,7 +49,7 @@ public final class PThread {
     public static native c_int pthread_detach(pthread_t thread);
 
     @NoReturn
-    public static native void pthread_exit(void_ptr arg);
+    public static native void pthread_exit(ptr<?> arg);
 
     public static native c_int pthread_kill(pthread_t thread, c_int signal);
 

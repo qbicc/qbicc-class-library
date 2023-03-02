@@ -15,7 +15,7 @@ java.lang.System$_patch
 java.lang.System$_init
 java.lang.System$_runtime
 java.lang.Throwable$_patch
-java.lang.Thread$_patch
+java.lang.UnsafeParkUnpark
 java.lang.invoke.DirectMethodHandle$_patch
 java.lang.invoke.InnerClassLambdaMetafactory$_patch
 java.lang.invoke.MemberName$_patch
@@ -52,8 +52,6 @@ jdk.internal.loader.BootLoader$_patch
 jdk.internal.loader.BuiltinClassLoader$_patch
 jdk.internal.misc.UnsafeConstants$_patch
 jdk.internal.misc.UnsafeConstants$_runtime
-jdk.internal.misc.UnsafeParkUnpark
-jdk.internal.misc.UnsafeThreadAccess
 jdk.internal.misc.VM$_patch
 jdk.internal.ref.CleanerImpl$_patch
 jdk.internal.sys.linux.Linux$_runtime

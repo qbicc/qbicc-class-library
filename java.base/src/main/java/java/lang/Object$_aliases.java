@@ -42,4 +42,6 @@ import org.qbicc.runtime.patcher.PatchClass;
 @Tracking("src/java.base/share/classes/java/lang/Object.java")
 class Object$_aliases {
     native boolean holdsLock();
+    native void monitorEnter();
+    native void monitorExit();
 }

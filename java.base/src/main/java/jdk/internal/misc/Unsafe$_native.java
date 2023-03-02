@@ -47,7 +47,7 @@ import org.qbicc.runtime.Build;
 import org.qbicc.runtime.main.CompilerIntrinsics;
 
 @Tracking("src/java.base/share/classes/jdk/internal/misc/Unsafe.java")
-public final class Unsafe$_native {
+final class Unsafe$_native {
 
     private static void registerNatives() {
         // no-op

@@ -30,15 +30,44 @@
  * contributors.
  */
 
-package jdk.internal.misc;
+package java.lang;
 
+import static java.lang.Thread.*;
+
+import jdk.internal.misc.Unsafe;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
+import org.qbicc.runtime.patcher.Replace;
 
-@PatchClass(Thread.class)
+/**
+ * Unsafe support for park/unpark.
+ */
+@PatchClass(Unsafe.class)
 @Tracking("src/java.base/share/classes/jdk/internal/misc/Unsafe.java")
-class UnsafeThreadAccess {
-    // alias
-    static native void park(boolean isAbsolute, long time);
-    native void unpark();
+final class UnsafeParkUnpark {
+
+    @Replace
+    void park(boolean isAbsolute, long time) {
+        if (isAbsolute) {
+            // absolute timeout in milliseconds
+            long millis = time - System.currentTimeMillis();
+            if (millis <= 0) {
+                return;
+            }
+            Thread.park(millis, 0, STATE_PARKED | STATE_WAITING | STATE_WAITING_WITH_TIMEOUT, STATE_RUNNABLE, STATE_INTERRUPTED, STATE_UNPARK);
+        } else if (time == 0) {
+            // no timeout
+            Thread.park(0, 0, STATE_PARKED | STATE_WAITING | STATE_WAITING_INDEFINITELY, STATE_RUNNABLE, STATE_INTERRUPTED, STATE_UNPARK);
+        } else {
+            // relative timeout in nanos
+            int nanos = (int) (time % 1_000_000);
+            long millis = time / 1_000_000;
+            Thread.park(millis, nanos, STATE_PARKED | STATE_WAITING | STATE_WAITING_WITH_TIMEOUT, STATE_RUNNABLE, STATE_INTERRUPTED, STATE_UNPARK);
+        }
+    }
+
+    @Replace
+    void unpark(Object thread) {
+        ((Thread) thread).unpark(STATE_UNPARK);
+    }
 }

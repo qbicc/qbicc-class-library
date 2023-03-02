@@ -1,17 +1,15 @@
 package jdk.internal.org.qbicc.runtime;
 
 import static org.qbicc.runtime.CNative.*;
-import static jdk.internal.sys.posix.PThread.pthread_exit;
 import static jdk.internal.sys.stdc.Stdio.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
-import static org.qbicc.runtime.stdc.String.strcmp;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.Hidden;
-import org.qbicc.runtime.NotReachableException;
+import org.qbicc.runtime.NoThrow;
 import org.qbicc.runtime.gc.heap.Heap;
 
 /**
@@ -34,7 +32,7 @@ public final class Main {
      */
     public static void deferInitAction(Runnable r) {
         if (!Build.isHost()) {
-            throw new IllegalStateException("init actions can only be deferrred at build time");
+            throw new IllegalStateException("init actions can only be deferred at build time");
         }
         synchronized (deferredInits) {
             deferredInits.add(r);
@@ -50,9 +48,26 @@ public final class Main {
 
     static native ThreadGroup getSystemThreadGroup();
 
+    static final Thread mainThread = new Thread(getSystemThreadGroup(), "main") {
+        public void start() {
+            // can only be started by thread_attach
+            throw new IllegalThreadStateException();
+        }
+
+        public void run() {
+            main0();
+        }
+    };
+
+    private static c_int argc;
+    private static ptr<ptr<c_char>> argv;
+
+    @extern
+    static native void thread_attach(Thread thread);
+
     @export
     @Hidden
-    public static c_int main(c_int argc, char_ptr[] argv) {
+    public static c_int main(c_int argc, ptr<c_char>[] argv) {
         Heap.initHeap(argc.intValue(), addr_of(argv[0]).cast());
 
         // first set up VM
@@ -60,20 +75,25 @@ public final class Main {
             exit(word(1));
         }
 
-        // next set up the initial thread
-        attachNewThread("main", getSystemThreadGroup());
-        Thread$_patch mainThread = (Thread$_patch)(Object)Thread.currentThread();
-        mainThread.initializeNativeFields();
-        mainThread.begin();
+        Main.argc = argc;
+        Main.argv = addr_of(argv[0]);
 
+        thread_attach(mainThread);
+        // should be unreachable...
+        return zero();
+    }
+
+    @Hidden
+    @NoThrow
+    private static void main0() {
         try {
-            // next initialize the JDK
+            // initialize the JDK
             System$_patch.rtinitPhase1();
             System$_patch.rtinitPhase2();
             System$_patch.rtinitPhase3();
 
             // Parse the command line arguments and convert from C to Java
-            String[] userArgs = processArgs(argc, argv);
+            String[] userArgs = processArgs(argc, argv.asArray());
 
             // TODO: We should process any non-Heap arguments in FlightRecorder.vmArgs here.
 
@@ -81,17 +101,21 @@ public final class Main {
             for (Runnable r: deferredInits) {
                 r.run();
             }
+            deferredInits = null;
 
             // Initialization completed
             FlightRecorder.initDoneTime = System.currentTimeMillis();
 
+            Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader());
+
             // now cause the initial thread to invoke main
             userMain(userArgs);
         } catch (Throwable t) {
-            Thread.UncaughtExceptionHandler handler = Thread.currentThread().getUncaughtExceptionHandler();
+            final Thread thread = Thread.currentThread();
+            Thread.UncaughtExceptionHandler handler = thread.getUncaughtExceptionHandler();
             if (handler != null) {
                 try {
-                    handler.uncaughtException(Thread.currentThread(), t);
+                    handler.uncaughtException(thread, t);
                 } catch (Throwable t2) {
                     // exception handler threw an exception... just bail out then
                     fprintf(stderr, utf8z("The uncaught exception handler threw an exception or error\n"));
@@ -100,17 +124,11 @@ public final class Main {
             }
             System.exit(1);
         }
-        mainThread.end(); // Will return only if mainThread is not the last non-dameon thread
-        if (Build.Target.isPosix()) {
-            pthread_exit(zero());
-        }
-        // todo: windows
-        throw new NotReachableException();
     }
 
     // Convert C args to Java Strings and separate the VM and user arguments
     // Return the subset of argv that are arguments for the user main.
-    private static String[] processArgs(c_int argc, char_ptr[] argv) {
+    private static String[] processArgs(c_int argc, ptr<c_char>[] argv) {
         String[] userArgs = new String[argc.intValue() - 1];
         String[] vmArgs = new String[0];
         int userCount = 0;

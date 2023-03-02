@@ -9,4 +9,6 @@ public final class Limits {
     public static final c_int IOV_MAX = constant();
 
     public static final size_t PATH_MAX = constant();
+
+    public static final size_t PTHREAD_STACK_MIN = constant();
 }
