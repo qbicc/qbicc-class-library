@@ -379,15 +379,15 @@ public class Thread$_patch {
                     // time is in milliseconds since epoch
                     timespec.tv_sec = word(time / 1_000L);
                     timespec.tv_nsec = word(time * 1_000_000L);
-                    futex_wait_absolute(ptr.cast(), word(newVal), addr_of(timespec));
+                    futex_wait_absolute(ptr.cast(), word(newVal | STATE_UNPARK), addr_of(timespec));
                 } else if (time == 0) {
                     // relative time of zero means wait indefinitely
-                    futex_wait(ptr.cast(), word(newVal), zero());
+                    futex_wait(ptr.cast(), word(newVal | STATE_UNPARK), zero());
                 } else {
                     // time is in relative nanoseconds
                     timespec.tv_sec = word(time / 1_000_000_000L);
                     timespec.tv_nsec = word(time % 1_000_000_000L);
-                    futex_wait(ptr.cast(), word(newVal), addr_of(timespec));
+                    futex_wait(ptr.cast(), word(newVal | STATE_UNPARK), addr_of(timespec));
                 }
                 ptr.storeRelease(zero());
             } else if (Build.Target.isPosix()) {
