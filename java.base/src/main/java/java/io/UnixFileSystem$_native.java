@@ -33,6 +33,7 @@ package java.io;
 
 import static java.io.FileSystem.*;
 import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.posix.Dirent.*;
 import static org.qbicc.runtime.posix.Errno.*;
 import static org.qbicc.runtime.posix.SysStat.*;
 import static org.qbicc.runtime.posix.SysTypes.*;
@@ -40,6 +41,7 @@ import static org.qbicc.runtime.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
 
+import java.util.Arrays;
 import java.nio.charset.StandardCharsets;
 
 import org.qbicc.rt.annotation.Tracking;
@@ -258,6 +260,41 @@ class UnixFileSystem$_native {
             }
         } finally {
             free(pathPtr);
+        }
+    }
+
+    public String[] list(File f) {
+        final ptr<c_char> pathPtr = mallocPath(f);
+        ptr<DIR> dir = opendir(pathPtr.cast());
+        free(pathPtr);
+        if (dir.isNull()) {
+            return null;
+        }
+        try {
+            int len = 0;
+            int maxlen = 16;
+            String[] rv = new String[maxlen];
+            while (true) {
+                ptr<struct_dirent> ptr = readdir(dir.cast());
+                if (ptr.isNull()) {
+                    break;
+                }
+                if (deref(ptr).d_name[0] == word('.')) {
+                    if (deref(ptr).d_name[1].isZero() || (deref(ptr).d_name[1] == word('.') && deref(ptr).d_name[2].isZero())) {
+                        continue;
+                    }
+                }
+
+                String name = utf8zToJavaString(addr_of(deref(ptr).d_name[0]).cast());
+                if (len == maxlen) {
+                    maxlen = maxlen * 2;
+                    rv = Arrays.copyOf(rv, maxlen);
+                }
+                rv[len++] = name;
+            }
+            return Arrays.copyOf(rv, len);
+        } finally {
+            closedir(dir.cast());
         }
     }
 
