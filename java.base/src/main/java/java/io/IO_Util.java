@@ -32,11 +32,11 @@
 package java.io;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Errno.*;
-import static org.qbicc.runtime.posix.Fcntl.*;
-import static org.qbicc.runtime.posix.SysStat.*;
-import static org.qbicc.runtime.posix.SysTypes.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.posix.Errno.*;
+import static jdk.internal.sys.posix.Fcntl.*;
+import static jdk.internal.sys.posix.SysStat.*;
+import static jdk.internal.sys.posix.SysTypes.*;
+import static jdk.internal.sys.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
@@ -48,7 +48,7 @@ import java.util.Objects;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.host.HostIO;
-import org.qbicc.runtime.posix.Fcntl;
+import jdk.internal.sys.posix.Fcntl;
 
 @SuppressWarnings({ "SpellCheckingInspection", "ConstantConditions" })
 @Tracking("src/java.base/share/native/libjava/io_util.h")

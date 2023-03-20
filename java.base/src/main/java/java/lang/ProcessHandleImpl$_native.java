@@ -32,9 +32,9 @@
 package java.lang;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.linux.Unistd.*;
-import static org.qbicc.runtime.posix.SysTypes.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.linux.Unistd.*;
+import static jdk.internal.sys.posix.SysTypes.*;
+import static jdk.internal.sys.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Stddef.*;
 
 import org.qbicc.runtime.Build;

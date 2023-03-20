@@ -33,7 +33,7 @@ package java.lang;
 
 import static java.lang.Math.min;
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.posix.Unistd.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

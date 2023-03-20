@@ -152,17 +152,7 @@
 
             <dependency>
                 <groupId>org.qbicc</groupId>
-                <artifactId>qbicc-runtime-bsd</artifactId>
-                <version>${version.qbicc}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.qbicc</groupId>
                 <artifactId>qbicc-runtime-gc-heap</artifactId>
-                <version>${version.qbicc}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.qbicc</groupId>
-                <artifactId>qbicc-runtime-linux</artifactId>
                 <version>${version.qbicc}</version>
             </dependency>
             <dependency>
@@ -173,11 +163,6 @@
             <dependency>
                 <groupId>org.qbicc</groupId>
                 <artifactId>qbicc-runtime-main</artifactId>
-                <version>${version.qbicc}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.qbicc</groupId>
-                <artifactId>qbicc-runtime-posix</artifactId>
                 <version>${version.qbicc}</version>
             </dependency>
             <dependency>

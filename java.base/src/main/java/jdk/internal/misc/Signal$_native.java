@@ -46,14 +46,14 @@ class Signal$_native {
         if (Build.Target.isPosix()) {
             return switch(sigName) {
                 case "ABRT" -> org.qbicc.runtime.stdc.Signal.SIGABRT.intValue();
-                case "ALRM" -> org.qbicc.runtime.posix.Signal.SIGALRM.intValue();
+                case "ALRM" -> jdk.internal.sys.posix.Signal.SIGALRM.intValue();
                 case "FPE" -> org.qbicc.runtime.stdc.Signal.SIGFPE.intValue();
-                case "HUP" -> org.qbicc.runtime.posix.Signal.SIGHUP.intValue();
+                case "HUP" -> jdk.internal.sys.posix.Signal.SIGHUP.intValue();
                 case "ILL" -> org.qbicc.runtime.stdc.Signal.SIGILL.intValue();
                 case "INT" -> org.qbicc.runtime.stdc.Signal.SIGINT.intValue();
-                case "KILL" -> org.qbicc.runtime.posix.Signal.SIGKILL.intValue();
-                case "PIPE" -> org.qbicc.runtime.posix.Signal.SIGPIPE.intValue();
-                case "QUIT" -> org.qbicc.runtime.posix.Signal.SIGQUIT.intValue();
+                case "KILL" -> jdk.internal.sys.posix.Signal.SIGKILL.intValue();
+                case "PIPE" -> jdk.internal.sys.posix.Signal.SIGPIPE.intValue();
+                case "QUIT" -> jdk.internal.sys.posix.Signal.SIGQUIT.intValue();
                 case "SEGV" -> org.qbicc.runtime.stdc.Signal.SIGSEGV.intValue();
                 case "TERM" ->  org.qbicc.runtime.stdc.Signal.SIGTERM.intValue();
                 default -> -1;

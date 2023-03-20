@@ -33,11 +33,11 @@ package java.io;
 
 import static java.io.FileSystem.*;
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Dirent.*;
-import static org.qbicc.runtime.posix.Errno.*;
-import static org.qbicc.runtime.posix.SysStat.*;
-import static org.qbicc.runtime.posix.SysTypes.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.posix.Dirent.*;
+import static jdk.internal.sys.posix.Errno.*;
+import static jdk.internal.sys.posix.SysStat.*;
+import static jdk.internal.sys.posix.SysTypes.*;
+import static jdk.internal.sys.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
 

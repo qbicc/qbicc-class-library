@@ -33,9 +33,9 @@
 package sun.nio.ch;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Errno.*;
-import static org.qbicc.runtime.posix.SysUio.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.posix.Errno.*;
+import static jdk.internal.sys.posix.SysUio.*;
+import static jdk.internal.sys.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 
 import java.io.FileDescriptor;
@@ -47,8 +47,8 @@ import sun.net.ConnectionResetException;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
-import org.qbicc.runtime.posix.SysUio;
-import org.qbicc.runtime.posix.Unistd;
+import jdk.internal.sys.posix.SysUio;
+import jdk.internal.sys.posix.Unistd;
 
 /**
  * Allows different platforms to call different native methods

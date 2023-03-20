@@ -35,7 +35,7 @@ import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.posix.Unistd.*;
 
 @Tracking("src/java.base/unix/native/libjava/Console_md.c")
 @Tracking("src/java.base/windows/native/libjava/Console_md.c")

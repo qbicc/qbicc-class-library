@@ -32,7 +32,7 @@
 package java.io;
 
 import static java.lang.Math.*;
-import static org.qbicc.runtime.posix.Fcntl.*;
+import static jdk.internal.sys.posix.Fcntl.*;
 
 import org.qbicc.rt.annotation.Tracking;
 

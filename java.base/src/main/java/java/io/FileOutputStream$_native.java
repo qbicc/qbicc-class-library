@@ -34,7 +34,7 @@ package java.io;
 import org.qbicc.rt.annotation.Tracking;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Fcntl.*;
+import static jdk.internal.sys.posix.Fcntl.*;
 
 @Tracking("src/java.base/unix/native/libjava/FileOutputStream_md.c")
 @Tracking("src/java.base/windows/native/libjava/FileOutputStream_md.c")

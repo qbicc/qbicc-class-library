@@ -33,8 +33,8 @@
 package sun.nio.ch;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Errno.*;
-import static org.qbicc.runtime.posix.SysStat.*;
+import static jdk.internal.sys.posix.Errno.*;
+import static jdk.internal.sys.posix.SysStat.*;
 
 import java.io.FileDescriptor;
 import java.io.IOException;

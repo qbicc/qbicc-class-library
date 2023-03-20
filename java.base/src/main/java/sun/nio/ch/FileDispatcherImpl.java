@@ -33,15 +33,15 @@
 package sun.nio.ch;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.linux.SysIoctl.BLKGETSIZE64;
-import static org.qbicc.runtime.posix.SysIoctl.*;
-import static org.qbicc.runtime.posix.Errno.*;
-import static org.qbicc.runtime.posix.SysStat.*;
-import static org.qbicc.runtime.posix.Fcntl.SEEK_CUR;
-import static org.qbicc.runtime.posix.SysStat.*;
-import static org.qbicc.runtime.posix.SysTypes.*;
-import static org.qbicc.runtime.posix.SysUio.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.linux.SysIoctl.BLKGETSIZE64;
+import static jdk.internal.sys.posix.SysIoctl.*;
+import static jdk.internal.sys.posix.Errno.*;
+import static jdk.internal.sys.posix.SysStat.*;
+import static jdk.internal.sys.posix.Fcntl.SEEK_CUR;
+import static jdk.internal.sys.posix.SysStat.*;
+import static jdk.internal.sys.posix.SysTypes.*;
+import static jdk.internal.sys.posix.SysUio.*;
+import static jdk.internal.sys.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
 
@@ -55,8 +55,8 @@ import org.qbicc.runtime.Build;
 import jdk.internal.access.JavaIOFileDescriptorAccess;
 import jdk.internal.access.SharedSecrets;
 import org.qbicc.runtime.host.HostIO;
-import org.qbicc.runtime.posix.SysUio;
-import org.qbicc.runtime.posix.Unistd;
+import jdk.internal.sys.posix.SysUio;
+import jdk.internal.sys.posix.Unistd;
 import sun.security.action.GetPropertyAction;
 
 @Tracking("src/java.base/unix/classes/sun/nio/ch/FileDispatcherImpl.java")

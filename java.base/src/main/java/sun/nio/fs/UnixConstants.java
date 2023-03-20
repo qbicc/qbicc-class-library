@@ -35,10 +35,10 @@ package sun.nio.fs;
 import static org.qbicc.runtime.CNative.defined;
 
 import org.qbicc.runtime.Build;
-import org.qbicc.runtime.posix.Errno;
-import org.qbicc.runtime.posix.Fcntl;
-import org.qbicc.runtime.posix.SysStat;
-import org.qbicc.runtime.posix.Unistd;
+import jdk.internal.sys.posix.Errno;
+import jdk.internal.sys.posix.Fcntl;
+import jdk.internal.sys.posix.SysStat;
+import jdk.internal.sys.posix.Unistd;
 import org.qbicc.rt.annotation.Tracking;
 
 @Tracking("src/java.base/unix/classes/sun/nio/fs/UnixConstants.java.template")

@@ -33,7 +33,7 @@
 package jdk.internal.misc;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Time.*;
+import static jdk.internal.sys.posix.Time.*;
 import static org.qbicc.runtime.stdc.Time.*;
 
 import org.qbicc.rt.annotation.Tracking;

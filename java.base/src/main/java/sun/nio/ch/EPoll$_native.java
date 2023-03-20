@@ -33,8 +33,8 @@
 package sun.nio.ch;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.linux.EPoll.*;
-import static org.qbicc.runtime.posix.Errno.*;
+import static jdk.internal.sys.linux.EPoll.*;
+import static jdk.internal.sys.posix.Errno.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stddef.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
