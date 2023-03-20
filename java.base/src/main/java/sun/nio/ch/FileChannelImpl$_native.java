@@ -33,11 +33,11 @@
 package sun.nio.ch;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.bsd.SysSocket.*;
-import static org.qbicc.runtime.linux.SysSendfile.*;
-import static org.qbicc.runtime.posix.Errno.*;
-import static org.qbicc.runtime.posix.SysTypes.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.bsd.SysSocket.*;
+import static jdk.internal.sys.linux.SysSendfile.*;
+import static jdk.internal.sys.posix.Errno.*;
+import static jdk.internal.sys.posix.SysTypes.*;
+import static jdk.internal.sys.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 
 import java.io.FileDescriptor;

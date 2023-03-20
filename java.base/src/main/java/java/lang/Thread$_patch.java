@@ -34,11 +34,11 @@ package java.lang;
 
 import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.InlineCondition.*;
-import static org.qbicc.runtime.linux.Futex.*;
+import static jdk.internal.sys.linux.Futex.*;
 import static org.qbicc.runtime.llvm.LLVM.*;
-import static org.qbicc.runtime.posix.Errno.EAGAIN;
-import static org.qbicc.runtime.posix.PThread.*;
-import static org.qbicc.runtime.posix.Time.*;
+import static jdk.internal.sys.posix.Errno.EAGAIN;
+import static jdk.internal.sys.posix.PThread.*;
+import static jdk.internal.sys.posix.Time.*;
 import static org.qbicc.runtime.stdc.Errno.errno;
 import static org.qbicc.runtime.stdc.Stdint.*;
 import static org.qbicc.runtime.stdc.Stdio.*;

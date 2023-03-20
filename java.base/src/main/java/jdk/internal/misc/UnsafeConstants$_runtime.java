@@ -32,7 +32,7 @@
 
 package jdk.internal.misc;
 
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.posix.Unistd.*;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;

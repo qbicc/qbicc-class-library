@@ -33,7 +33,7 @@
 package java.net;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Stddef.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
 

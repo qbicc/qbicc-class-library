@@ -33,7 +33,7 @@
 package sun.nio.ch;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.SysSocket.*;
+import static jdk.internal.sys.posix.SysSocket.*;
 
 import java.io.IOError;
 import java.io.IOException;
@@ -43,7 +43,7 @@ import org.qbicc.runtime.Build;
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.RunTimeAspect;
-import org.qbicc.runtime.posix.Unistd;
+import jdk.internal.sys.posix.Unistd;
 
 @PatchClass(FileDispatcherImpl.class)
 @RunTimeAspect

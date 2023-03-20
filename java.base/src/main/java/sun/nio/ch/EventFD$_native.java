@@ -33,9 +33,9 @@
 package sun.nio.ch;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.linux.EventFD.*;
-import static org.qbicc.runtime.posix.Errno.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.linux.EventFD.*;
+import static jdk.internal.sys.posix.Errno.*;
+import static jdk.internal.sys.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
 

@@ -32,9 +32,9 @@
 package java.io;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Errno.*;
-import static org.qbicc.runtime.posix.Fcntl.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.posix.Errno.*;
+import static jdk.internal.sys.posix.Fcntl.*;
+import static jdk.internal.sys.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.errno;
 
 import org.qbicc.rt.annotation.Tracking;

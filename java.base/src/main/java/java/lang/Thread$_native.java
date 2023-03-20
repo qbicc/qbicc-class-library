@@ -32,7 +32,7 @@
 
 package java.lang;
 
-import static org.qbicc.runtime.posix.Sched.sched_yield;
+import static jdk.internal.sys.posix.Sched.sched_yield;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;

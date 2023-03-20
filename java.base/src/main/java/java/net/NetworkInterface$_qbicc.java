@@ -33,16 +33,16 @@
 package java.net;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.bsd.Ifaddrs.*;
-import static org.qbicc.runtime.bsd.NetIf.*;
-import static org.qbicc.runtime.linux.SysIoctl.*;
-import static org.qbicc.runtime.posix.ArpaInet.*;
-import static org.qbicc.runtime.posix.Errno.*;
-import static org.qbicc.runtime.posix.SysIoctl.*;
-import static org.qbicc.runtime.posix.NetinetIn.*;
-import static org.qbicc.runtime.posix.NetIf.*;
-import static org.qbicc.runtime.posix.SysSocket.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.bsd.Ifaddrs.*;
+import static jdk.internal.sys.bsd.NetIf.*;
+import static jdk.internal.sys.linux.SysIoctl.*;
+import static jdk.internal.sys.posix.ArpaInet.*;
+import static jdk.internal.sys.posix.Errno.*;
+import static jdk.internal.sys.posix.SysIoctl.*;
+import static jdk.internal.sys.posix.NetinetIn.*;
+import static jdk.internal.sys.posix.NetIf.*;
+import static jdk.internal.sys.posix.SysSocket.*;
+import static jdk.internal.sys.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stddef.*;
 import static org.qbicc.runtime.stdc.Stdint.*;

@@ -33,14 +33,14 @@
 package sun.nio.fs;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Dirent.*;
-import static org.qbicc.runtime.posix.Errno.*;
-import static org.qbicc.runtime.posix.Limits.PATH_MAX;
-import static org.qbicc.runtime.posix.String.*;
-import static org.qbicc.runtime.posix.SysStat.*;
-import static org.qbicc.runtime.posix.SysTypes.*;
-import static org.qbicc.runtime.posix.Unistd.F_OK;
-import static org.qbicc.runtime.posix.Unistd.rmdir;
+import static jdk.internal.sys.posix.Dirent.*;
+import static jdk.internal.sys.posix.Errno.*;
+import static jdk.internal.sys.posix.Limits.PATH_MAX;
+import static jdk.internal.sys.posix.String.*;
+import static jdk.internal.sys.posix.SysStat.*;
+import static jdk.internal.sys.posix.SysTypes.*;
+import static jdk.internal.sys.posix.Unistd.F_OK;
+import static jdk.internal.sys.posix.Unistd.rmdir;
 import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stddef.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
@@ -56,9 +56,9 @@ import java.nio.file.NotDirectoryException;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.host.HostIO;
-import org.qbicc.runtime.posix.Fcntl;
-import org.qbicc.runtime.posix.SysStat;
-import org.qbicc.runtime.posix.Unistd;
+import jdk.internal.sys.posix.Fcntl;
+import jdk.internal.sys.posix.SysStat;
+import jdk.internal.sys.posix.Unistd;
 
 @SuppressWarnings({ "unused", "SpellCheckingInspection" })
 @Tracking("src/java.base/unix/native/libnio/fs/UnixNativeDispatcher.c")
@@ -394,7 +394,7 @@ class UnixNativeDispatcher$_native {
     }
 
     static long fdopendir(int dfd) throws UnixException {
-        DIR_ptr dir = org.qbicc.runtime.posix.Dirent.fdopendir(word(dfd));
+        DIR_ptr dir = jdk.internal.sys.posix.Dirent.fdopendir(word(dfd));
         if (dir.isNull()) {
             throw new UnixException(errno);
         }
@@ -403,7 +403,7 @@ class UnixNativeDispatcher$_native {
 
     static void closedir(long jdir) throws UnixException {
         DIR_ptr dir = word(jdir);
-        c_int rc = org.qbicc.runtime.posix.Dirent.closedir(dir);
+        c_int rc = jdk.internal.sys.posix.Dirent.closedir(dir);
         if (rc == word(-1) && errno != EINTR.intValue()) {
             throw new UnixException(errno);
         }
@@ -413,7 +413,7 @@ class UnixNativeDispatcher$_native {
         DIR_ptr dir = word(jdir);
 
         errno = 0;
-        struct_dirent_ptr dirent = auto(org.qbicc.runtime.posix.Dirent.readdir(dir));
+        struct_dirent_ptr dirent = auto(jdk.internal.sys.posix.Dirent.readdir(dir));
         if (dirent.isNull()) {
             if (errno != 0) {
                 throw new UnixException(errno);

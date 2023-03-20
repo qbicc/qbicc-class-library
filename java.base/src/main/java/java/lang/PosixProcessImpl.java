@@ -32,7 +32,7 @@
 package java.lang;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Signal.*;
+import static jdk.internal.sys.posix.Signal.*;
 import static org.qbicc.runtime.stdc.Signal.*;
 
 import java.io.BufferedInputStream;

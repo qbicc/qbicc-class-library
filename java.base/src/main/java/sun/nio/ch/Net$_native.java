@@ -33,11 +33,11 @@
 package sun.nio.ch;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Errno.*;
-import static org.qbicc.runtime.posix.NetinetIn.*;
-import static org.qbicc.runtime.posix.Poll.*;
-import static org.qbicc.runtime.posix.SysSocket.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.posix.Errno.*;
+import static jdk.internal.sys.posix.NetinetIn.*;
+import static jdk.internal.sys.posix.Poll.*;
+import static jdk.internal.sys.posix.SysSocket.*;
+import static jdk.internal.sys.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 
 import java.io.FileDescriptor;
@@ -50,8 +50,8 @@ import java.net.NoRouteToHostException;
 import java.net.SocketException;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
-import org.qbicc.runtime.posix.Poll;
-import org.qbicc.runtime.posix.SysSocket;
+import jdk.internal.sys.posix.Poll;
+import jdk.internal.sys.posix.SysSocket;
 
 @Tracking("src/java.base/unix/native/libnio/ch/Net.c")
 class Net$_native {

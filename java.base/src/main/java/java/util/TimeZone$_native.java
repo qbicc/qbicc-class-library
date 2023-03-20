@@ -34,7 +34,7 @@ package java.util;
 
 import static java.lang.System.getenv;
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Time.*;
+import static jdk.internal.sys.posix.Time.*;
 import static org.qbicc.runtime.stdc.Time.*;
 
 import java.io.BufferedReader;

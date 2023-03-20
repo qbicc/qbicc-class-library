@@ -33,12 +33,12 @@
 package java.net;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.bsd.SysSysctl.*;
-import static org.qbicc.runtime.posix.Errno.*;
-import static org.qbicc.runtime.posix.ArpaInet.*;
-import static org.qbicc.runtime.posix.NetinetIn.*;
-import static org.qbicc.runtime.posix.SysSocket.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.bsd.SysSysctl.*;
+import static jdk.internal.sys.posix.Errno.*;
+import static jdk.internal.sys.posix.ArpaInet.*;
+import static jdk.internal.sys.posix.NetinetIn.*;
+import static jdk.internal.sys.posix.SysSocket.*;
+import static jdk.internal.sys.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stddef.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
@@ -46,7 +46,7 @@ import static org.qbicc.runtime.stdc.String.*;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
-import org.qbicc.runtime.posix.SysSocket;
+import jdk.internal.sys.posix.SysSocket;
 
 @Tracking("src/java.base/share/native/libnet/net_util.c")
 @Tracking("src/java.base/unix/native/libnet/net_util_md.c")

@@ -32,9 +32,9 @@
 package sun.nio.ch;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.NetinetTcp.*;
-import static org.qbicc.runtime.posix.SysSocket.*;
-import static org.qbicc.runtime.posix.NetinetIn.*;
+import static jdk.internal.sys.posix.NetinetTcp.*;
+import static jdk.internal.sys.posix.SysSocket.*;
+import static jdk.internal.sys.posix.NetinetIn.*;
 
 import java.net.ProtocolFamily;
 import java.net.SocketOption;

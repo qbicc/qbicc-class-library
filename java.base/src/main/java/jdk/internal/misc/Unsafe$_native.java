@@ -33,7 +33,7 @@
 package jdk.internal.misc;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.linux.Stdlib.*;
+import static jdk.internal.sys.linux.Stdlib.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
 import static org.qbicc.runtime.stdc.String.*;

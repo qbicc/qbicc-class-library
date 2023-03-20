@@ -32,13 +32,13 @@
 package java.io;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Fcntl.*;
+import static jdk.internal.sys.posix.Fcntl.*;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
-import org.qbicc.runtime.posix.Fcntl;
+import jdk.internal.sys.posix.Fcntl;
 
 @Tracking("src/java.base/share/native/libjava/RandomAccessFile.c")
 @Tracking("src/java.base/share/classes/java/io/RandomAccessFile.java")

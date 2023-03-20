@@ -1,8 +1,8 @@
 package sun.nio.ch;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.posix.Fcntl.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.posix.Fcntl.*;
+import static jdk.internal.sys.posix.Unistd.*;
 
 import java.io.FileDescriptor;
 import java.io.IOException;

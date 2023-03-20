@@ -33,9 +33,9 @@
 package java.lang;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.bsd.SysSysctl.*;
-import static org.qbicc.runtime.linux.Unistd.*;
-import static org.qbicc.runtime.posix.Unistd.*;
+import static jdk.internal.sys.bsd.SysSysctl.*;
+import static jdk.internal.sys.linux.Unistd.*;
+import static jdk.internal.sys.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Stddef.*;
 
 import org.qbicc.rt.annotation.Tracking;
