@@ -21,7 +21,7 @@ public class SysSysctl {
         public uid_t cr_uid;
     }
 
-    public static native c_int sysctl(int_ptr name, unsigned_int nameLen, ptr<?> oldp, size_t_ptr oldlenp, ptr<?> newp, size_t newlen);
+    public static native c_int sysctl(ptr<c_int> name, unsigned_int nameLen, ptr<?> oldp, ptr<size_t> oldlenp, ptr<?> newp, size_t newlen);
 
     public static final c_int CTL_DEBUG = constant();
     public static final c_int CTL_VFS = constant();

@@ -11,5 +11,5 @@ public class SysSocket {
 
     public static final class struct_sf_hdtr extends object { }
 
-    public static native c_int sendfile(c_int out_fd, c_int in_fd, off_t offset, off_t_ptr len, ptr<struct_sf_hdtr> hdtr, c_int flags);
+    public static native c_int sendfile(c_int out_fd, c_int in_fd, off_t offset, ptr<off_t> len, ptr<struct_sf_hdtr> hdtr, c_int flags);
 }

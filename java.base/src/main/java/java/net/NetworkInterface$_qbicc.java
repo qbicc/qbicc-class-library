@@ -320,14 +320,14 @@ class NetworkInterface$_qbicc {
                 free(buf);
             }
         } else if (Build.Target.isMacOs()) {
-            struct_ifaddrs_ptr origifa = auto();
+            ptr<struct_ifaddrs> origifa = auto();
 
             if (getifaddrs(addr_of(origifa)).intValue() != 0) {
                 throw new SocketException("getifaddrs() failed");
             }
 
             try {
-                for (struct_ifaddrs_ptr ifa = origifa; !ifa.isNull(); ifa = ifa.sel().ifa_next.cast()) {
+                for (ptr<struct_ifaddrs> ifa = origifa; !ifa.isNull(); ifa = deref(ifa).ifa_next) {
                     ptr<struct_sockaddr> broadaddrP = word(0);
 
                     // ignore non IPv4 addresses
