@@ -7,17 +7,14 @@ import static jdk.internal.sys.posix.SysSocket.*;
 public class Ifaddrs {
     public static class struct_ifaddrs extends object {
         public ptr<struct_ifaddrs> ifa_next;
-        public char_ptr ifa_name;
+        public ptr<c_char> ifa_name;
         public unsigned_int ifa_flags;
-        public struct_sockaddr_ptr ifa_addr;
-        public struct_sockaddr_ptr ifa_netmask;
-        public struct_sockaddr_ptr ifa_dstaddr;
-        public void_ptr ifa_data;
+        public ptr<struct_sockaddr> ifa_addr;
+        public ptr<struct_sockaddr> ifa_netmask;
+        public ptr<struct_sockaddr> ifa_dstaddr;
+        public ptr<?> ifa_data;
     }
 
-    public static class struct_ifaddrs_ptr extends ptr<struct_ifaddrs> {}
-    public static class struct_ifaddrs_ptr_ptr extends ptr<struct_ifaddrs_ptr> {}
-
-    public static native c_int getifaddrs(struct_ifaddrs_ptr_ptr x);
-    public static native void freeifaddrs(struct_ifaddrs_ptr x);
+    public static native c_int getifaddrs(ptr<ptr<struct_ifaddrs>> x);
+    public static native void freeifaddrs(ptr<struct_ifaddrs> x);
 }

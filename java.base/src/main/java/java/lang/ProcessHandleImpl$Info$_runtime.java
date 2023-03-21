@@ -69,7 +69,7 @@ class ProcessHandleImpl$Info$_runtime {
         pageSize = sysconf(_SC_PAGE_SIZE).intValue();
 
         /* Read the boottime from /proc/stat. */
-        FILE_ptr fp = fopen(utf8z("/proc/stat"), utf8z("r"));
+        ptr<FILE> fp = fopen(utf8z("/proc/stat"), utf8z("r"));
         if (fp.isNull()) {
             bootTime_ms = -1;
         } else {
@@ -83,7 +83,7 @@ class ProcessHandleImpl$Info$_runtime {
                 }
             }
             free(line);
-            fclose(fp);
+            fclose(fp.cast());
             bootTime_ms = bootTime.longValue() * 1000;
         }
     }

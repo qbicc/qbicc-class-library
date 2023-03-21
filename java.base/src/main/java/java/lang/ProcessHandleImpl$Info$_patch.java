@@ -124,7 +124,7 @@ class ProcessHandleImpl$Info$_patch {
          */
         snprintf(addr_of(fn[0]), sizeof(fn), utf8z("/proc/%d/stat"), pid);
 
-        FILE_ptr fp = fopen(addr_of(fn[0]), utf8z("r"));
+        ptr<FILE> fp = fopen(addr_of(fn[0]), utf8z("r"));
         if (fp.isNull()) {
             return word(-1);              // fail, no such /proc/pid/stat
         }
@@ -134,8 +134,8 @@ class ProcessHandleImpl$Info$_patch {
          * As the command could be anything we must find the right most
          * ")" and then skip the white spaces that follow it.
          */
-        int statlen = fread(addr_of(buffer[0]).cast(), word(1), word(sizeof(buffer).intValue() - 1), fp).intValue();
-        fclose(fp);
+        int statlen = fread(addr_of(buffer[0]).cast(), word(1), word(sizeof(buffer).intValue() - 1), fp.cast()).intValue();
+        fclose(fp.cast());
         if (statlen < 0) {
             return word(-1);               // parent pid is not available
         }

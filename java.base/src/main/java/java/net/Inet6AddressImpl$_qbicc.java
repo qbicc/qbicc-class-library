@@ -106,10 +106,10 @@ class Inet6AddressImpl$_qbicc {
              * exclude them in the normal case, but return them if we don't get an IP
              * address.
              */
-            for (struct_ifaddrs_ptr iter = ifa.cast(); !iter.isNull(); iter = iter.sel().ifa_next.cast()) {
+            for (ptr<struct_ifaddrs> iter = ifa; !iter.isNull(); iter = deref(iter).ifa_next) {
                 if (!iter.sel().ifa_addr.isNull()) {
                     int family = iter.sel().ifa_addr.sel().sa_family.intValue();
-                    if (addr_of(iter.sel().ifa_name).loadUnshared().asArray()[0] != word('\0')) {
+                    if (deref(iter).ifa_name.loadUnshared() != word('\0')) {
                         boolean isLoopback = (iter.sel().ifa_flags.intValue() & IFF_LOOPBACK.intValue()) != 0;
                         if (family == AF_INET.intValue()) {
                             addrs4++;
@@ -142,11 +142,11 @@ class Inet6AddressImpl$_qbicc {
             }
 
             // Now loop around the ifaddrs
-            for (struct_ifaddrs_ptr iter = ifa.cast(); !iter.isNull(); iter = iter.sel().ifa_next.cast()) {
+            for (ptr<struct_ifaddrs> iter = ifa; !iter.isNull(); iter = deref(iter).ifa_next) {
                 if (!iter.sel().ifa_addr.isNull()) {
                     int family = iter.sel().ifa_addr.sel().sa_family.intValue();
                     boolean isLoopback = (iter.sel().ifa_flags.intValue() & IFF_LOOPBACK.intValue()) != 0;
-                    if (addr_of(iter.sel().ifa_name).loadUnshared().asArray()[0] != word('\0') &&
+                    if (deref(iter).ifa_name.loadUnshared() != word('\0') &&
                             (family == AF_INET.intValue() || (family == AF_INET6.intValue() && includeV6)) &&
                             (!isLoopback || includeLoopback)) {
                         c_int port = auto();

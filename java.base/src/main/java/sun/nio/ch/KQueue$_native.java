@@ -88,9 +88,9 @@ class KQueue$_native {
     }
 
     static int poll(int kqfd, long address, int nevents, long timeout) throws IOException {
-        struct_kevent_ptr events = word(address);
+        ptr<struct_kevent> events = word(address);
         struct_timespec ts = auto();
-        struct_timespec_ptr tsp = auto();
+        ptr<struct_timespec> tsp = auto();
 
         if (timeout >= 0) {
             ts.tv_sec = word(timeout/1000);
@@ -98,7 +98,7 @@ class KQueue$_native {
             tsp = addr_of(ts);
         }
 
-        c_int res = kevent(word(kqfd), word(0), word(0), events, word(nevents), tsp.cast());
+        c_int res = kevent(word(kqfd), word(0), word(0), events, word(nevents), tsp);
         if (res.intValue() < 0) {
             if (errno == EINTR.intValue()) {
                 return IOStatus.INTERRUPTED;
