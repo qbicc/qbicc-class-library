@@ -37,7 +37,7 @@ import static jdk.internal.sys.posix.SysTypes.*;
 import static jdk.internal.sys.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Stddef.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
-import static org.qbicc.runtime.stdc.Stdio.*;
+import static jdk.internal.sys.stdc.Stdio.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
 
 import org.qbicc.rt.annotation.Tracking;

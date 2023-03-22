@@ -3,7 +3,7 @@ package jdk.internal.sys.posix;
 import static org.qbicc.runtime.CNative.*;
 import static jdk.internal.sys.posix.SysTypes.*;
 import static org.qbicc.runtime.stdc.Stddef.*;
-import static org.qbicc.runtime.stdc.Stdio.*;
+import static jdk.internal.sys.stdc.Stdio.*;
 
 @include("<stdio.h>")
 @define(value = "_POSIX_C_SOURCE", as = "200809L")

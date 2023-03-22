@@ -2,7 +2,7 @@ package jdk.internal.org.qbicc.runtime;
 
 import static org.qbicc.runtime.CNative.*;
 import static jdk.internal.sys.posix.PThread.pthread_exit;
-import static org.qbicc.runtime.stdc.Stdio.*;
+import static jdk.internal.sys.stdc.Stdio.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
 import static org.qbicc.runtime.stdc.String.strcmp;
 
