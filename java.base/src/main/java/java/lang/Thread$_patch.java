@@ -41,7 +41,7 @@ import static jdk.internal.sys.posix.PThread.*;
 import static jdk.internal.sys.posix.Time.*;
 import static org.qbicc.runtime.stdc.Errno.errno;
 import static org.qbicc.runtime.stdc.Stdint.*;
-import static org.qbicc.runtime.stdc.Stdio.*;
+import static jdk.internal.sys.stdc.Stdio.*;
 import static org.qbicc.runtime.stdc.Time.*;
 
 import java.security.AccessControlContext;

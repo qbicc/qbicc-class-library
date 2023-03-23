@@ -48,7 +48,7 @@ import static jdk.internal.sys.posix.Unistd.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stddef.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
-import static org.qbicc.runtime.stdc.Stdio.*;
+import static jdk.internal.sys.stdc.Stdio.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
 import static org.qbicc.runtime.stdc.String.*;
 

@@ -38,6 +38,7 @@ import static jdk.internal.sys.posix.Errno.*;
 import static jdk.internal.sys.posix.SysStat.*;
 import static jdk.internal.sys.posix.SysTypes.*;
 import static jdk.internal.sys.posix.Unistd.*;
+import static jdk.internal.sys.stdc.Stdio.*;
 import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
 
@@ -261,6 +262,13 @@ class UnixFileSystem$_native {
         } finally {
             free(pathPtr);
         }
+    }
+
+    private boolean delete0(File f) {
+        final ptr<c_char> pathPtr = mallocPath(f);
+        c_int rv = remove(pathPtr);
+        free(pathPtr);
+        return rv.intValue() == 0;
     }
 
     public String[] list(File f) {
