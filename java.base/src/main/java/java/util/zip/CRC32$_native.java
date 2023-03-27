@@ -1,7 +1,7 @@
 package java.util.zip;
 
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.zlib.ZLib.*;
+import static jdk.internal.sys.zlib.ZLib.*;
 
 public class CRC32$_native {
     private static int update(int crc, int b) {
