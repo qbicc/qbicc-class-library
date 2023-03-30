@@ -13,25 +13,25 @@ import org.qbicc.runtime.Build;
 public final class SysMman {
     private SysMman() {}
 
-    public static native void_ptr mmap(void_ptr addr, size_t length, c_int prot, c_int flags, c_int fd, off_t offset);
-    public static native c_int munmap(void_ptr addr, size_t length);
+    public static native <P extends ptr<?>> P mmap(ptr<?> addr, size_t length, c_int prot, c_int flags, c_int fd, off_t offset);
+    public static native c_int munmap(ptr<?> addr, size_t length);
 
-    public static native c_int mprotect(void_ptr addr, size_t length, c_int prot);
+    public static native c_int mprotect(ptr<?> addr, size_t length, c_int prot);
 
-    public static native c_int mlock(const_void_ptr addr, size_t length);
-    public static native c_int munlock(const_void_ptr addr, size_t length);
+    public static native c_int mlock(ptr<@c_const ?> addr, size_t length);
+    public static native c_int munlock(ptr<@c_const ?> addr, size_t length);
 
     public static native c_int mlockall(c_int flags);
     public static native c_int munlockall();
 
-    public static native c_int msync(void_ptr addr, size_t length, c_int flags);
+    public static native c_int msync(ptr<?> addr, size_t length, c_int flags);
 
-    public static native c_int posix_madvise(void_ptr addr, size_t length, c_int advice);
+    public static native c_int posix_madvise(ptr<?> addr, size_t length, c_int advice);
 
-    public static native c_int posix_mem_offset(const_void_ptr addr, size_t length, off_t_ptr offsetPtr, size_t_ptr contigLen, int_ptr fdPtr);
+    public static native c_int posix_mem_offset(ptr<@c_const ?> addr, size_t length, off_t_ptr offsetPtr, size_t_ptr contigLen, int_ptr fdPtr);
 
-    public static native c_int shm_open(const_char_ptr name, c_int oflag, mode_t mode);
-    public static native c_int shm_unlink(const_char_ptr name);
+    public static native c_int shm_open(ptr<@c_const c_char> name, c_int oflag, mode_t mode);
+    public static native c_int shm_unlink(ptr<@c_const c_char> name);
 
     // NOTE: Not POSIX but widely supported
     public static final c_int MAP_ANON = constant();
@@ -40,7 +40,7 @@ public final class SysMman {
     public static final c_int MAP_PRIVATE = constant();
     public static final c_int MAP_FIXED = constant();
 
-    public static final void_ptr MAP_FAILED = constant();
+    public static final ptr<?> MAP_FAILED = constant();
 
     public static final c_int PROT_READ = constant();
     public static final c_int PROT_WRITE = constant();
