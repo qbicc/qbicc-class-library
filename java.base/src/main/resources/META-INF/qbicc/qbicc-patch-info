@@ -48,6 +48,10 @@ java.util.concurrent.Exchanger$_init
 java.util.concurrent.Exchanger$_runtime
 java.util.concurrent.Phaser$_init
 java.util.concurrent.Phaser$_runtime
+jdk.internal.gc.ArrayAccess
+jdk.internal.gc.ClassAccess
+jdk.internal.gc.ObjectAccess
+jdk.internal.gc.ObjectArrayAccess
 jdk.internal.loader.BootLoader$_patch
 jdk.internal.loader.BuiltinClassLoader$_patch
 jdk.internal.misc.UnsafeConstants$_patch
@@ -55,6 +59,9 @@ jdk.internal.misc.UnsafeConstants$_runtime
 jdk.internal.misc.VM$_patch
 jdk.internal.ref.CleanerImpl$_patch
 jdk.internal.sys.linux.Linux$_runtime
+jdk.internal.thread.ObjectAccess
+jdk.internal.thread.ShutdownAccess
+jdk.internal.thread.ThreadAccess
 sun.nio.ch.ByteBuffer$_aliases
 sun.nio.ch.EPollSelectorImpl$_init
 sun.nio.ch.EPollSelectorImpl$_runtime

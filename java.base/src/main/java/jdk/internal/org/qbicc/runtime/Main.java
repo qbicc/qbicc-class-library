@@ -7,6 +7,9 @@ import static org.qbicc.runtime.stdc.Stdlib.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import jdk.internal.gc.Gc;
+import jdk.internal.thread.ThreadNative;
+
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.NoThrow;
@@ -46,9 +49,7 @@ public final class Main {
      */
     static native void userMain(String[] args);
 
-    static native ThreadGroup getSystemThreadGroup();
-
-    static final Thread mainThread = new Thread(getSystemThreadGroup(), "main") {
+    static final Thread mainThread = new Thread(ThreadNative.getSystemThreadGroup(), "main") {
         public void start() {
             // can only be started by thread_attach
             throw new IllegalThreadStateException();
@@ -62,21 +63,21 @@ public final class Main {
     private static c_int argc;
     private static ptr<ptr<c_char>> argv;
 
+    /**
+     * @see ThreadNative#thread_attach
+     */
     @extern
     static native void thread_attach(Thread thread);
 
     @export
     @Hidden
     public static c_int main(c_int argc, ptr<c_char>[] argv) {
-        Heap.initHeap(argc.intValue(), addr_of(argv[0]).cast());
-
-        // first set up VM
-        if (! Heap.checkInit(true)) {
-            exit(word(1));
-        }
+        // todo: process heap size arguments
 
         Main.argc = argc;
         Main.argv = addr_of(argv[0]);
+
+        Gc.qbicc_initialize_heap();
 
         thread_attach(mainThread);
         // should be unreachable...
@@ -87,6 +88,8 @@ public final class Main {
     @NoThrow
     private static void main0() {
         try {
+            // start GC
+            Gc.start();
             // initialize the JDK
             System$_patch.rtinitPhase1();
             System$_patch.rtinitPhase2();

@@ -32,9 +32,8 @@
 
 package java.lang;
 
-import static java.lang.Thread.*;
-
 import jdk.internal.misc.Unsafe;
+import jdk.internal.thread.ThreadNative;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
@@ -54,20 +53,20 @@ final class UnsafeParkUnpark {
             if (millis <= 0) {
                 return;
             }
-            Thread.park(millis, 0, STATE_PARKED | STATE_WAITING | STATE_WAITING_WITH_TIMEOUT, STATE_RUNNABLE, STATE_INTERRUPTED, STATE_UNPARK);
+            ThreadNative.park(millis, 0, ThreadNative.STATE_PARKED | ThreadNative.STATE_WAITING | ThreadNative.STATE_WAITING_WITH_TIMEOUT, ThreadNative.STATE_RUNNABLE, ThreadNative.STATE_INTERRUPTED, ThreadNative.STATE_UNPARK);
         } else if (time == 0) {
             // no timeout
-            Thread.park(0, 0, STATE_PARKED | STATE_WAITING | STATE_WAITING_INDEFINITELY, STATE_RUNNABLE, STATE_INTERRUPTED, STATE_UNPARK);
+            ThreadNative.park(0, 0, ThreadNative.STATE_PARKED | ThreadNative.STATE_WAITING | ThreadNative.STATE_WAITING_INDEFINITELY, ThreadNative.STATE_RUNNABLE, ThreadNative.STATE_INTERRUPTED, ThreadNative.STATE_UNPARK);
         } else {
             // relative timeout in nanos
             int nanos = (int) (time % 1_000_000);
             long millis = time / 1_000_000;
-            Thread.park(millis, nanos, STATE_PARKED | STATE_WAITING | STATE_WAITING_WITH_TIMEOUT, STATE_RUNNABLE, STATE_INTERRUPTED, STATE_UNPARK);
+            ThreadNative.park(millis, nanos, ThreadNative.STATE_PARKED | ThreadNative.STATE_WAITING | ThreadNative.STATE_WAITING_WITH_TIMEOUT, ThreadNative.STATE_RUNNABLE, ThreadNative.STATE_INTERRUPTED, ThreadNative.STATE_UNPARK);
         }
     }
 
     @Replace
     void unpark(Object thread) {
-        ((Thread) thread).unpark(STATE_UNPARK);
+        ((Thread) thread).unpark(ThreadNative.STATE_UNPARK);
     }
 }

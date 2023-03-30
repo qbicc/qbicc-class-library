@@ -40,6 +40,7 @@ import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.AutoQueued;
 import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.NoReflect;
+import org.qbicc.runtime.NoSafePoint;
 import org.qbicc.runtime.main.CompilerIntrinsics;
 import org.qbicc.runtime.main.Monitor;
 import org.qbicc.runtime.main.VMHelpers;
@@ -60,6 +61,7 @@ public class Object {
     @NoReflect
     int defaultHashCode;
 
+    @NoSafePoint // todo: skip safepoint check on empty methods/ctors
     public Object() {}
 
     public final Class<?> getClass() {
