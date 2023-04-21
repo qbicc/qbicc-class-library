@@ -5,6 +5,7 @@ import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.unwind.LibUnwind.*;
 
 import org.qbicc.runtime.Build;
+import org.qbicc.runtime.patcher.Add;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
 import org.qbicc.runtime.stackwalk.JavaStackWalker;
@@ -17,6 +18,8 @@ import org.qbicc.runtime.stackwalk.StackWalker;
 final class Throwable$_patch {
     private transient Object backtrace;
     private transient int depth;
+    @Add
+    private ptr<?> sp;
 
     @Replace
     private Throwable fillInStackTrace(int ignored) {
