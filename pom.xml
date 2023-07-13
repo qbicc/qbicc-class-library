@@ -8,7 +8,7 @@
     <groupId>org.qbicc.rt</groupId>
     <artifactId>qbicc-rt-parent</artifactId>
     <!-- IMPORTANT: when updating this value, also update .github/workflows/maven.yml -->
-    <version>17.alpha.0.55-SNAPSHOT</version>
+    <version>17.alpha.0.55</version>
 
     <name>Qbicc Run Time: Parent POM</name>
     <description>Parent POM of Qbicc run time libraries</description>
@@ -19,7 +19,7 @@
         <sh>/bin/sh</sh>
         <make>/usr/bin/make</make>
         <!-- IMPORTANT: when updating this value, also update .github/workflows/maven.yml -->
-        <version.qbicc>0.71.0</version.qbicc>
+        <version.qbicc>0.74.0</version.qbicc>
 
         <!-- This tracks the version of OpenJDK sources in the git submodule -->
         <version.openjdk>17.0.4.1</version.openjdk>
