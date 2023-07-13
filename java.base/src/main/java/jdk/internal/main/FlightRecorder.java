@@ -1,4 +1,4 @@
-package jdk.internal.org.qbicc.runtime;
+package jdk.internal.main;
 
 public class FlightRecorder {
     public static long initDoneTime;

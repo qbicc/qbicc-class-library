@@ -35,7 +35,7 @@ package jdk.internal.ref;
 import java.lang.ref.Cleaner;
 import java.util.concurrent.ThreadFactory;
 
-import jdk.internal.org.qbicc.runtime.Main;
+import jdk.internal.main.Main;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;

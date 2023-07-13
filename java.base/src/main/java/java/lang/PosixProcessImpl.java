@@ -54,7 +54,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import jdk.internal.org.qbicc.runtime.Main;
+import jdk.internal.main.Main;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
 import sun.security.action.GetPropertyAction;

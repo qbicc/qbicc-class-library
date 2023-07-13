@@ -1,8 +1,7 @@
-package jdk.internal.org.qbicc.runtime;
+package jdk.internal.main;
 
 import static org.qbicc.runtime.CNative.*;
 import static jdk.internal.sys.stdc.Stdio.*;
-import static org.qbicc.runtime.stdc.Stdlib.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;

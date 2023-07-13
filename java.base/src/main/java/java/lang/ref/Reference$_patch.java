@@ -33,12 +33,10 @@ package java.lang.ref;
 
 import jdk.internal.access.JavaLangRefAccess;
 import jdk.internal.access.SharedSecrets;
-import jdk.internal.org.qbicc.runtime.Main;
+import jdk.internal.main.Main;
 
 import org.qbicc.rt.annotation.Tracking;
-import org.qbicc.runtime.SerializeAsZero;
 import org.qbicc.runtime.patcher.Add;
-import org.qbicc.runtime.patcher.Annotate;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
 import org.qbicc.runtime.patcher.ReplaceInit;
