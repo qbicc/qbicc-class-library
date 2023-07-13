@@ -32,9 +32,9 @@
 
 package java.lang;
 
+import jdk.internal.gc.Gc;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
-import org.qbicc.runtime.gc.heap.Heap;
 
 @Tracking("src/java.base/share/native/libjava/Runtime.c")
 class Runtime$_native {
@@ -42,9 +42,9 @@ class Runtime$_native {
     public long maxMemory() {
         if (Build.isHost()) {
             // TODO: get configured default max memory
-            return 64 * 1024 * 1024;
+            return Gc.getConfiguredMaxHeapSize();
         } else {
-            return Heap.getMaxHeapSize();
+            return Gc.getMaxHeapSize();
         }
     }
 

@@ -1,18 +1,18 @@
 package jdk.internal.main;
 
-import static org.qbicc.runtime.CNative.*;
 import static jdk.internal.sys.stdc.Stdio.*;
+import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.stdc.Stdint.*;
+import static org.qbicc.runtime.stdc.Stdlib.*;
+import static org.qbicc.runtime.stdc.String.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import jdk.internal.gc.Gc;
 import jdk.internal.thread.ThreadNative;
-
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.NoThrow;
-import org.qbicc.runtime.gc.heap.Heap;
 
 /**
  * Holds the native image main entry point.
@@ -59,8 +59,11 @@ public final class Main {
         }
     };
 
+    private static ptr<@c_const c_char> exeName;
     private static c_int argc;
-    private static ptr<ptr<c_char>> argv;
+    private static ptr<ptr<@c_const c_char>> argv;
+    private static c_int sysArgc;
+    private static ptr<ptr<@c_const c_char>> sysArgv;
 
     /**
      * @see ThreadNative#thread_attach
@@ -71,16 +74,141 @@ public final class Main {
     @export
     @Hidden
     public static c_int main(c_int argc, ptr<c_char>[] argv) {
-        // todo: process heap size arguments
+        if (strcmp(argv[0], utf8z("jspawnhelper")).isZero()) {
+            // todo: jspawnhelper impl
+            abort();
+        }
+        exeName = argv[0];
 
-        Main.argc = argc;
-        Main.argv = addr_of(argv[0]);
+        Gc.qbicc_initialize_page_size();
 
-        Gc.qbicc_initialize_heap();
+        // initial argument processing
+        ptr<ptr<c_char>> sysArgv = calloc(argc.cast(), sizeof(ptr.class));
+        ptr<ptr<c_char>> userArgv = calloc(argc.cast(), sizeof(ptr.class));
+        if (userArgv.isNull()) {
+            // not enough memory
+            fprintf(stderr, utf8z("Not enough memory to create VM\n"));
+            exit(word(1));
+        }
+
+        int sysArgc = 0;
+        int userArgc = 0;
+        long minHeap = -1;
+        long maxHeap = -1;
+        for (int i = 1; i < argc.intValue(); i ++) {
+            if (strncmp(argv[i], utf8z("-X"), word(2)).isZero()) {
+                // it's a "JVM" option
+                if (strncmp(argv[i].plus(2), utf8z("ms"), word(2)).isZero()) {
+                    // min heap size
+                    minHeap = parseMemorySize(argv[i].plus(4));
+                    if (minHeap < Gc.getPageSize()) {
+                        minHeap = Gc.getPageSize();
+                    }
+                } else if (strncmp(argv[i].plus(2), utf8z("mx"), word(2)).isZero()) {
+                    // max heap size
+                    maxHeap = parseMemorySize(argv[i].plus(4));
+                    if (maxHeap < Gc.getPageSize()) {
+                        maxHeap = Gc.getPageSize();
+                    }
+                } else {
+                    fprintf(stderr, utf8z("Unknown or unsupported VM argument: %s\n"), argv[i]);
+                    exit(word(1));
+                }
+                // add to system arguments list
+                sysArgv.asArray()[sysArgc++] = argv[i];
+            } else {
+                // end of VM arguments or first user argument
+                int j;
+                if (strcmp(argv[i], utf8z("-X-")).isZero()) {
+                    j = i + 1;
+                } else {
+                    j = i;
+                }
+                for (; j < argc.intValue(); j ++) {
+                    userArgv.asArray()[userArgc++] = argv[j];
+                }
+                break;
+            }
+        }
+        long pageMask = Gc.getPageSize() - 1;
+        if (maxHeap == -1 && minHeap == -1) {
+            maxHeap = Gc.getConfiguredMaxHeapSize();
+            minHeap = Gc.getConfiguredMinHeapSize();
+            // round up to page size
+            maxHeap = (maxHeap + pageMask) & ~pageMask;
+            minHeap = (minHeap + pageMask) & ~pageMask;
+            if (maxHeap < minHeap) {
+                maxHeap = minHeap;
+            }
+        } else if (maxHeap == -1) {
+            maxHeap = Gc.getConfiguredMaxHeapSize();
+            // round up to page size
+            maxHeap = (maxHeap + pageMask) & ~pageMask;
+            minHeap = (minHeap + pageMask) & ~pageMask;
+            if (maxHeap < minHeap) {
+                // minHeap takes precedence because maxHeap was not given
+                maxHeap = minHeap;
+            }
+        } else if (minHeap == -1) {
+            minHeap = Gc.getConfiguredMinHeapSize();
+            // round up to page size
+            maxHeap = (maxHeap + pageMask) & ~pageMask;
+            minHeap = (minHeap + pageMask) & ~pageMask;
+            if (maxHeap < minHeap) {
+                // maxHeap takes precedence because minHeap was not given
+                minHeap = maxHeap;
+            }
+        } else {
+            // round up to page size
+            maxHeap = (maxHeap + pageMask) & ~pageMask;
+            minHeap = (minHeap + pageMask) & ~pageMask;
+            if (maxHeap < minHeap) {
+                maxHeap = minHeap;
+            }
+        }
+
+        Main.argc = word(userArgc);
+        Main.argv = userArgv;
+        Main.sysArgc = word(sysArgc);
+        Main.sysArgv = sysArgv;
+
+        Gc.qbicc_initialize_heap(minHeap, maxHeap);
 
         thread_attach(mainThread);
         // should be unreachable...
         return zero();
+    }
+
+    @export(withScope = ExportScope.LOCAL)
+    private static long parseMemorySize(final ptr<@c_const c_char> arg) {
+        ptr<c_char> endPtr = auto();
+        long num = strtoll(arg, addr_of(endPtr), word(10)).longValue();
+        char ch = endPtr.loadUnshared(uint8_t.class).charValue();
+        if (ch == 0) {
+            // just bytes
+        } else if (ch == 'T' || ch == 't') {
+            // terabytes
+            num *= 1L << 40;
+            endPtr = endPtr.plus(1);
+        } else if (ch == 'G' || ch == 'g') {
+            // gigabytes
+            num *= 1L << 30;
+            endPtr = endPtr.plus(1);
+        } else if (ch == 'M' || ch == 'm') {
+            // megabytes
+            num *= 1L << 20;
+            endPtr = endPtr.plus(1);
+        } else if (ch == 'K' || ch == 'k') {
+            // kilobytes
+            num *= 1L << 10;
+            endPtr = endPtr.plus(1);
+        }
+        ch = endPtr.loadUnshared(uint8_t.class).charValue();
+        if (ch != 0) {
+            fprintf(stderr, utf8z("Invalid memory size: %s\n"), arg);
+            exit(word(1));
+        }
+        return num;
     }
 
     @Hidden
@@ -95,9 +223,8 @@ public final class Main {
             System$_patch.rtinitPhase3();
 
             // Parse the command line arguments and convert from C to Java
-            String[] userArgs = processArgs(argc, argv.asArray());
-
-            // TODO: We should process any non-Heap arguments in FlightRecorder.vmArgs here.
+            String[] userArgs = makeJavaStringArray(argv.asArray(), argc.intValue());
+            FlightRecorder.vmArgs = makeJavaStringArray(sysArgv.asArray(), sysArgc.intValue());
 
             // next execute additional initialization actions deferred from build time
             for (Runnable r: deferredInits) {
@@ -128,33 +255,11 @@ public final class Main {
         }
     }
 
-    // Convert C args to Java Strings and separate the VM and user arguments
-    // Return the subset of argv that are arguments for the user main.
-    private static String[] processArgs(c_int argc, ptr<c_char>[] argv) {
-        String[] userArgs = new String[argc.intValue() - 1];
-        String[] vmArgs = new String[0];
-        int userCount = 0;
-        boolean checkForVmArg = true;
-        for (int i=1; i<argc.intValue(); i++) {
-            String jarg = utf8zToJavaString(argv[i].cast());
-            if (checkForVmArg) {
-                if (!jarg.startsWith("--")) {
-                    checkForVmArg = false;
-                } else if (Heap.isHeapArgument(argv[i].cast())) {
-                    vmArgs = Arrays.copyOf(vmArgs, vmArgs.length+1);
-                    vmArgs[vmArgs.length - 1] = jarg;
-                    continue;
-                }
-                // TODO: Define additional vmargs (eg for setting properties)
-            }
-            userArgs[userCount++] = jarg;
+    private static String[] makeJavaStringArray(final ptr<c_char>[] args, final int count) {
+        String[] strings = new String[count];
+        for (int i = 0; i < count; i ++) {
+            strings[i] = utf8zToJavaString(args[i].cast());
         }
-
-        if (userCount < userArgs.length) {
-            userArgs = Arrays.copyOf(userArgs, userCount);
-        }
-        FlightRecorder.vmArgs = vmArgs;
-
-        return userArgs;
+        return strings;
     }
 }

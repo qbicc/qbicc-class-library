@@ -31,7 +31,7 @@
  */
 package sun.management;
 
-import jdk.internal.org.qbicc.runtime.FlightRecorder;
+import jdk.internal.main.FlightRecorder;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.patcher.PatchClass;

@@ -24,7 +24,6 @@ import org.qbicc.runtime.Inline;
 import org.qbicc.runtime.InlineCondition;
 import org.qbicc.runtime.NoSafePoint;
 import org.qbicc.runtime.NoThrow;
-import org.qbicc.runtime.gc.heap.Heap;
 import org.qbicc.runtime.main.CompilerIntrinsics;
 import org.qbicc.runtime.stackwalk.StackWalker;
 
@@ -35,6 +34,8 @@ public final class Gc {
 
     static final ptr<struct_gc> gc;
     static long pageSize;
+    static long minHeapSize;
+    static long maxHeapSize;
 
     static {
         // build time initialization
@@ -133,7 +134,48 @@ public final class Gc {
         }
     };
 
-    private static final int HEAP_BYTE_PER_HEAP_INDEX = Heap.getConfiguredObjectAlignment();
+    /**
+     * Get the build-time-configured maximum heap size.
+     *
+     * @return the configured maximum heap size in bytes
+     */
+    public static native long getConfiguredMinHeapSize();
+
+    /**
+     * Get the build-time-configured minimum heap size.
+     *
+     * @return the configured minimum heap size in bytes
+     */
+    public static native long getConfiguredMaxHeapSize();
+
+    /**
+     * Get the build-time-configured minimum heap alignment.
+     *
+     * @return the configured heap alignment
+     */
+    public static native long getConfiguredHeapAlignment();
+
+    /**
+     * Get the constant, build-time-configured minimum object alignment, in bytes.
+     * It is always the case that {@code Integer.bitCount(getConfiguredObjectAlignment()) == 1}.
+     *
+     * @return the configured object alignment
+     */
+    public static native int getConfiguredObjectAlignment();
+
+    /**
+     * An OOME that can always be safely thrown without allocating anything on the heap.
+     */
+    public static final OutOfMemoryError OOME;
+
+    static {
+        //
+        OutOfMemoryError error = new OutOfMemoryError("Heap space");
+        error.setStackTrace(new StackTraceElement[0]);
+        OOME = error;
+    }
+
+    private static final int HEAP_BYTE_PER_HEAP_INDEX = Gc.getConfiguredObjectAlignment();
     private static final int HEAP_BYTE_PER_HEAP_INDEX_SHIFT = Integer.numberOfTrailingZeros(HEAP_BYTE_PER_HEAP_INDEX);
 
     private static final int HEAP_INDEX_PER_BITMAP_BYTE = 8; // always 8 bits per byte
@@ -159,6 +201,18 @@ public final class Gc {
     @NoSafePoint
     public static long getPageSize() {
         return pageSize;
+    }
+
+    @NoThrow
+    @NoSafePoint
+    public static long getMinHeapSize() {
+        return minHeapSize;
+    }
+
+    @NoThrow
+    @NoSafePoint
+    public static long getMaxHeapSize() {
+        return maxHeapSize;
     }
 
     public static void start() {
@@ -247,12 +301,12 @@ public final class Gc {
      */
     @Hidden
     @AutoQueued
-    @NoSafePoint
+    // todo: NoSafepointPoll
     public static Object allocate(long size) {
         reference<?> allocated = deref(deref(gc).allocate).asInvokable().allocate(size);
         if (allocated == null) {
-            // GC failure
-            abort();
+            // no free memory
+            throw OOME;
         }
         return allocated;
     }
@@ -314,14 +368,11 @@ public final class Gc {
     static native ptr<reference<?>> getReferenceTypedVariablesStart();
     static native int getReferenceTypedVariablesCount();
 
-    /**
-     * Initialize the heap at program start.
-     */
     @export
-    public static void qbicc_initialize_heap() {
+    public static void qbicc_initialize_page_size() {
         if (Build.Target.isPosix()) {
             int pageSize = sysconf(_SC_PAGE_SIZE).intValue();
-            if (pageSize == -1) {
+            if (pageSize == - 1) {
                 abort();
             }
             if (Integer.bitCount(pageSize) != 1) {
@@ -329,9 +380,20 @@ public final class Gc {
                 abort();
             }
             Gc.pageSize = pageSize;
+        } else if (Build.Target.isWasm()) {
+            Gc.pageSize = 64 << 10; // 64KiB always
         } else {
             abort();
         }
+    }
+
+    /**
+     * Initialize the heap at program start.
+     */
+    @export
+    public static void qbicc_initialize_heap(long min_heap, long max_heap) {
+        minHeapSize = min_heap;
+        maxHeapSize = max_heap;
 
         struct_gc_attr gc_attr = auto(zero());
 
@@ -814,7 +876,7 @@ public final class Gc {
     public static <P extends ptr<?>> P region_allocate(ptr<struct_region> region_ptr, long size) {
         final long limit = deref(region_ptr).limit;
         // round up the size so the next allocation is aligned
-        final int mask = Heap.getConfiguredObjectAlignment() - 1;
+        final int mask = Gc.getConfiguredObjectAlignment() - 1;
         size = (size + mask) & ~mask;
         if (size > limit) {
             // fail fast; it can never fit
@@ -897,7 +959,7 @@ public final class Gc {
         // save the pointer
         ptr<?> next = deref(deref(iter_ptr).region_ptr).start.plus(deref(iter_ptr).position);
         long size = deref(iter_ptr).current_size = instance_size(ptrToRef(next));
-        final int mask = Heap.getConfiguredObjectAlignment() - 1;
+        final int mask = Gc.getConfiguredObjectAlignment() - 1;
         size = (size + mask) & ~mask;
         deref(iter_ptr).position += size;
         return next.cast();

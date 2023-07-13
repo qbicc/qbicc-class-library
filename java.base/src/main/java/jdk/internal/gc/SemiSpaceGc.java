@@ -5,12 +5,14 @@ import static jdk.internal.sys.posix.SysMman.*;
 import static jdk.internal.thread.ThreadNative.*;
 
 import static org.qbicc.runtime.CNative.*;
+import static org.qbicc.runtime.stdc.Errno.errno;
+import static org.qbicc.runtime.stdc.Stdio.*;
 import static org.qbicc.runtime.stdc.Stdlib.*;
+import static org.qbicc.runtime.stdc.String.strerror;
 
 import org.qbicc.runtime.Build;
 import org.qbicc.runtime.NoSafePoint;
 import org.qbicc.runtime.NoThrow;
-import org.qbicc.runtime.gc.heap.Heap;
 
 /**
  * A basic garbage collector which moves live objects between two equally-sized spaces.
@@ -95,12 +97,11 @@ public final class SemiSpaceGc {
 
     @export
     private static void initialize_heap(ptr<struct_gc_attr> attr_ptr) {
-        // todo: clean this part up
-        ptr<?> start;
-        long heapSize = Heap.getConfiguredMaxHeapSize();
+        long heapSize = Gc.getMaxHeapSize();
         // we need to round heap size down to a page * 2 boundary
         long pageSize = Gc.getPageSize();
         heapSize &= ~((pageSize << 1) - 1);
+        ptr<?> start;
         if (! Build.Target.isWasm()) {
             start = mmap(zero(), word(heapSize), word(PROT_READ.longValue() | PROT_WRITE.longValue()), word(MAP_PRIVATE.longValue() | MAP_ANON.longValue()), word(-1), zero()).cast();
         } else {
@@ -108,15 +109,16 @@ public final class SemiSpaceGc {
             start = zero();
         }
         if (start == MAP_FAILED) {
-            // todo: fail gracefully (errno)
-            abort();
+            fprintf(stderr, utf8z("Failed to map initial heap (%s)\n"), strerror(word(errno)));
+            exit(word(1));
+            return; // not reached
         }
         deref(attr_ptr).lowest_heap_addr = start.cast();
         deref(attr_ptr).highest_heap_addr = start.plus(heapSize).cast();
         // since heapSize is a page * 2 boundary, semiSize is on a page boundary
         long semiSize = heapSize >>> 1;
         if (! region_init(addr_of(from), start, semiSize) || ! region_init(addr_of(to), start.plus(semiSize), semiSize)) {
-            // heap failure
+            // heap failure (should be impossible)
             abort();
         }
         // other regions are initialized by common code
@@ -147,8 +149,8 @@ public final class SemiSpaceGc {
         if (ptr == null) {
             // will it *ever* fit?
             if (size > from.limit) {
-                // no; forbid it for this simple collector
-                throw Heap.OOME;
+                // throw OOME
+                return null;
             }
             // we need to trigger a collection manually
             final ptr<thread_native> gcThread = getThreadNativePtr(Gc.gc_thread);
@@ -161,7 +163,8 @@ public final class SemiSpaceGc {
             ptr = region_allocate(addr_of(from), size);
             // now if it's null, we've done all we can
             if (ptr == null) {
-                throw Heap.OOME;
+                // throw OOME
+                return null;
             }
         }
         return reference.of(ptrToRef(ptr));
