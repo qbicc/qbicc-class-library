@@ -21,13 +21,13 @@ public class Fcntl {
     }
 
     @name("openat")
-    private static native c_int openat_impl(c_int dirFd, const_char_ptr pathname, c_int flags, object... args);
+    private static native c_int openat_impl(c_int dirFd, ptr<@c_const c_char> pathname, c_int flags, object... args);
 
-    public static c_int openat(c_int dirFd, const_char_ptr pathname, c_int flags) {
+    public static c_int openat(c_int dirFd, ptr<@c_const c_char> pathname, c_int flags) {
         return openat_impl(dirFd, pathname, flags);
     }
 
-    public static c_int openat(c_int dirFd, const_char_ptr pathname, c_int flags, mode_t mode) {
+    public static c_int openat(c_int dirFd, ptr<@c_const c_char> pathname, c_int flags, mode_t mode) {
         return openat_impl(dirFd, pathname, flags, mode);
     }
 

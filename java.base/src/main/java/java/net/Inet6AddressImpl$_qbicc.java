@@ -54,9 +54,9 @@ import org.qbicc.runtime.Build;
 @Tracking("src/java.base/unix/native/libnet/Inet6AddressImpl.c")
 class Inet6AddressImpl$_qbicc {
 
-    static char_ptr getStringPlatformChars(final String str) throws OutOfMemoryError {
+    static ptr<c_char> getStringPlatformChars(final String str) throws OutOfMemoryError {
         byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
-        char_ptr ptr = malloc(word(bytes.length + 1));
+        ptr<c_char> ptr = malloc(word(bytes.length + 1));
         if (ptr.isNull()) {
             throw new OutOfMemoryError("malloc failed");
         }
@@ -65,7 +65,7 @@ class Inet6AddressImpl$_qbicc {
         return ptr;
     }
 
-    static InetAddress[] lookupIfLocalhost(const_char_ptr hostname, boolean includeV6) throws SocketException {
+    static InetAddress[] lookupIfLocalhost(ptr<@c_const c_char> hostname, boolean includeV6) throws SocketException {
         if (Build.Target.isMacOs()) {
             InetAddress[] result = null;
             c_char[] myhostname = new c_char[256];
@@ -171,11 +171,11 @@ class Inet6AddressImpl$_qbicc {
         }
 
         InetAddress[] ret = null;
-        struct_addrinfo_ptr res = auto();
-        struct_addrinfo_ptr resNew = word(0);
-        struct_addrinfo_ptr last = word(0);
-        struct_addrinfo_ptr iterator = word(0);
-        const_char_ptr hostname = getStringPlatformChars(host).cast();
+        ptr<struct_addrinfo> res = auto();
+        ptr<struct_addrinfo> resNew = word(0);
+        ptr<struct_addrinfo> last = word(0);
+        ptr<struct_addrinfo> iterator = word(0);
+        ptr<@c_const c_char> hostname = getStringPlatformChars(host).cast();
 
         try {
             struct_addrinfo hints = auto();
@@ -209,7 +209,7 @@ class Inet6AddressImpl$_qbicc {
                 while (!iterator.isNull()) {
                     // skip duplicates
                     boolean skip = false;
-                    struct_addrinfo_ptr iteratorNew = resNew;
+                    ptr<struct_addrinfo> iteratorNew = resNew;
                     while (!iteratorNew.isNull()) {
                         if (iterator.sel().ai_family == iteratorNew.sel().ai_family &&
                                 iterator.sel().ai_addrlen == iteratorNew.sel().ai_addrlen) {
@@ -246,7 +246,7 @@ class Inet6AddressImpl$_qbicc {
                     }
 
                     if (!skip) {
-                        struct_addrinfo_ptr next = malloc(sizeof(struct_addrinfo.class));
+                        ptr<struct_addrinfo> next = malloc(sizeof(struct_addrinfo.class));
                         if (next.isNull()) {
                             throw new OutOfMemoryError("Native heap allocation failed");
                         }
@@ -318,7 +318,7 @@ class Inet6AddressImpl$_qbicc {
             // cleanup native memory
             free(hostname);
             while (!resNew.isNull()) {
-                struct_addrinfo_ptr toFree = resNew;
+                ptr<struct_addrinfo> toFree = resNew;
                 resNew = addr_of(resNew.sel().ai_next).loadUnshared().cast();
                 free(toFree);
             }

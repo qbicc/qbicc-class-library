@@ -159,7 +159,7 @@ public final class System$_native {
     public static long currentTimeMillis() {
         if (Build.Target.isPosix()) {
             struct_timespec spec = auto();
-            clock_gettime(CLOCK_REALTIME, (struct_timespec_ptr) addr_of(spec));
+            clock_gettime(CLOCK_REALTIME, addr_of(spec));
             return spec.tv_sec.longValue() * 1_000L + spec.tv_nsec.longValue() / 1_000_000L;
         } else {
             throw new UnsupportedOperationException("currentTimeMillis");
@@ -170,7 +170,7 @@ public final class System$_native {
         if (Build.Target.isPosix()) {
             // todo: check _POSIX_TIMERS / _POSIX_MONOTONIC_CLOCK from <unistd.h> and fall back if needed
             struct_timespec spec = auto();
-            clock_gettime(CLOCK_MONOTONIC, (struct_timespec_ptr) addr_of(spec));
+            clock_gettime(CLOCK_MONOTONIC, addr_of(spec));
             // todo: add nanoTime bias from end of ADD phase
             return spec.tv_sec.longValue() * 1_000_000_000L + spec.tv_nsec.longValue();
         } else {

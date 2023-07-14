@@ -147,10 +147,10 @@ class UnixFileSystem$_native {
         return new String(targetBuf, a + 1, length - a - 1);
     }
 
-    private static char_ptr mallocPath(File f) {
+    private static ptr<c_char> mallocPath(File f) {
         byte[] bytes = f.getPath().getBytes(StandardCharsets.UTF_8);
         int len = bytes.length + 1;
-        char_ptr ptr = malloc(uword(len + 1));
+        ptr<c_char> ptr = malloc(uword(len + 1));
         if (ptr.isNull()) {
             throw new OutOfMemoryError("malloc");
         }
@@ -168,7 +168,7 @@ class UnixFileSystem$_native {
             }
         }
         final struct_stat statBuf = auto();
-        final char_ptr pathPtr = mallocPath(f);
+        final ptr<c_char> pathPtr = mallocPath(f);
         c_int statResult = stat(pathPtr.cast(), addr_of(statBuf));
         free(pathPtr);
         int res = 0;
@@ -200,7 +200,7 @@ class UnixFileSystem$_native {
             case ACCESS_EXECUTE -> X_OK;
             default -> throw new IllegalArgumentException();
         };
-        final char_ptr pathPtr = mallocPath(f);
+        final ptr<c_char> pathPtr = mallocPath(f);
         c_int accessRes = access(pathPtr.cast(), mode);
         free(pathPtr);
         return accessRes.isNonZero();
@@ -214,7 +214,7 @@ class UnixFileSystem$_native {
                 return 0;
             }
         }
-        final char_ptr pathPtr = mallocPath(f);
+        final ptr<c_char> pathPtr = mallocPath(f);
         struct_stat sb = auto();
         long rv = 0;
         if (stat(pathPtr.cast(), addr_of(sb)).isZero()) {
@@ -239,7 +239,7 @@ class UnixFileSystem$_native {
                 throw new IllegalArgumentException("Unrecognized access mode "+access);
         };
 
-        final char_ptr pathPtr = mallocPath(f);
+        final ptr<c_char> pathPtr = mallocPath(f);
         try {
             struct_stat sb = auto();
             if (!stat(pathPtr.cast(), addr_of(sb)).isZero()) {
@@ -307,7 +307,7 @@ class UnixFileSystem$_native {
     }
 
     public boolean createDirectory(File f) {
-        final char_ptr pathPtr = mallocPath(f);
+        final ptr<c_char> pathPtr = mallocPath(f);
         c_int mkdirRes = mkdir(pathPtr.cast(), word(0777));
         free(pathPtr);
         return mkdirRes.intValue() == 0;

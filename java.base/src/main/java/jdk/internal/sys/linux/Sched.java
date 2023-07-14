@@ -10,56 +10,56 @@ import static org.qbicc.runtime.stdc.String.*;
 @include("<sched.h>")
 @define(value = "_GNU_SOURCE")
 public class Sched {
-    public static native c_int sched_setaffinity(pid_t pid, size_t cpusetsize, const_cpu_set_t_ptr mask);
+    public static native c_int sched_setaffinity(pid_t pid, size_t cpusetsize, ptr<@c_const cpu_set_t> mask);
 
-    public static native c_int sched_getaffinity(pid_t pid, size_t cpusetsize, cpu_set_t_ptr mask);
+    public static native c_int sched_getaffinity(pid_t pid, size_t cpusetsize, ptr<cpu_set_t> mask);
 
     // These methods simulate the behavior of the corresponding glibc macros.
 
-    public static void CPU_ZERO(cpu_set_t_ptr set) {
+    public static void CPU_ZERO(ptr<cpu_set_t> set) {
         CPU_ZERO_S(sizeof(cpu_set_t.class), set);
     }
 
-    public static void CPU_ZERO_S(size_t setSize, cpu_set_t_ptr set) {
+    public static void CPU_ZERO_S(size_t setSize, ptr<cpu_set_t> set) {
         memset(set.cast(), zero(), setSize);
     }
 
-    public static void CPU_SET(int cpu, cpu_set_t_ptr set) {
+    public static void CPU_SET(int cpu, ptr<cpu_set_t> set) {
         CPU_SET_S(sizeof(cpu_set_t.class), cpu, set);
     }
 
-    public static void CPU_SET_S(size_t size, int cpu, cpu_set_t_ptr set) {
+    public static void CPU_SET_S(size_t size, int cpu, ptr<cpu_set_t> set) {
         ptr<__cpu_mask> ptr = getMaskPtr(size, cpu, set);
         if (ptr != null) {
             ptr.storeUnshared(word(ptr.loadUnshared().longValue() | 1L << getBitIdx(cpu)));
         }
     }
 
-    public static void CPU_CLR(int cpu, cpu_set_t_ptr set) {
+    public static void CPU_CLR(int cpu, ptr<cpu_set_t> set) {
         CPU_CLR_S(sizeof(cpu_set_t.class), cpu, set);
     }
 
-    public static void CPU_CLR_S(size_t size, int cpu, cpu_set_t_ptr set) {
+    public static void CPU_CLR_S(size_t size, int cpu, ptr<cpu_set_t> set) {
         ptr<__cpu_mask> ptr = getMaskPtr(size, cpu, set);
         if (ptr != null) {
             ptr.storeUnshared(word(ptr.loadUnshared().longValue() & 1L << getBitIdx(cpu)));
         }
     }
 
-    public static boolean CPU_ISSET(int cpu, cpu_set_t_ptr set) {
+    public static boolean CPU_ISSET(int cpu, ptr<cpu_set_t> set) {
         return CPU_ISSET_S(sizeof(cpu_set_t.class), cpu, set);
     }
 
-    public static boolean CPU_ISSET_S(size_t size, int cpu, cpu_set_t_ptr set) {
+    public static boolean CPU_ISSET_S(size_t size, int cpu, ptr<cpu_set_t> set) {
         ptr<__cpu_mask> ptr = getMaskPtr(size, cpu, set);
         return ptr != null && (ptr.loadUnshared().longValue() & 1L << getBitIdx(cpu)) != 0;
     }
 
-    public static int CPU_COUNT(cpu_set_t_ptr set) {
+    public static int CPU_COUNT(ptr<cpu_set_t> set) {
         return CPU_COUNT_S(sizeof(cpu_set_t.class), set);
     }
 
-    public static int CPU_COUNT_S(size_t size, cpu_set_t_ptr set) {
+    public static int CPU_COUNT_S(size_t size, ptr<cpu_set_t> set) {
         int total = 0;
         for (int i = 0; i < size.longValue() / sizeof(__cpu_mask.class).longValue(); i ++) {
             total += Long.bitCount(getMaskPtr(size, i, set).loadUnshared().longValue());
@@ -67,37 +67,37 @@ public class Sched {
         return total;
     }
 
-    public static void CPU_AND(cpu_set_t_ptr dest, cpu_set_t_ptr src1, cpu_set_t_ptr src2) {
+    public static void CPU_AND(ptr<cpu_set_t> dest, ptr<cpu_set_t> src1, ptr<cpu_set_t> src2) {
         CPU_AND_S(sizeof(cpu_set_t.class), dest, src1, src2);
     }
-    public static void CPU_AND_S(size_t size, cpu_set_t_ptr dest, cpu_set_t_ptr src1, cpu_set_t_ptr src2) {
+    public static void CPU_AND_S(size_t size, ptr<cpu_set_t> dest, ptr<cpu_set_t> src1, ptr<cpu_set_t> src2) {
         for (int i = 0; i < size.longValue() / sizeof(__cpu_mask.class).longValue(); i ++) {
             getMaskPtr(size, i, dest).storeUnshared(word(getMaskPtr(size, i, src1).loadUnshared().longValue() & getMaskPtr(size, i, src2).loadUnshared().longValue()));
         }
     }
 
-    public static void CPU_OS(cpu_set_t_ptr dest, cpu_set_t_ptr src1, cpu_set_t_ptr src2) {
+    public static void CPU_OS(ptr<cpu_set_t> dest, ptr<cpu_set_t> src1, ptr<cpu_set_t> src2) {
         CPU_OS_S(sizeof(cpu_set_t.class), dest, src1, src2);
     }
-    public static void CPU_OS_S(size_t size, cpu_set_t_ptr dest, cpu_set_t_ptr src1, cpu_set_t_ptr src2) {
+    public static void CPU_OS_S(size_t size, ptr<cpu_set_t> dest, ptr<cpu_set_t> src1, ptr<cpu_set_t> src2) {
         for (int i = 0; i < size.longValue() / sizeof(__cpu_mask.class).longValue(); i ++) {
             getMaskPtr(size, i, dest).storeUnshared(word(getMaskPtr(size, i, src1).loadUnshared().longValue() & getMaskPtr(size, i, src2).loadUnshared().longValue()));
         }
     }
 
-    public static void CPU_XOR(cpu_set_t_ptr dest, cpu_set_t_ptr src1, cpu_set_t_ptr src2) {
+    public static void CPU_XOR(ptr<cpu_set_t> dest, ptr<cpu_set_t> src1, ptr<cpu_set_t> src2) {
         CPU_XOR_S(sizeof(cpu_set_t.class), dest, src1, src2);
     }
-    public static void CPU_XOR_S(size_t size, cpu_set_t_ptr dest, cpu_set_t_ptr src1, cpu_set_t_ptr src2) {
+    public static void CPU_XOR_S(size_t size, ptr<cpu_set_t> dest, ptr<cpu_set_t> src1, ptr<cpu_set_t> src2) {
         for (int i = 0; i < size.longValue() / sizeof(__cpu_mask.class).longValue(); i ++) {
             getMaskPtr(size, i, dest).storeUnshared(word(getMaskPtr(size, i, src1).loadUnshared().longValue() & getMaskPtr(size, i, src2).loadUnshared().longValue()));
         }
     }
 
-    public static boolean CPU_EQUAL(cpu_set_t_ptr set1, cpu_set_t_ptr set2) {
+    public static boolean CPU_EQUAL(ptr<cpu_set_t> set1, ptr<cpu_set_t> set2) {
         return CPU_EQUAL_S(sizeof(cpu_set_t.class), set1, set2);
     }
-    public static boolean CPU_EQUAL_S(size_t size, cpu_set_t_ptr set1, cpu_set_t_ptr set2) {
+    public static boolean CPU_EQUAL_S(size_t size, ptr<cpu_set_t> set1, ptr<cpu_set_t> set2) {
         return memcmp(set1.cast(), set2.cast(), size).isZero();
     }
 
@@ -105,10 +105,10 @@ public class Sched {
         return word(numCpus / sizeof(__cpu_mask.class).intValue());
     }
 
-    public static cpu_set_t_ptr CPU_ALLOC(int numCpus) {
+    public static ptr<cpu_set_t> CPU_ALLOC(int numCpus) {
         return malloc(CPU_ALLOC_SIZE(numCpus));
     }
-    public static void CPU_FREE(cpu_set_t_ptr set) {
+    public static void CPU_FREE(ptr<cpu_set_t> set) {
         free(set);
     }
 
@@ -117,12 +117,10 @@ public class Sched {
     public static final class cpu_set_t extends object {
         __cpu_mask[] __bits;
     }
-    public static final class cpu_set_t_ptr extends ptr<cpu_set_t> {}
-    public static final class const_cpu_set_t_ptr extends ptr<@c_const cpu_set_t> {}
 
     // private support methods
 
-    private static ptr<__cpu_mask> getMaskPtr(size_t size, int cpu, cpu_set_t_ptr set) {
+    private static ptr<__cpu_mask> getMaskPtr(size_t size, int cpu, ptr<cpu_set_t> set) {
         int wordIdx = getWordIdx(cpu);
         if (wordIdx < size.intValue()) {
             return addr_of(deref(set).__bits[wordIdx]);

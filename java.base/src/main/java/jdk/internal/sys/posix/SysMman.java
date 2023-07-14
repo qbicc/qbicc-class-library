@@ -28,7 +28,7 @@ public final class SysMman {
 
     public static native c_int posix_madvise(ptr<?> addr, size_t length, c_int advice);
 
-    public static native c_int posix_mem_offset(ptr<@c_const ?> addr, size_t length, off_t_ptr offsetPtr, size_t_ptr contigLen, int_ptr fdPtr);
+    public static native c_int posix_mem_offset(ptr<@c_const ?> addr, size_t length, ptr<off_t> offsetPtr, ptr<size_t> contigLen, ptr<c_int> fdPtr);
 
     public static native c_int shm_open(ptr<@c_const c_char> name, c_int oflag, mode_t mode);
     public static native c_int shm_unlink(ptr<@c_const c_char> name);

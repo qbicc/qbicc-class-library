@@ -445,9 +445,9 @@ final class ProcessEnvironment {
     }
 
     static void getPosixEnv(final Map<String, String> env) {
-        char_ptr_ptr env_ptr = environ;
+        ptr<ptr<c_char>> env_ptr = environ;
         StringBuilder b = new StringBuilder();
-        char_ptr entry_ptr;
+        ptr<c_char> entry_ptr;
         for (;;) {
             entry_ptr = env_ptr.loadUnshared();
             env_ptr = env_ptr.plus(1);
@@ -471,7 +471,7 @@ final class ProcessEnvironment {
      * @param ptr the character pointer
      * @return the string, or {@code null} if {@code ptr} is {@code null}
      */
-    private static String makeString(StringBuilder sb, char_ptr ptr) {
+    private static String makeString(StringBuilder sb, ptr<c_char> ptr) {
         if (ptr.isNull()) {
             return null;
         }

@@ -19,7 +19,7 @@ class Linux$_runtime {
     static {
         struct_utsname buf = auto();
         uname(addr_of(buf));
-        char_ptr minorPos = auto();
+        ptr<c_char> minorPos = auto();
         KERN_MAJOR = strtol(addr_of(buf).cast(), addr_of(minorPos), word(10)).intValue();
         KERN_MINOR = strtol(minorPos.plus(1), zero(), word(10)).intValue();
     }

@@ -112,9 +112,9 @@ final class IO_Util {
         }
     }
 
-    static char_ptr mallocStringChars(final String str) throws OutOfMemoryError {
+    static ptr<c_char> mallocStringChars(final String str) throws OutOfMemoryError {
         byte[] bytes = str.getBytes(Charset.defaultCharset());
-        char_ptr ptr = malloc(word(bytes.length + 1));
+        ptr<c_char> ptr = malloc(word(bytes.length + 1));
         if (ptr.isNull()) {
             throw new OutOfMemoryError("malloc failed");
         }
@@ -193,10 +193,10 @@ final class IO_Util {
                 throw fnfe;
             }
         } else if (Build.Target.isPosix()) {
-            char_ptr ptr = mallocStringChars(name);
+            ptr<c_char> ptr = mallocStringChars(name);
             try {
                 if (Build.Target.isLinux() /* todo: || defined(_ALLBSD_SOURCE) */) {
-                    char_ptr p = ptr.plus(strlen(ptr.cast()).intValue() - 1);
+                    ptr<c_char> p = ptr.plus(strlen(ptr.cast()).intValue() - 1);
                     while (p.isGt(ptr) && (p.loadUnshared().byteValue() == (byte)'/')) {
                         p.storeUnshared(zero());
                         p = p.minus(1);
@@ -233,9 +233,9 @@ final class IO_Util {
         }
         int nread;
         //todo: <T, P extends ptr<T>> P alloca(Class<T> type, int count); // and variations
-        //then, char_ptr stackBuf = alloca(c_char.class, BUF_SIZE);
-        char_ptr stackBuf = alloca(word(sizeof(c_char.class).longValue() * BUF_SIZE));
-        char_ptr buf;
+        //then, ptr<c_char> stackBuf = alloca(c_char.class, BUF_SIZE);
+        ptr<c_char> stackBuf = alloca(word(sizeof(c_char.class).longValue() * BUF_SIZE));
+        ptr<c_char> buf;
 
         if (len == 0) {
             return 0;

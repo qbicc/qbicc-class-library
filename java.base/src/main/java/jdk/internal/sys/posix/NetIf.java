@@ -13,15 +13,13 @@ public class NetIf {
 
     public static final class struct_ifreq extends object {
         public c_char[] ifr_name;
-        public void_ptr ifr_ifru; // This is actually a horrific 16-way union.
+        public ptr<?> ifr_ifru; // This is actually a horrific 16-way union.
     }
-    public static final class struct_ifreq_ptr extends ptr<struct_ifreq> {}
 
     public static final class struct_ifconf extends object {
         public c_int ifc_len;
-        public void_ptr ifc_ifcu; // This is a 2-way union
+        public ptr<?> ifc_ifcu; // This is a 2-way union
     }
-    public static final class struct_ifconf_ptr extends ptr<struct_ifconf> {}
 
     public static final c_short IFF_UP = constant();
     public static final c_short IFF_BROADCAST = constant();

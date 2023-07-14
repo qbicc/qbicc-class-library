@@ -12,30 +12,30 @@ import static org.qbicc.runtime.stdc.Stdint.*;
 public class Netdb {
 
     public static final class struct_hostent extends object {
-        public char_ptr h_name;
-        public ptr<char_ptr> h_aliases;
+        public ptr<c_char> h_name;
+        public ptr<ptr<c_char>> h_aliases;
         public c_int h_addrtype;
         public c_int h_length;
-        public ptr<char_ptr> h_addr_list;
+        public ptr<ptr<c_char>> h_addr_list;
     }
 
     public static final class struct_netent extends object {
-        public char_ptr n_name;
-        public ptr<char_ptr> n_aliases;
+        public ptr<c_char> n_name;
+        public ptr<ptr<c_char>> n_aliases;
         public c_int n_addrtype;
         public uint32_t n_net;
     }
 
     public static final class struct_servent extends object {
-        public char_ptr s_name;
-        public ptr<char_ptr> s_aliases;
+        public ptr<c_char> s_name;
+        public ptr<ptr<c_char>> s_aliases;
         public c_int s_port;
-        public char_ptr s_proto;
+        public ptr<c_char> s_proto;
     }
 
     public static final class sturct_protoent extends object {
-        public char_ptr p_name;
-        public ptr<char_ptr> p_aliases;
+        public ptr<c_char> p_name;
+        public ptr<ptr<c_char>> p_aliases;
         public c_int p_proto;
     }
 
@@ -45,11 +45,10 @@ public class Netdb {
         public c_int ai_socktype;
         public c_int ai_protocol;
         public socklen_t ai_addrlen;
-        public char_ptr ai_canonname;
+        public ptr<c_char> ai_canonname;
         public ptr<struct_sockaddr> ai_addr;
         public ptr<struct_addrinfo> ai_next;
     }
-    public static final class struct_addrinfo_ptr extends ptr<struct_addrinfo> {}
 
     public static final c_int AI_PASSIVE = constant();
     public static final c_int AI_CANONNAME = constant();
@@ -59,7 +58,7 @@ public class Netdb {
     public static final c_int AI_ALL = constant();
     public static final c_int AI_ADDRCONFIG = constant();
 
-    public static native c_int getaddrinfo(const_char_ptr hostname, const_char_ptr servname,
+    public static native c_int getaddrinfo(ptr<@c_const c_char> hostname, ptr<@c_const c_char> servname,
                                            ptr<@c_const struct_addrinfo> hints, ptr<ptr<struct_addrinfo>> res);
 
     public static native void freeaddrinfo(ptr<struct_addrinfo> ai);

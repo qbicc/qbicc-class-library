@@ -65,8 +65,8 @@ import jdk.internal.sys.posix.Unistd;
 class UnixNativeDispatcher$_native {
     static byte[] getcwd() throws UnixException {
         size_t size = word(PATH_MAX.intValue() + 1);
-        char_ptr buf = alloca(size);
-        char_ptr cwd = Unistd.getcwd(buf, size);
+        ptr<c_char> buf = alloca(size);
+        ptr<c_char> cwd = Unistd.getcwd(buf, size);
         if (cwd.isNull()) {
             throw new UnixException(errno);
         }
@@ -94,7 +94,7 @@ class UnixNativeDispatcher$_native {
     }
 
     static byte[] getZeroTerminatedBytes(long address) {
-        char_ptr ptr = word(address);
+        ptr<c_char> ptr = word(address);
         int len;
         for (len = 0; ptr.plus(len).loadUnshared().isNonZero(); len ++);
         byte[] array = new byte[len];
@@ -256,7 +256,7 @@ class UnixNativeDispatcher$_native {
     }
 
     static void rmdir0(long pathAddress) throws UnixException {
-        const_char_ptr path = word(pathAddress);
+        ptr<@c_const c_char> path = word(pathAddress);
         c_int rc = rmdir(path);
         if (rc.intValue() == -1) {
             throw new UnixException(errno);
@@ -385,8 +385,8 @@ class UnixNativeDispatcher$_native {
     }
 
     static long opendir0(long pathAddress) throws UnixException {
-        const_char_ptr path = word(pathAddress);
-        DIR_ptr dir = opendir(path);
+        ptr<@c_const c_char> path = word(pathAddress);
+        ptr<DIR> dir = opendir(path);
         if (dir.isNull()) {
             throw new UnixException(errno);
         }
@@ -394,7 +394,7 @@ class UnixNativeDispatcher$_native {
     }
 
     static long fdopendir(int dfd) throws UnixException {
-        DIR_ptr dir = jdk.internal.sys.posix.Dirent.fdopendir(word(dfd));
+        ptr<DIR> dir = jdk.internal.sys.posix.Dirent.fdopendir(word(dfd));
         if (dir.isNull()) {
             throw new UnixException(errno);
         }
@@ -402,7 +402,7 @@ class UnixNativeDispatcher$_native {
     }
 
     static void closedir(long jdir) throws UnixException {
-        DIR_ptr dir = word(jdir);
+        ptr<DIR> dir = word(jdir);
         c_int rc = jdk.internal.sys.posix.Dirent.closedir(dir);
         if (rc == word(-1) && errno != EINTR.intValue()) {
             throw new UnixException(errno);
@@ -410,17 +410,17 @@ class UnixNativeDispatcher$_native {
     }
 
     static byte[] readdir(long jdir) throws UnixException {
-        DIR_ptr dir = word(jdir);
+        ptr<DIR> dir = word(jdir);
 
         errno = 0;
-        struct_dirent_ptr dirent = auto(jdk.internal.sys.posix.Dirent.readdir(dir));
+        ptr<struct_dirent> dirent = auto(jdk.internal.sys.posix.Dirent.readdir(dir));
         if (dirent.isNull()) {
             if (errno != 0) {
                 throw new UnixException(errno);
             }
             return null;
         } else {
-            const_char_ptr np = addr_of(dirent.sel().d_name).cast();
+            ptr<@c_const c_char> np = addr_of(dirent.sel().d_name).cast();
             size_t len = strlen(np);
             byte[] bytes = new byte[len.intValue()];
             memcpy(addr_of(bytes[0]).cast(), np.cast(), len);

@@ -102,7 +102,8 @@ final class Unsafe$_native {
     }
 
     private void setMemory0(Object o, long offset, long bytes, byte value) {
-        ptr<c_char> destPtr = refToPtr(o).cast(char_ptr.class).plus(offset);
+        ptr<c_char> oPtr = refToPtr(o).cast();
+        ptr<c_char> destPtr = oPtr.plus(offset);
         if (Build.isHost()) {
             // no set on the host
             for (long i = 0; i < bytes; i ++) {
@@ -114,8 +115,10 @@ final class Unsafe$_native {
     }
 
     private void copyMemory0(Object srcBase, long srcOffset, Object destBase, long destOffset, long bytes) {
-        ptr<c_char> srcPtr = refToPtr(srcBase).cast(char_ptr.class).plus(srcOffset);
-        ptr<c_char> destPtr = refToPtr(destBase).cast(char_ptr.class).plus(destOffset);
+        ptr<c_char> srcBasePtr = refToPtr(srcBase).cast();
+        ptr<c_char> destBasePtr = refToPtr(destBase).cast();
+        ptr<c_char> srcPtr = srcBasePtr.plus(srcOffset);
+        ptr<c_char> destPtr = destBasePtr.plus(destOffset);
         if (Build.isHost()) {
             // no memmove on the host
             if (srcBase == destBase && destOffset > srcOffset) {
@@ -141,8 +144,10 @@ final class Unsafe$_native {
         switch ((int) elemSize) {
             case 1 -> copyMemory0(srcBase, srcOffset, destBase, destOffset, bytes);
             case 2 -> {
-                int16_t_ptr srcPtr = refToPtr(srcBase).cast(char_ptr.class).plus(srcOffset).cast(int16_t_ptr.class);
-                int16_t_ptr destPtr = refToPtr(destBase).cast(char_ptr.class).plus(destOffset).cast(int16_t_ptr.class);
+                ptr<c_char> srcBasePtr = refToPtr(srcBase).cast();
+                ptr<c_char> destBasePtr = refToPtr(destBase).cast();
+                ptr<int16_t> srcPtr = srcBasePtr.plus(srcOffset).cast();
+                ptr<int16_t> destPtr = destBasePtr.plus(destOffset).cast();
                 long cnt = bytes >> 1;
                 if (reverse) {
                     for (long i = cnt - 1; i >= 0; i --) {
@@ -155,8 +160,10 @@ final class Unsafe$_native {
                 }
             }
             case 4 -> {
-                int32_t_ptr srcPtr = refToPtr(srcBase).cast(char_ptr.class).plus(srcOffset).cast(int32_t_ptr.class);
-                int32_t_ptr destPtr = refToPtr(destBase).cast(char_ptr.class).plus(destOffset).cast(int32_t_ptr.class);
+                ptr<c_char> srcBasePtr = refToPtr(srcBase).cast();
+                ptr<c_char> destBasePtr = refToPtr(destBase).cast();
+                ptr<int32_t> srcPtr = srcBasePtr.plus(srcOffset).cast();
+                ptr<int32_t> destPtr = destBasePtr.plus(destOffset).cast();
                 long cnt = bytes >> 2;
                 if (reverse) {
                     for (long i = cnt - 1; i >= 0; i --) {
@@ -169,8 +176,10 @@ final class Unsafe$_native {
                 }
             }
             case 8 -> {
-                int64_t_ptr srcPtr = refToPtr(srcBase).cast(char_ptr.class).plus(srcOffset).cast(int64_t_ptr.class);
-                int64_t_ptr destPtr = refToPtr(destBase).cast(char_ptr.class).plus(destOffset).cast(int64_t_ptr.class);
+                ptr<c_char> srcBasePtr = refToPtr(srcBase).cast();
+                ptr<c_char> destBasePtr = refToPtr(destBase).cast();
+                ptr<int64_t> srcPtr = srcBasePtr.plus(srcOffset).cast();
+                ptr<int64_t> destPtr = destBasePtr.plus(destOffset).cast();
                 long cnt = bytes >> 3;
                 if (reverse) {
                     for (long i = cnt - 1; i >= 0; i --) {
@@ -183,8 +192,10 @@ final class Unsafe$_native {
                 }
             }
             case 16 -> {
-                int64_t_ptr srcPtr = refToPtr(srcBase).cast(char_ptr.class).plus(srcOffset).cast(int64_t_ptr.class);
-                int64_t_ptr destPtr = refToPtr(destBase).cast(char_ptr.class).plus(destOffset).cast(int64_t_ptr.class);
+                ptr<c_char> srcBasePtr = refToPtr(srcBase).cast();
+                ptr<c_char> destBasePtr = refToPtr(destBase).cast();
+                ptr<int64_t> srcPtr = srcBasePtr.plus(srcOffset).cast();
+                ptr<int64_t> destPtr = destBasePtr.plus(destOffset).cast();
                 long cnt = bytes >> 3;
                 if (reverse) {
                     for (long i = cnt - 2; i >= 0; i -= 2) {

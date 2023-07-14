@@ -75,7 +75,7 @@ class ProcessHandleImpl$Info$_patch {
     }
 
     @Add(when = Build.Target.IsMacOs.class)
-    private static pid_t getParentPidAndTimings_MacOs(pid_t pid, int64_t_ptr totalTime, int64_t_ptr startTime) {
+    private static pid_t getParentPidAndTimings_MacOs(pid_t pid, ptr<int64_t> totalTime, ptr<int64_t> startTime) {
         pid_t ppid = word(-1);
         struct_kinfo_proc kp = auto();
         size_t bufSize = auto(sizeof(kp));
@@ -86,7 +86,8 @@ class ProcessHandleImpl$Info$_patch {
         }
 
         if (bufSize.intValue() > 0 && kp.kp_proc.p_pid == pid) {
-            struct_timeval tv = addr_of(kp.kp_proc.p_un).cast(struct_timeval_ptr.class).loadUnshared();
+            ptr<struct_timeval> tvp = addr_of(kp.kp_proc.p_un).cast();
+            struct_timeval tv = tvp.loadUnshared();
             long st = tv.tv_sec.longValue() * 1000 + tv.tv_usec.longValue() / 1000;
             startTime.storeUnshared(word(st));
             ppid = kp.kp_eproc.e_ppid;
@@ -111,7 +112,7 @@ class ProcessHandleImpl$Info$_patch {
      * 'start' will contain the start time of 'pid' in milliseconds since epoch.
      */
     @Add(when = Build.Target.IsLinux.class)
-    private static pid_t getParentPidAndTimings_Linux(pid_t pid, int64_t_ptr totalTime, int64_t_ptr startTime) {
+    private static pid_t getParentPidAndTimings_Linux(pid_t pid, ptr<int64_t> totalTime, ptr<int64_t> startTime) {
         c_char[] buffer = new c_char[2048];
         c_char[] fn = new c_char[32];
         pid_t parentPid = auto();
@@ -175,12 +176,12 @@ class ProcessHandleImpl$Info$_patch {
     @Add
     private void getUserInfo(uid_t uid) {
         size_t buf_size = getpw_buf_size();
-        char_ptr pwbuf = malloc(buf_size);
+        ptr<c_char> pwbuf = malloc(buf_size);
         if (pwbuf.isNull()) {
             throw new OutOfMemoryError("Unable to open getpwent");
         }
         struct_passwd pwent = auto();
-        struct_passwd_ptr p = auto(word(0));
+        ptr<struct_passwd> p = auto(word(0));
         c_int result = word(0);
         do {
             result = getpwuid_r(uid, addr_of(pwent), pwbuf, buf_size, addr_of(p).cast());
@@ -194,7 +195,7 @@ class ProcessHandleImpl$Info$_patch {
     }
 
     @Add
-    private void fillArgArray(int nargs, const_char_ptr cp, const_char_ptr argsEnd, const_char_ptr cmdline) {
+    private void fillArgArray(int nargs, ptr<@c_const c_char> cp, ptr<@c_const c_char> argsEnd, ptr<@c_const c_char> cmdline) {
         if (nargs >= 1) {
             String[] argsArray = new String[nargs - 1];
 
@@ -241,7 +242,7 @@ class ProcessHandleImpl$Info$_patch {
             throw new RuntimeException("sysctl failed");
         }
 
-        char_ptr args = malloc(maxargs.cast());
+        ptr<c_char> args = malloc(maxargs.cast());
         if (args.isNull()) {
             throw new OutOfMemoryError("malloc failed");
         }
@@ -255,9 +256,9 @@ class ProcessHandleImpl$Info$_patch {
                 throw new RuntimeException("sysctl failed");
             }
 
-            c_int nargs = args.cast(int_ptr.class).loadUnshared();
-            char_ptr cp = args.plus(sizeof(nargs).intValue());
-            char_ptr argsEnd = args.plus(maxargs.intValue());
+            c_int nargs = args.loadUnshared(c_int.class);
+            ptr<c_char> cp = args.plus(sizeof(nargs).intValue());
+            ptr<c_char> argsEnd = args.plus(maxargs.intValue());
 
             // Store the command executable path
             this.command = utf8zToJavaString(cp.cast());
@@ -278,9 +279,9 @@ class ProcessHandleImpl$Info$_patch {
 
     @Add(when = Build.Target.IsLinux.class)
     private void getCmdlineAndUserInfo_Linux(pid_t pid) {
-        char_ptr cmdline = zero();
-        char_ptr cmdEnd = zero();
-        char_ptr args = zero();
+        ptr<c_char> cmdline = zero();
+        ptr<c_char> cmdEnd = zero();
+        ptr<c_char> args = zero();
         c_char[] fn = new c_char[32];
         struct_stat stat_buf = auto();
 
@@ -335,7 +336,7 @@ class ProcessHandleImpl$Info$_patch {
              * line is not exceeding (PAGE_SIZE - 1) characters.
              */
             cmdlen = 0;
-            char_ptr s = cmdline;
+            ptr<c_char> s = cmdline;
             while ((count = read(fd, s.cast(), word(pageSize - cmdlen)).intValue()) > 0) {
                 cmdlen += count;
                 s = s.plus(count);
@@ -384,7 +385,7 @@ class ProcessHandleImpl$Info$_patch {
     }
 
     @Add
-    static pid_t getParentPidAndTimings(pid_t pid, int64_t_ptr totalTime, int64_t_ptr startTime) {
+    static pid_t getParentPidAndTimings(pid_t pid, ptr<int64_t> totalTime, ptr<int64_t> startTime) {
         if (Build.Target.isMacOs()) {
             return getParentPidAndTimings_MacOs(pid, totalTime, startTime);
         } else if (Build.Target.isLinux()) {

@@ -5,8 +5,6 @@ import static jdk.internal.sys.posix.SysTypes.*;
 import static org.qbicc.runtime.stdc.Stddef.*;
 
 import org.qbicc.runtime.Build;
-import org.qbicc.runtime.CNative;
-import org.qbicc.runtime.stdc.Stddef;
 
 /**
  *
@@ -23,8 +21,8 @@ public final class Unistd {
         public c_long @array_size(2) [] fd;
     }
 
-    public static native c_int access(const_char_ptr pathname, c_int mode);
-    public static native c_int faccessat(c_int dirfd, const_char_ptr pathname, c_int mode, c_int flags);
+    public static native c_int access(ptr<@c_const c_char> pathname, c_int mode);
+    public static native c_int faccessat(c_int dirfd, ptr<@c_const c_char> pathname, c_int mode, c_int flags);
 
     public static native c_int close(c_int fd);
 
@@ -41,7 +39,7 @@ public final class Unistd {
     public static native pid_t fork();
 
     @define(value = "_POSIX_C_SOURCE", as = "200112L", when = Build.Target.IsPosix.class)
-    public static native c_int gethostname(char_ptr buf, size_t buflen);
+    public static native c_int gethostname(ptr<c_char> buf, size_t buflen);
 
     // POSIX
     public static native c_int pipe(c_int[] fds);
@@ -49,15 +47,15 @@ public final class Unistd {
     // Alpha, IA-64, MIPS, SuperH, SPARC, SPARC64
     public static native struct_fd_pair pipe();
 
-    public static native ssize_t readlink(const_char_ptr pathName, char_ptr buf, size_t bufSize);
+    public static native ssize_t readlink(ptr<@c_const c_char> pathName, ptr<c_char> buf, size_t bufSize);
 
-    public static native c_int rmdir(const_char_ptr path);
+    public static native c_int rmdir(ptr<@c_const c_char> path);
 
-    public static native c_int unlink(const_char_ptr pathname);
+    public static native c_int unlink(ptr<@c_const c_char> pathname);
 
-    public static native ssize_t write(c_int fd, const_void_ptr buf, size_t count);
+    public static native ssize_t write(c_int fd, ptr<@c_const c_char> buf, size_t count);
 
-    public static native ssize_t read(c_int fd, void_ptr buf, size_t count);
+    public static native ssize_t read(c_int fd, ptr<?> buf, size_t count);
 
     public static final c_int R_OK = constant();
     public static final c_int W_OK = constant();
@@ -95,9 +93,9 @@ public final class Unistd {
     public static native pid_t getppid();
 
     @extern
-    public static char_ptr_ptr environ;
+    public static ptr<ptr<c_char>> environ;
 
-    public static native char_ptr getcwd(char_ptr buf, size_t size);
+    public static native ptr<c_char> getcwd(ptr<c_char> buf, size_t size);
 
     public static native c_int isatty(c_int fd);
 }

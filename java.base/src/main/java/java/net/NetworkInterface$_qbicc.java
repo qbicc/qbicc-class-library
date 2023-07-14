@@ -65,7 +65,7 @@ class NetworkInterface$_qbicc {
     }
 
     static class netif {
-        char_ptr name;
+        ptr<c_char> name;
         c_int index;
         boolean virtual;
         netaddr addr;
@@ -74,7 +74,7 @@ class NetworkInterface$_qbicc {
     }
 
     /*
-     * Frees the malloced struct_sockaddrs and char_ptrs for an interface list (including any attached addresses).
+     * Frees the malloced struct_sockaddrs and ptr<c_char>s for an interface list (including any attached addresses).
      */
     private static void freeif(netif ifs) {
         for (netif currif = ifs; currif != null; currif = currif.next) {
@@ -92,7 +92,7 @@ class NetworkInterface$_qbicc {
         }
     }
 
-    static netif addif(c_int sock, const_char_ptr if_name, netif ifs,
+    static netif addif(c_int sock, ptr<@c_const c_char> if_name, netif ifs,
                        ptr<struct_sockaddr> ifr_addrP, ptr<struct_sockaddr> ifr_broadaddrP,
                        c_int family, c_short prefix) {
         netif currif = ifs;
@@ -104,7 +104,7 @@ class NetworkInterface$_qbicc {
         // number so that we have the physical interface (eg: hme0:1 -> hme0).
         // NetworkInterface currently doesn't have any concept of physical vs.
         // logical interfaces.
-        strncpy(addr_of(name[0]), if_name, IF_NAMESIZE.cast());
+        strncpy(addr_of(name[0]).cast(), if_name.cast(), IF_NAMESIZE.cast());
         name[IF_NAMESIZE.intValue() - 1] = word(0);
         vname[0] = word(0);
 
@@ -233,7 +233,7 @@ class NetworkInterface$_qbicc {
         return ifs;
     }
 
-    private static c_short translateIPv4AddressToPrefix(struct_sockaddr_in_ptr addr) {
+    private static c_short translateIPv4AddressToPrefix(ptr<struct_sockaddr_in> addr) {
         if (addr.isNull()) {
             return word(0);
         }
@@ -268,7 +268,7 @@ class NetworkInterface$_qbicc {
             }
 
             // call SIOCGIFCONF to enumerate the interfaces
-            char_ptr buf = malloc(word(ifc.ifc_len.intValue()));
+            ptr<c_char> buf = malloc(word(ifc.ifc_len.intValue()));
             if (buf.isNull()) {
                 throw new OutOfMemoryError("Native heap allocation failed");
             }
@@ -279,7 +279,7 @@ class NetworkInterface$_qbicc {
                 }
 
                 // iterate through each interface
-                struct_ifreq_ptr ifreqP = ifc.ifc_ifcu.cast(struct_ifreq_ptr.class);
+                ptr<struct_ifreq> ifreqP = ifc.ifc_ifcu.cast();
                 for (int i = 0; i < ifc.ifc_len.intValue() / sizeof(struct_ifreq.class).intValue(); i++, ifreqP = ifreqP.plus(1)) {
                     struct_sockaddr addr = auto();
                     struct_sockaddr broadaddr = auto();
@@ -310,7 +310,7 @@ class NetworkInterface$_qbicc {
 
                     // determine netmask
                     if (ioctl(sock, SIOCGIFNETMASK, ifreqP).intValue() == 0) {
-                        prefix = translateIPv4AddressToPrefix(addr_of(ifreqP.sel().ifr_ifru).cast(struct_sockaddr_in_ptr.class));
+                        prefix = translateIPv4AddressToPrefix(addr_of(ifreqP.sel().ifr_ifru).cast());
                     }
 
                     // add interface to the list
@@ -357,13 +357,13 @@ class NetworkInterface$_qbicc {
         return ifs;
     }
 
-    private static c_int getIndex(c_int sock, const_char_ptr name) {
+    private static c_int getIndex(c_int sock, ptr<@c_const c_char> name) {
         if (Build.Target.isMacOs()) {
             unsigned_int index = if_nametoindex(name);
             return (index.intValue() == 0) ? word(-1) : index.cast();
         } else {
             struct_ifreq if2 = auto();
-            strncpy(addr_of(if2.ifr_name[0]), name, word(IF_NAMESIZE.intValue() - 1));
+            strncpy(addr_of(if2.ifr_name[0]).cast(), name.cast(), word(IF_NAMESIZE.intValue() - 1));
             if (ioctl(sock, SIOCGIFINDEX, addr_of(if2)).intValue() <0){
                 return word(-1);
             }
@@ -371,9 +371,9 @@ class NetworkInterface$_qbicc {
         }
     }
 
-    private static c_int getFlags(c_int sock, const_char_ptr ifname, ptr<c_int> flags) {
+    private static c_int getFlags(c_int sock, ptr<@c_const c_char> ifname, ptr<c_int> flags) {
         struct_ifreq if2 = auto();
-        strncpy(addr_of(if2.ifr_name[0]), ifname, word(IF_NAMESIZE.intValue() - 1));
+        strncpy(addr_of(if2.ifr_name[0]).cast(), ifname.cast(), word(IF_NAMESIZE.intValue() - 1));
 
         if (ioctl(sock, SIOCGIFFLAGS, addr_of(if2)).intValue() < 0) {
             return word(-1);
@@ -414,13 +414,15 @@ class NetworkInterface$_qbicc {
             InetAddress iaObj = null;
             if (addrP.family == AF_INET) {
                 iaObj = new Inet4Address();
-                unsigned_int tmpAddr = htonl(addrP.addr.cast(struct_sockaddr_in_ptr.class).sel().sin_addr.s_addr.cast()).cast();
+                ptr<struct_sockaddr_in> sinp = addrP.addr.cast();
+                unsigned_int tmpAddr = htonl(sinp.sel().sin_addr.s_addr.cast()).cast();
                 iaObj.holder().address = tmpAddr.intValue();
                 InterfaceAddress ibObj = new InterfaceAddress();
                 ((InterfaceAddress$_patch)(Object)ibObj).address = iaObj;
                 if (!addrP.brdcast.isNull()) {
                     Inet4Address ia2Obj = new Inet4Address();
-                    unsigned_int tmpBAddr = htonl(addrP.brdcast.cast(struct_sockaddr_in_ptr.class).sel().sin_addr.s_addr.cast()).cast();
+                    sinp = addrP.brdcast.cast();
+                    unsigned_int tmpBAddr = htonl(sinp.sel().sin_addr.s_addr.cast()).cast();
                     ia2Obj.holder().address = tmpBAddr.intValue();
                     ((InterfaceAddress$_patch)(Object)ibObj).broadcast = ia2Obj;
                 }
@@ -430,9 +432,10 @@ class NetworkInterface$_qbicc {
             if (addrP.family == AF_INET6) {
                 iaObj = new Inet6Address();
                 Inet6Address$_patch ia6Obj = (Inet6Address$_patch)(Object)iaObj;
-                ptr<uint8_t> addr = addr_of(addr_of(addrP.addr.cast(struct_sockaddr_in6_ptr.class).sel().sin6_addr).sel().s6_addr[0]);
+                ptr<struct_sockaddr_in6> sin6p = addrP.addr.cast();
+                ptr<uint8_t> addr = addr_of(addr_of(sin6p.sel().sin6_addr).sel().s6_addr[0]);
                 ia6Obj.setInet6Address_ipaddress(addr);
-                uint32_t scope = addrP.addr.cast(struct_sockaddr_in6_ptr.class).sel().sin6_scope_id.cast();
+                uint32_t scope = sin6p.sel().sin6_scope_id.cast();
                 if (scope.intValue() != 0) {
                     ia6Obj.setInet6Address_scopeid(scope.intValue());
                     ia6Obj.setInet6Address_scope_ifname((NetworkInterface)(Object)netifObj);

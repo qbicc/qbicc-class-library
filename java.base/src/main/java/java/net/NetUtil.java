@@ -123,19 +123,19 @@ class NetUtil {
     }
 
     // NET_GetPortFromSockaddr
-    static c_int getPortFromSockaddr(/*SOCKETADDRESS* */ void_ptr sa) {
-        c_int family = sa.cast(struct_sockaddr_ptr.class).sel().sa_family.cast();
+    static c_int getPortFromSockaddr(ptr<struct_sockaddr> sa) {
+        c_int family = sa.sel().sa_family.cast();
         if (family == AF_INET6) {
-            struct_sockaddr_in6_ptr sa6 = sa.cast();
+            ptr<struct_sockaddr_in6> sa6 = sa.cast();
             return ntohs(sa6.sel().sin6_port.cast()).cast();
         } else {
-            struct_sockaddr_in_ptr sa4 = sa.cast();
+            ptr<struct_sockaddr_in> sa4 = sa.cast();
             return ntohs(sa4.sel().sin_port.cast()).cast();
         }
     }
 
     // NET_InetAddressToSockaddr
-    static c_int inetAddressToSockaddr(InetAddress iaObj, int port, /*SOCKETADDRESS* */ void_ptr sa,
+    static c_int inetAddressToSockaddr(InetAddress iaObj, int port, ptr<struct_sockaddr_in> sa,
                                        ptr<c_int> len, boolean v4MappedAddress) throws SocketException {
         int family = iaObj.holder().family;
 
@@ -148,9 +148,9 @@ class NetUtil {
             }
             memset(sa.cast(), word(0), sizeof(struct_sockaddr_in.class));
             int address = iaObj.holder().address;
-            sa.cast(struct_sockaddr_in_ptr.class).sel().sin_port = htons(word(port)).cast();
-            sa.cast(struct_sockaddr_in_ptr.class).sel().sin_addr.s_addr = htonl(word(address)).cast();
-            sa.cast(struct_sockaddr_in_ptr.class).sel().sin_family = AF_INET.cast();
+            sa.sel().sin_port = htons(word(port)).cast();
+            sa.sel().sin_addr.s_addr = htonl(word(address)).cast();
+            sa.sel().sin_family = AF_INET.cast();
             if (!len.isNull()) {
                 len.storeUnshared(sizeof(struct_sockaddr_in.class).cast());
             }
@@ -159,11 +159,11 @@ class NetUtil {
     }
 
     // NET_SockaddrToInetAddress
-    static InetAddress sockaddrToInetAddress(/*SOCKADDRESS* */void_ptr sa, ptr<c_int> port) {
+    static InetAddress sockaddrToInetAddress(ptr<struct_sockaddr> sa, ptr<c_int> port) {
         InetAddress iaObj;
-        c_int family = sa.cast(struct_sockaddr_ptr.class).sel().sa_family.cast();
+        c_int family = sa.sel().sa_family.cast();
         if (family == AF_INET6) {
-            struct_sockaddr_in6_ptr sa6 = sa.cast();
+            ptr<struct_sockaddr_in6> sa6 = sa.cast();
             ptr<uint8_t> caddr = addr_of(sa6.sel().sin6_addr.s6_addr[0]);
             if (isIPv4Mapped(caddr)) {
                 iaObj = new Inet4Address();
@@ -178,7 +178,7 @@ class NetUtil {
             }
             port.storeUnshared(ntohs(sa6.sel().sin6_port.cast()).cast());
         } else {
-            struct_sockaddr_in_ptr sa4 = sa.cast();
+            ptr<struct_sockaddr_in> sa4 = sa.cast();
             iaObj = new Inet4Address();
             iaObj.holder().family = InetAddress.IPv4;
             unsigned_int addr = ntohl(sa4.sel().sin_addr.s_addr.cast()).cast();
@@ -190,7 +190,7 @@ class NetUtil {
     }
 
     // NET_GetSockOpt
-    static c_int getSockOpt(c_int fd, c_int level, c_int opt, void_ptr result, ptr<c_int> len) {
+    static c_int getSockOpt(c_int fd, c_int level, c_int opt, ptr<?> result, ptr<c_int> len) {
         socklen_t socklen = auto(len.loadUnshared().cast());
         c_int rv = getsockopt(fd, level, opt, result, addr_of(socklen));
         len.storeUnshared(socklen.cast());
@@ -203,7 +203,7 @@ class NetUtil {
             if ((level == SOL_SOCKET) && ((opt == SO_SNDBUF) || (opt == SO_RCVBUF))) {
                 c_int n = result.loadUnshared(c_int.class);
                 n = word(n.intValue() / 2);
-                result.cast(int_ptr.class).storeUnshared(n);
+                result.storeUnshared(c_int.class, n);
             }
         }
 
@@ -220,7 +220,7 @@ class NetUtil {
     }
 
     // NET_SetSockOpt
-    static c_int setSockOpt(c_int fd, c_int level, c_int  opt, const_void_ptr arg, c_int len) {
+    static c_int setSockOpt(c_int fd, c_int level, c_int  opt, ptr<@c_const ?> arg, c_int len) {
         if (level == IPPROTO_IP && opt == IP_TOS) {
             if (Build.Target.isLinux() && ipv6_available()) {
                 throw new UnsupportedOperationException("TODO: finish Linux port of setSockOpt");
@@ -283,18 +283,18 @@ class NetUtil {
     }
 
     // NET_Bind
-    static c_int bind(c_int fd, /*SOCKETADDRESS* */ void_ptr sa, c_int len) {
+    static c_int bind(c_int fd, /*SOCKETADDRESS* */ ptr<struct_sockaddr> sa, c_int len) {
         if (Build.Target.isLinux()) {
-            c_int family = sa.cast(struct_sockaddr_ptr.class).sel().sa_family.cast();
+            c_int family = sa.sel().sa_family.cast();
             if (family == AF_INET) {
-                struct_sockaddr_in_ptr sa_in = sa.cast(struct_sockaddr_in_ptr.class);
+                ptr<struct_sockaddr_in> sa_in = sa.cast();
                 if ((ntohl(sa_in.sel().sin_addr.s_addr.cast()).intValue() & 0x7f0000ff) == 0x7f0000ff) {
                     errno = EADDRNOTAVAIL.intValue();
                     return word(-1);
                 }
             }
         }
-        return SysSocket.bind(fd, sa.cast(const_struct_sockaddr_ptr.class), len.cast(socklen_t.class));
+        return SysSocket.bind(fd, sa, len.cast(socklen_t.class));
     }
 
 }

@@ -78,7 +78,7 @@ class EPoll$_native {
     }
 
     static int wait(int epfd, long pollAddress, int numfds, int timeout) throws IOException {
-        struct_epoll_event_ptr events = word(pollAddress);
+        ptr<struct_epoll_event> events = word(pollAddress);
         int res = epoll_wait(word(epfd), events, word(numfds), word(timeout)).intValue();
         if (res < 0) {
             if (errno == EINTR.intValue()) {

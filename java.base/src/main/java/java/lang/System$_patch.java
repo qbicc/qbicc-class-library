@@ -146,7 +146,7 @@ public final class System$_patch {
     private static int setHashCode(Object x, int proposed) {
         // Sigh.  This should be inline, but the scheduler allows the addr_of operation
         //        to float outside of the else block, and that breaks the interpreter.
-        int32_t_ptr ptr = addr_of(refToPtr(x).sel().defaultHashCode).cast();
+        ptr<int32_t> ptr = addr_of(refToPtr(x).sel().defaultHashCode).cast();
         int oldVal = ptr.loadAcquire().intValue();
         int witness = ptr.compareAndSwapRelease(word(oldVal), word(proposed)).intValue();
         return witness == 0 ? proposed : witness;

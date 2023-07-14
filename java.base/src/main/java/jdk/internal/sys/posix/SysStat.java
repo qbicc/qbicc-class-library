@@ -29,8 +29,6 @@ public final class SysStat {
         public blkcnt_t st_blocks;
     }
 
-    public static final class struct_stat_ptr extends ptr<struct_stat> {}
-
     public static final class struct_stat64 extends object {
         public dev_t st_dev;
         public ino64_t st_ino;
@@ -46,8 +44,6 @@ public final class SysStat {
         public blksize_t st_blksize;
         public blkcnt64_t st_blocks;
     }
-
-    public static final class struct_stat64_ptr extends ptr<struct_stat64> {}
 
     public static final mode_t S_IFMT = constant();
     public static final mode_t S_IFBLK = constant();
@@ -74,15 +70,15 @@ public final class SysStat {
     public static final mode_t S_IXOTH = constant();
 
     @name(value = "stat$INODE64", when = { Build.Target.IsMacOs.class, Build.Target.IsAmd64.class })
-    public static native c_int stat(const_char_ptr pathName, struct_stat_ptr statBuf);
+    public static native c_int stat(ptr<@c_const c_char> pathName, ptr<struct_stat> statBuf);
     @name(value = "fstat$INODE64", when = { Build.Target.IsMacOs.class, Build.Target.IsAmd64.class })
-    public static native c_int fstat(c_int fd, struct_stat_ptr statBuf);
+    public static native c_int fstat(c_int fd, ptr<struct_stat> statBuf);
     @name(value = "lstat$INODE64", when = { Build.Target.IsMacOs.class, Build.Target.IsAmd64.class })
-    public static native c_int lstat(const_char_ptr pathName, struct_stat_ptr statBuf);
+    public static native c_int lstat(ptr<@c_const c_char> pathName, ptr<struct_stat> statBuf);
     @name(value = "fstatat$INODE64", when = { Build.Target.IsMacOs.class, Build.Target.IsAmd64.class })
-    public static native c_int fstatat(c_int dirFd, const_char_ptr pathName, struct_stat_ptr statBuf, c_int flags);
+    public static native c_int fstatat(c_int dirFd, ptr<@c_const c_char> pathName, ptr<struct_stat> statBuf, c_int flags);
 
-    public static native c_int chmod(const_char_ptr path, mode_t mode);
+    public static native c_int chmod(ptr<@c_const c_char> path, mode_t mode);
 
-    public static native c_int mkdir(const_char_ptr pathname, mode_t mode);
+    public static native c_int mkdir(ptr<@c_const c_char> pathname, mode_t mode);
 }

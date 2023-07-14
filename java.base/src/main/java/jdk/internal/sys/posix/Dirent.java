@@ -11,15 +11,13 @@ public class Dirent {
     @incomplete
     public static final class DIR extends object {
     }
-    public static final class DIR_ptr extends ptr<DIR> {}
 
     public static final class struct_dirent extends object {
         public c_char[] d_name;
     }
-    public static final class struct_dirent_ptr extends ptr<struct_dirent> {}
 
-    public static native c_int closedir(DIR_ptr dir);
-    public static native DIR_ptr fdopendir(c_int fd);
-    public static native DIR_ptr opendir(const_char_ptr path);
-    public static native struct_dirent_ptr readdir(DIR_ptr dir);
+    public static native c_int closedir(ptr<DIR> dir);
+    public static native ptr<DIR> fdopendir(c_int fd);
+    public static native ptr<DIR> opendir(ptr<@c_const c_char> path);
+    public static native ptr<struct_dirent> readdir(ptr<DIR> dir);
 }

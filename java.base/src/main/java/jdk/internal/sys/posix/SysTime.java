@@ -14,5 +14,4 @@ public class SysTime {
         public time_t tv_sec;
         public suseconds_t tv_usec;
     }
-    public static final class struct_timeval_ptr extends ptr<struct_timeval> {}
 }

@@ -76,7 +76,7 @@ class ProcessHandleImpl$Info$_runtime {
             ptr<c_char> line = auto();
             size_t len = auto();
             int64_t bootTime = auto();
-            const_char_ptr scanStr = utf8z("btime %llu");
+            ptr<@c_const c_char> scanStr = utf8z("btime %llu");
             while (getline(addr_of(line), addr_of(len), fp).intValue() != -1) {
                 if (sscanf(line.cast(), scanStr, addr_of(bootTime)).intValue() == 1) {
                     break;

@@ -353,7 +353,7 @@ class Net$_native {
         c_int result = auto();
         struct_linger linger = auto();
         c_char carg = auto();
-        void_ptr arg = auto(addr_of(result).cast());
+        ptr<?> arg = auto(addr_of(result).cast());
         socklen_t arglen = auto(sizeof(result).cast());
 
         if (level == IPPROTO_IP.intValue() &&
@@ -398,7 +398,7 @@ class Net$_native {
         c_int opt = word(jopt);
 
         /* Option value is an int except for a few specific cases */
-        const_void_ptr parg = addr_of(arg).cast();
+        ptr<@c_const ?> parg = addr_of(arg).cast();
         socklen_t arglen = sizeof(arg).cast();
 
         if (level == IPPROTO_IP && (opt == IP_MULTICAST_TTL || opt == IP_MULTICAST_LOOP)) {
