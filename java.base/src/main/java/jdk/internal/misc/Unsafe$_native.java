@@ -144,72 +144,72 @@ final class Unsafe$_native {
         switch ((int) elemSize) {
             case 1 -> copyMemory0(srcBase, srcOffset, destBase, destOffset, bytes);
             case 2 -> {
-                ptr<c_char> srcBasePtr = refToPtr(srcBase).cast();
-                ptr<c_char> destBasePtr = refToPtr(destBase).cast();
-                ptr<int16_t> srcPtr = srcBasePtr.plus(srcOffset).cast();
-                ptr<int16_t> destPtr = destBasePtr.plus(destOffset).cast();
-                long cnt = bytes >> 1;
+                ptr<c_char> srcBasePtr2 = refToPtr(srcBase).cast();
+                ptr<c_char> destBasePtr2 = refToPtr(destBase).cast();
+                ptr<int16_t> srcPtr2 = srcBasePtr2.plus(srcOffset).cast();
+                ptr<int16_t> destPtr2 = destBasePtr2.plus(destOffset).cast();
+                long cnt2 = bytes >> 1;
                 if (reverse) {
-                    for (long i = cnt - 1; i >= 0; i --) {
-                        destPtr.plus(i).storePlain(word(Short.reverseBytes(srcPtr.plus(i).loadPlain().shortValue())));
+                    for (long i2 = cnt2 - 1; i2 >= 0; i2 --) {
+                        destPtr2.plus(i2).storePlain(word(Short.reverseBytes(srcPtr2.plus(i2).loadPlain().shortValue())));
                     }
                 } else {
-                    for (long i = 0; i < cnt; i ++) {
-                        destPtr.plus(i).storePlain(word(Short.reverseBytes(srcPtr.plus(i).loadPlain().shortValue())));
+                    for (long i2b = 0; i2b < cnt2; i2b ++) {
+                        destPtr2.plus(i2b).storePlain(word(Short.reverseBytes(srcPtr2.plus(i2b).loadPlain().shortValue())));
                     }
                 }
             }
             case 4 -> {
-                ptr<c_char> srcBasePtr = refToPtr(srcBase).cast();
-                ptr<c_char> destBasePtr = refToPtr(destBase).cast();
-                ptr<int32_t> srcPtr = srcBasePtr.plus(srcOffset).cast();
-                ptr<int32_t> destPtr = destBasePtr.plus(destOffset).cast();
-                long cnt = bytes >> 2;
+                ptr<c_char> srcBasePtr4 = refToPtr(srcBase).cast();
+                ptr<c_char> destBasePtr4 = refToPtr(destBase).cast();
+                ptr<int32_t> srcPtr4 = srcBasePtr4.plus(srcOffset).cast();
+                ptr<int32_t> destPtr4 = destBasePtr4.plus(destOffset).cast();
+                long cnt4 = bytes >> 2;
                 if (reverse) {
-                    for (long i = cnt - 1; i >= 0; i --) {
-                        destPtr.plus(i).storePlain(word(Integer.reverseBytes(srcPtr.plus(i).loadPlain().intValue())));
+                    for (long i4 = cnt4 - 1; i4 >= 0; i4 --) {
+                        destPtr4.plus(i4).storePlain(word(Integer.reverseBytes(srcPtr4.plus(i4).loadPlain().intValue())));
                     }
                 } else {
-                    for (long i = 0; i < cnt; i ++) {
-                        destPtr.plus(i).storePlain(word(Integer.reverseBytes(srcPtr.plus(i).loadPlain().intValue())));
+                    for (long i4b = 0; i4b < cnt4; i4b ++) {
+                        destPtr4.plus(i4b).storePlain(word(Integer.reverseBytes(srcPtr4.plus(i4b).loadPlain().intValue())));
                     }
                 }
             }
             case 8 -> {
-                ptr<c_char> srcBasePtr = refToPtr(srcBase).cast();
-                ptr<c_char> destBasePtr = refToPtr(destBase).cast();
-                ptr<int64_t> srcPtr = srcBasePtr.plus(srcOffset).cast();
-                ptr<int64_t> destPtr = destBasePtr.plus(destOffset).cast();
-                long cnt = bytes >> 3;
+                ptr<c_char> srcBasePtr8 = refToPtr(srcBase).cast();
+                ptr<c_char> destBasePtr8 = refToPtr(destBase).cast();
+                ptr<int64_t> srcPtr8 = srcBasePtr8.plus(srcOffset).cast();
+                ptr<int64_t> destPtr8 = destBasePtr8.plus(destOffset).cast();
+                long cnt8 = bytes >> 3;
                 if (reverse) {
-                    for (long i = cnt - 1; i >= 0; i --) {
-                        destPtr.plus(i).storePlain(word(Long.reverseBytes(srcPtr.plus(i).loadPlain().longValue())));
+                    for (long i8 = cnt8 - 1; i8 >= 0; i8 --) {
+                        destPtr8.plus(i8).storePlain(word(Long.reverseBytes(srcPtr8.plus(i8).loadPlain().longValue())));
                     }
                 } else {
-                    for (long i = 0; i < cnt; i ++) {
-                        destPtr.plus(i).storePlain(word(Long.reverseBytes(srcPtr.plus(i).loadPlain().longValue())));
+                    for (long i8b = 0; i8b < cnt8; i8b ++) {
+                        destPtr8.plus(i8b).storePlain(word(Long.reverseBytes(srcPtr8.plus(i8b).loadPlain().longValue())));
                     }
                 }
             }
             case 16 -> {
-                ptr<c_char> srcBasePtr = refToPtr(srcBase).cast();
-                ptr<c_char> destBasePtr = refToPtr(destBase).cast();
-                ptr<int64_t> srcPtr = srcBasePtr.plus(srcOffset).cast();
-                ptr<int64_t> destPtr = destBasePtr.plus(destOffset).cast();
-                long cnt = bytes >> 3;
+                ptr<c_char> srcBasePtr16 = refToPtr(srcBase).cast();
+                ptr<c_char> destBasePtr16 = refToPtr(destBase).cast();
+                ptr<int64_t> srcPtr16 = srcBasePtr16.plus(srcOffset).cast();
+                ptr<int64_t> destPtr16 = destBasePtr16.plus(destOffset).cast();
+                long cnt16 = bytes >> 3;
                 if (reverse) {
-                    for (long i = cnt - 2; i >= 0; i -= 2) {
-                        long a = srcPtr.plus(i).loadPlain().longValue();
-                        long b = srcPtr.plus(i + 1).loadPlain().longValue();
-                        destPtr.plus(i).storePlain(word(Long.reverseBytes(b)));
-                        destPtr.plus(i + 1).storePlain(word(Long.reverseBytes(a)));
+                    for (long i16 = cnt16 - 2; i16 >= 0; i16 -= 2) {
+                        long a = srcPtr16.plus(i16).loadPlain().longValue();
+                        long b = srcPtr16.plus(i16 + 1).loadPlain().longValue();
+                        destPtr16.plus(i16).storePlain(word(Long.reverseBytes(b)));
+                        destPtr16.plus(i16 + 1).storePlain(word(Long.reverseBytes(a)));
                     }
                 } else {
-                    for (long i = 0; i < cnt; i += 2) {
-                        long a = srcPtr.plus(i).loadPlain().longValue();
-                        long b = srcPtr.plus(i + 1).loadPlain().longValue();
-                        destPtr.plus(i).storePlain(word(Long.reverseBytes(b)));
-                        destPtr.plus(i + 1).storePlain(word(Long.reverseBytes(a)));
+                    for (long i16b = 0; i16b < cnt16; i16b += 2) {
+                        long c = srcPtr16.plus(i16b).loadPlain().longValue();
+                        long d = srcPtr16.plus(i16b + 1).loadPlain().longValue();
+                        destPtr16.plus(i16b).storePlain(word(Long.reverseBytes(d)));
+                        destPtr16.plus(i16b + 1).storePlain(word(Long.reverseBytes(c)));
                     }
                 }
             }
