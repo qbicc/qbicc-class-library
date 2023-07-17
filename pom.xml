@@ -152,11 +152,6 @@
 
             <dependency>
                 <groupId>org.qbicc</groupId>
-                <artifactId>qbicc-runtime-gc-heap</artifactId>
-                <version>${version.qbicc}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.qbicc</groupId>
                 <artifactId>qbicc-runtime-llvm</artifactId>
                 <version>${version.qbicc}</version>
             </dependency>

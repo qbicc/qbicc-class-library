@@ -18,10 +18,6 @@
     <dependencies>
         <dependency>
             <groupId>org.qbicc</groupId>
-            <artifactId>qbicc-runtime-gc-heap</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.qbicc</groupId>
             <artifactId>qbicc-runtime-llvm</artifactId>
         </dependency>
         <dependency>
