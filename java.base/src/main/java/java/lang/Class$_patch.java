@@ -284,6 +284,11 @@ final class Class$_patch<T> {
         return qbiccReflectionData;
     }
 
+    @Replace
+    public boolean isPrimitive() {
+        return (modifiers & (1 << 17)) != 0;
+    }
+
     // todo: @Replace public Class<?> arrayType() { ... }
     // todo: @Replace public Class<?> componentType() { ... }
     // todo: @Remove private final Class<?> componentType;
