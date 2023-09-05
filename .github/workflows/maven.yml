@@ -56,7 +56,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Clone project
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: qbicc-class-library
           submodules: recursive
@@ -67,7 +67,7 @@ jobs:
         working-directory: qbicc-class-library
 
       - name: Clone qbicc
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: qbicc/qbicc
           ref: ${{ env.QBICC_VERSION }}
