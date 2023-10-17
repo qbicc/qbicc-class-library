@@ -2,6 +2,9 @@
 
 java.lang.Class$ReflectionData$_patch
 java.lang.Class$_patch
+java.lang.Integer$_patch
+java.lang.Long$_patch
+java.lang.Math$_patch
 java.lang.Object$_aliases
 java.lang.ProcessEnvironment$_runtime
 java.lang.ProcessHandleImpl$_init

@@ -40,6 +40,8 @@ import java.util.Properties;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
+import org.qbicc.runtime.SafePoint;
+import org.qbicc.runtime.SafePointBehavior;
 
 @Tracking("src/java.base/share/native/libjava/System.c")
 @Tracking("src/java.base/share/classes/java/lang/System.java")
@@ -156,6 +158,7 @@ public final class System$_native {
         }
     }
 
+    @SafePoint(SafePointBehavior.ALLOWED)
     public static long currentTimeMillis() {
         if (Build.Target.isPosix()) {
             struct_timespec spec = auto();
@@ -166,6 +169,7 @@ public final class System$_native {
         }
     }
 
+    @SafePoint(SafePointBehavior.ALLOWED)
     public static long nanoTime() {
         if (Build.Target.isPosix()) {
             // todo: check _POSIX_TIMERS / _POSIX_MONOTONIC_CLOCK from <unistd.h> and fall back if needed

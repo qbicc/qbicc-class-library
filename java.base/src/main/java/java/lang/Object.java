@@ -36,11 +36,13 @@ import static org.qbicc.runtime.CNative.*;
 
 import java.lang.reflect.Array;
 
+import jdk.internal.vm.annotation.Stable;
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.AutoQueued;
 import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.NoReflect;
-import org.qbicc.runtime.NoSafePoint;
+import org.qbicc.runtime.SafePoint;
+import org.qbicc.runtime.SafePointBehavior;
 import org.qbicc.runtime.main.CompilerIntrinsics;
 import org.qbicc.runtime.main.Monitor;
 import org.qbicc.runtime.main.VMHelpers;
@@ -50,9 +52,11 @@ import org.qbicc.runtime.main.VMHelpers;
 public class Object {
 
     @NoReflect
+    @offset(0)
     header_type header;
 
     @NoReflect
+    @Stable
     type_id typeId;
 
     @NoReflect
@@ -61,7 +65,7 @@ public class Object {
     @NoReflect
     int defaultHashCode;
 
-    @NoSafePoint // todo: skip safepoint check on empty methods/ctors
+    @SafePoint(SafePointBehavior.ALLOWED)
     public Object() {}
 
     public final Class<?> getClass() {

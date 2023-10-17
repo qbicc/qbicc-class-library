@@ -47,6 +47,8 @@ import java.nio.charset.StandardCharsets;
 
 import org.qbicc.rt.annotation.Tracking;
 import org.qbicc.runtime.Build;
+import org.qbicc.runtime.SafePoint;
+import org.qbicc.runtime.SafePointBehavior;
 import org.qbicc.runtime.host.HostIO;
 
 /**
@@ -147,6 +149,7 @@ class UnixFileSystem$_native {
         return new String(targetBuf, a + 1, length - a - 1);
     }
 
+    @SafePoint(SafePointBehavior.NONE)
     private static ptr<c_char> mallocPath(File f) {
         byte[] bytes = f.getPath().getBytes(StandardCharsets.UTF_8);
         int len = bytes.length + 1;

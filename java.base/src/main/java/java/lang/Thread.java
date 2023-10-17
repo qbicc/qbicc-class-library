@@ -1,10 +1,10 @@
 package java.lang;
 
-import static jdk.internal.sys.linux.Futex.*;
 import static jdk.internal.sys.posix.Limits.*;
 import static jdk.internal.sys.posix.PThread.*;
 import static jdk.internal.sys.posix.Sched.*;
 
+import static jdk.internal.sys.posix.Time.CLOCK_MONOTONIC;
 import static jdk.internal.thread.ThreadNative.*;
 import static org.qbicc.runtime.CNative.*;
 import static org.qbicc.runtime.llvm.LLVM.*;
@@ -16,6 +16,7 @@ import java.lang.module.ModuleDescriptor;
 import java.lang.ref.Reference;
 import java.security.AccessControlContext;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -30,8 +31,9 @@ import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.Inline;
 import org.qbicc.runtime.InlineCondition;
 import org.qbicc.runtime.NoReturn;
-import org.qbicc.runtime.NoSafePoint;
 import org.qbicc.runtime.NoThrow;
+import org.qbicc.runtime.SafePoint;
+import org.qbicc.runtime.SafePointBehavior;
 import org.qbicc.runtime.stackwalk.JavaStackWalker;
 import org.qbicc.runtime.stackwalk.StackWalker;
 import sun.nio.ch.Interruptible;
@@ -127,11 +129,7 @@ public class Thread implements Runnable {
 
     public static void yield() {
         if (Build.Target.isPosix()) {
-            final ptr<thread_native> threadNativePtr = currentThread().threadNativePtr;
-            // safepoint for the duration of the yield, but thread is still runnable
-            enterSafePoint(threadNativePtr, 0, 0);
             sched_yield();
-            exitSafePoint(threadNativePtr, 0, 0);
         }
         // else no operation
     }
@@ -143,17 +141,31 @@ public class Thread implements Runnable {
     }
 
     public static void sleep(long millis, int nanos) throws InterruptedException {
+        if (Thread.interrupted()) {
+            throw new InterruptedException();
+        }
         if (millis == 0 && nanos == 0) {
             return;
         }
-        park(millis, nanos, STATE_WAITING | STATE_SLEEPING, STATE_RUNNABLE, STATE_INTERRUPTED, 0);
+        if (millis < 0) {
+            throw new IllegalArgumentException("Negative timeout");
+        }
+        if (0 < nanos || nanos > 999999) {
+            throw new IllegalArgumentException("Invalid nanoseconds");
+        }
+        sleep0(millis / 1000L, nanos + 1000 * (int)(millis % 1000));
         if (Thread.interrupted()) {
             throw new InterruptedException();
         }
     }
 
+    @SafePoint(setBits = STATE_WAITING | STATE_SLEEPING, clearBits = STATE_RUNNABLE)
+    private static void sleep0(final long seconds, final int nanos) {
+        ThreadNative.awaitThreadInboundTimed(seconds, nanos, STATE_INTERRUPTED);
+    }
+
     @NoThrow
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @Inline(InlineCondition.ALWAYS)
     public static void onSpinWait() {
         if (Build.isHost()) {
@@ -245,6 +257,7 @@ public class Thread implements Runnable {
     }
 
     public synchronized void start() {
+        pthread_condattr_t cond_attr = auto();
         if (Build.isHost()) {
             // this must be replaced on the host
             throw new IllegalStateException("Host");
@@ -261,9 +274,14 @@ public class Thread implements Runnable {
         threadNativePtr.storeUnshared(zero());
         if (Build.Target.isPosix()) {
             if (! Build.Target.isLinux() && ! Build.Target.isWasm()) {
+                if (pthread_condattr_init(addr_of(cond_attr)).isNonZero()) abort();
+                if (! Build.Target.isMacOs()) {
+                    if (pthread_condattr_setclock(addr_of(cond_attr), CLOCK_MONOTONIC).isNonZero()) abort();
+                }
                 if (pthread_mutex_init(addr_of(deref(threadNativePtr).mutex), zero()).isNonZero()) abort();
-                if (pthread_cond_init(addr_of(deref(threadNativePtr).inbound_cond), zero()).isNonZero()) abort();
-                if (pthread_cond_init(addr_of(deref(threadNativePtr).outbound_cond), zero()).isNonZero()) abort();
+                if (pthread_cond_init(addr_of(deref(threadNativePtr).inbound_cond), addr_of(cond_attr)).isNonZero()) abort();
+                if (pthread_cond_init(addr_of(deref(threadNativePtr).outbound_cond), addr_of(cond_attr)).isNonZero()) abort();
+                if (pthread_condattr_destroy(addr_of(cond_attr)).isNonZero()) abort();
             }
         }
         deref(threadNativePtr).ref = reference.of(this);
@@ -283,30 +301,18 @@ public class Thread implements Runnable {
         }
 
         // now, the tricky part: we have to add this thread to the big linked list
-        final ptr<thread_native> currentThreadNativePtr = Thread.currentThread().threadNativePtr;
-        // enter safepoint in case lock acquire blocks
-        enterSafePoint(currentThreadNativePtr, 0, 0);
         // acquire lock
-        if (Build.Target.isPosix()) {
-            if (pthread_mutex_lock(addr_of(thread_list_mutex)).isNonZero()) abort();
-        } else {
-            // ???
-            abort();
+        ThreadNative.lockThreadList();
+        try {
+            // we hold the big list lock; do ye olde linked list insertion
+            deref(thread_list_terminus.prev).next = threadNativePtr;
+            deref(threadNativePtr).prev = thread_list_terminus.prev;
+            thread_list_terminus.prev = threadNativePtr;
+            deref(threadNativePtr).next = addr_of(thread_list_terminus);
+        } finally {
+            // release lock
+            ThreadNative.unlockThreadList();
         }
-        // we hold the big list lock; do ye olde linked list insertion
-        deref(thread_list_terminus.prev).next = threadNativePtr;
-        deref(threadNativePtr).prev = thread_list_terminus.prev;
-        thread_list_terminus.prev = threadNativePtr;
-        deref(threadNativePtr).next = addr_of(thread_list_terminus);
-        // release lock
-        if (Build.Target.isPosix()) {
-            if (pthread_mutex_unlock(addr_of(thread_list_mutex)).isNonZero()) abort();
-        } else {
-            // ???
-            abort();
-        }
-        // exit safepoint
-        exitSafePoint(currentThreadNativePtr, 0, 0);
 
         // now the thread is registered, so we can try to start it up
         int oldVal;
@@ -369,7 +375,7 @@ public class Thread implements Runnable {
             statePtr.getAndBitwiseXor(word(STATE_ALIVE | STATE_TERMINATED | STATE_EXITED));
             // we also must notify any waiters (waiting on GC etc.)
             // done; now we must signal the thread so it can exit the safepoint
-            notifySafePointOutbound(threadNativePtr);
+            notifyThreadOutbound();
             // notify joiners
             notifyAll();
             try {
@@ -383,9 +389,7 @@ public class Thread implements Runnable {
         // started!
     }
 
-    @NoSafePoint
-    @Hidden
-    @NoThrow
+    @SafePoint(SafePointBehavior.NONE)
     private boolean startPosix() {
         // assert Build.Target.isPosix();
         final pthread_attr_t thread_attr = auto();
@@ -411,7 +415,6 @@ public class Thread implements Runnable {
         final ptr<thread_native> threadNativePtr = this.threadNativePtr;
         final ptr<pthread_t> pthreadPtr = addr_of(deref(threadNativePtr).thread);
         final ptr<function<pthread_run>> run_fn = addr_of(function.of(ThreadNative::runThreadBody));
-        // todo: safepoint while thread is created?
         result = pthread_create(pthreadPtr, addr_of(thread_attr), run_fn, threadNativePtr.cast()).intValue();
         pthread_attr_destroy(addr_of(thread_attr));
         return result == 0;
@@ -453,7 +456,7 @@ public class Thread implements Runnable {
                             b.interrupt(this);
                         }
                     }
-                    notifySafePointOutbound(threadNativePtr);
+                    notifyThreadOutbound();
                 }
                 return;
             }
@@ -461,7 +464,7 @@ public class Thread implements Runnable {
         }
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     public static boolean interrupted() {
         final ptr<thread_native> threadNativePtr = Thread.currentThread().threadNativePtr;
         // assert threadNativePtr.isNonNull();
@@ -470,12 +473,12 @@ public class Thread implements Runnable {
         return (oldVal & STATE_INTERRUPTED) != 0;
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     public boolean isInterrupted() {
         return (getStatus() & STATE_INTERRUPTED) != 0;
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     public final boolean isAlive() {
         return (getStatus() & STATE_ALIVE) != 0;
     }
@@ -655,6 +658,7 @@ public class Thread implements Runnable {
             // use the Thread.class global monitor to ensure that only one thread does this at a time
             final ptr<thread_native> threadNativePtr = this.threadNativePtr;
             synchronized (Thread.class) {
+                // XXX - unsafe, incorrect
                 requestSafePoint(threadNativePtr, STATE_SAFEPOINT_REQUEST_STACK);
                 awaitSafePoint(threadNativePtr);
                 StackWalker sw = new StackWalker(addr_of(deref(threadNativePtr).saved_context));
@@ -683,7 +687,7 @@ public class Thread implements Runnable {
 
     public static Map<Thread, StackTraceElement[]> getAllStackTraces() {
         // Get a snapshot of the list of all threads
-        Thread[] threads = getThreads();
+        Thread[] threads = getAllThreads();
         StackTraceElement[][] traces = dumpThreads(threads);
         Map<Thread, StackTraceElement[]> m = new HashMap<>(threads.length);
         for (int i = 0; i < threads.length; i++) {
@@ -694,6 +698,35 @@ public class Thread implements Runnable {
             // else terminated so we don't put it in the map
         }
         return m;
+    }
+
+    @SafePoint(SafePointBehavior.NONE)
+    private static Thread[] getAllThreads() {
+        Thread[] array = new Thread[getSystemThreadGroup().activeCount() + 64];
+        ThreadNative.lockThreadList();
+        int cnt;
+        try {
+            cnt = getAllThreadsInternal(array);
+        } finally {
+            ThreadNative.unlockThreadList();
+        }
+        return Arrays.copyOf(array, cnt);
+    }
+
+    // ensure that no safepoints are possible while lock is held
+    @SafePoint(SafePointBehavior.FORBIDDEN)
+    @NoThrow
+    private static int getAllThreadsInternal(final Thread[] array) {
+        int i = 0;
+        ptr<thread_native> current = deref(addr_of(thread_list_terminus)).next;
+        while (current != addr_of(thread_list_terminus)) {
+            array[i++] = deref(current).ref.toObject();
+            if (i == array.length) {
+                break;
+            }
+            current = deref(current).next;
+        }
+        return i;
     }
 
     public long getId() {
@@ -741,6 +774,7 @@ public class Thread implements Runnable {
     // ==================================
 
     @NoReturn
+    @SafePoint(SafePointBehavior.NONE)
     void end() {
         Thread self = this;
         final ptr<thread_native> threadNativePtr = this.threadNativePtr;
@@ -748,14 +782,27 @@ public class Thread implements Runnable {
         CleanupAction action = new CleanupAction(threadNativePtr);
         // terminated - clear ALIVE and RUNNABLE and set TERMINATED in one swap
         // remove this thread from the thread list (and set termination flag)
-        enterSafePoint(threadNativePtr, STATE_TERMINATED, STATE_ALIVE | STATE_RUNNABLE);
-        pthread_mutex_lock(addr_of(thread_list_mutex));
-        deref(deref(threadNativePtr).prev).next = deref(threadNativePtr).next;
-        deref(deref(threadNativePtr).next).prev = deref(threadNativePtr).prev;
-        deref(threadNativePtr).next = zero();
-        deref(threadNativePtr).prev = zero();
-        pthread_mutex_unlock(addr_of(thread_list_mutex));
-        exitSafePoint(threadNativePtr, 0, 0);
+        end2(threadNativePtr, action, self);
+    }
+
+    @NoReturn
+    @SafePoint(setBits = STATE_TERMINATED, clearBits = STATE_ALIVE | STATE_RUNNABLE)
+    private void end2(final ptr<thread_native> threadNativePtr, final CleanupAction action, final Thread self) {
+        ThreadNative.lockThreadList_sp();
+        try {
+            deref(deref(threadNativePtr).prev).next = deref(threadNativePtr).next;
+            deref(deref(threadNativePtr).next).prev = deref(threadNativePtr).prev;
+            deref(threadNativePtr).next = zero();
+            deref(threadNativePtr).prev = zero();
+        } finally {
+            ThreadNative.unlockThreadList();
+        }
+        end3(threadNativePtr, action, self);
+    }
+
+    @NoReturn
+    @SafePoint(SafePointBehavior.EXIT)
+    private void end3(final ptr<thread_native> threadNativePtr, final CleanupAction action, final Thread self) {
         // clean out fields for better GC behavior
         if (threadLocals != null && TerminatingThreadLocal.REGISTRY.isPresent()) {
             TerminatingThreadLocal.threadTerminated();
@@ -782,6 +829,8 @@ public class Thread implements Runnable {
         if (Build.Target.isPosix()) {
             // exit the thread so it does not kill the whole process
             pthread_exit(zero());
+        } else {
+            abort();
         }
     }
 
@@ -789,6 +838,7 @@ public class Thread implements Runnable {
     @Hidden
     @NoThrow
     @NoReturn
+    @SafePoint(value = SafePointBehavior.EXIT, setBits = STATE_RUNNABLE)
     static void run0() {
         Thread thread = Thread.currentThread();
         try {
@@ -817,80 +867,13 @@ public class Thread implements Runnable {
         return res;
     }
 
-    private static Thread[] getThreads() {
-        if (Build.Target.isPosix()) {
-            // acquire lock
-            if (pthread_mutex_lock(addr_of(thread_list_mutex)).isNonZero()) abort();
-        } else {
-            throw new UnsupportedOperationException();
-        }
-        ArrayList<Thread> threads = new ArrayList<>();
-        ptr<thread_native> current = thread_list_terminus.next;
-        while (current != addr_of(thread_list_terminus)) {
-            threads.add(deref(current).ref.toObject());
-            current = deref(current).next;
-        }
-        if (Build.Target.isPosix()) {
-            // acquire lock
-            if (pthread_mutex_unlock(addr_of(thread_list_mutex)).isNonZero()) abort();
-        }
-        return threads.toArray(Thread[]::new);
-    }
-
-    private static Thread[] getThreads(ptr<thread_native> next, int index) {
-        if (next == addr_of(thread_list_terminus)) {
-            return new Thread[index];
-        } else {
-            Thread[] array = getThreads(deref(next).next, index + 1);
-            array[index] = deref(next).ref.toObject();
-            return array;
-        }
-    }
-
-    /**
-     * Attempt to interrupt a {@link ThreadNative#park(long, int, int, int, int, int)} operation.
-     *
-     * @param wakeBits the wakeup bits to set on the target thread
-     */
-    void unpark(int wakeBits) {
-        final ptr<thread_native> threadNativePtr = this.threadNativePtr;
-        if (threadNativePtr.isNull()) {
-            return;
-        }
-        final ptr<uint32_t> statePtr = addr_of(deref(threadNativePtr).state);
-        int oldVal, newVal, witness;
-        oldVal = statePtr.loadSingleAcquire().intValue();
-        for (;;) {
-            if ((oldVal & (wakeBits | STATE_EXITED)) != 0) {
-                // no op necessary; unpark already pending or the thread is gone
-                return;
-            }
-            newVal = oldVal | wakeBits;
-            witness = statePtr.compareAndSwap(word(oldVal), word(newVal)).intValue();
-            if (witness == oldVal) {
-                // done; now we just have to signal waiters
-                break;
-            }
-            // retry
-            oldVal = witness;
-        }
-        // signal the waiter
-        if (Build.Target.isPosix()) {
-            // wake
-            if (pthread_cond_broadcast(addr_of(deref(threadNativePtr).inbound_cond)).isNonZero()) abort();
-        } else {
-            throw new UnsupportedOperationException();
-        }
-        return;
-    }
-
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     private int getStatus() {
         final ptr<thread_native> threadNativePtr = this.threadNativePtr;
         return threadNativePtr.isNull() ? 0 : addr_of(deref(threadNativePtr).state).loadSingleAcquire().intValue();
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     private int compareAndSwapConfig(int expect, int update) {
         return addr_of(deref(refToPtr(this)).config).compareAndSwap(word(expect), word(update)).intValue();
     }
@@ -898,6 +881,7 @@ public class Thread implements Runnable {
     /**
      * Set the blocker field; invoked via jdk.internal.access.SharedSecrets from java.nio code
      */
+    @SafePoint(SafePointBehavior.NONE)
     static void blockedOn(Interruptible b) {
         Thread.currentThread().blocker = b;
     }

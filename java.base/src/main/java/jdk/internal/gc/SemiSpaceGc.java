@@ -1,6 +1,7 @@
 package jdk.internal.gc;
 
 import static jdk.internal.gc.Gc.*;
+import static jdk.internal.sys.linux.SysPrctl.prctl_set_vma_anon_name;
 import static jdk.internal.sys.posix.SysMman.*;
 import static jdk.internal.thread.ThreadNative.*;
 
@@ -11,8 +12,9 @@ import static org.qbicc.runtime.stdc.Stdlib.*;
 import static org.qbicc.runtime.stdc.String.strerror;
 
 import org.qbicc.runtime.Build;
-import org.qbicc.runtime.NoSafePoint;
 import org.qbicc.runtime.NoThrow;
+import org.qbicc.runtime.SafePoint;
+import org.qbicc.runtime.SafePointBehavior;
 
 /**
  * A basic garbage collector which moves live objects between two equally-sized spaces.
@@ -121,10 +123,14 @@ public final class SemiSpaceGc {
             // heap failure (should be impossible)
             abort();
         }
+        if (Build.Target.isLinux()) {
+            // label the heap area (ignore errors, best-effort only)
+            prctl_set_vma_anon_name(start, word(heapSize), utf8z("GC heap"));
+        }
         // other regions are initialized by common code
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @NoThrow
     private static void swap() {
         // todo: swap(addr_of(from), addr_of(to))
@@ -143,6 +149,7 @@ public final class SemiSpaceGc {
         }
     }
 
+    @SafePoint(SafePointBehavior.NONE)
     @export
     private static reference<?> allocate(long size) {
         ptr<?> ptr = region_allocate(addr_of(from), size);
@@ -153,12 +160,7 @@ public final class SemiSpaceGc {
                 return null;
             }
             // we need to trigger a collection manually
-            final ptr<thread_native> gcThread = getThreadNativePtr(Gc.gc_thread);
-            enterSafePoint(currentThreadNativePtr(), STATE_SAFEPOINT_REQUEST_GC | STATE_SAFEPOINT_REQUEST, 0);
-            // signal to the GC thread that we want a GC
-            requestSafePoint(gcThread, STATE_SAFEPOINT_REQUEST_GC);
-            // now wait for it to finish
-            exitSafePoint(currentThreadNativePtr(), 0, 0);
+            allocateFailed(getThreadNativePtr(Gc.gc_thread));
             // retry the allocation
             ptr = region_allocate(addr_of(from), size);
             // now if it's null, we've done all we can
@@ -168,6 +170,12 @@ public final class SemiSpaceGc {
             }
         }
         return reference.of(ptrToRef(ptr));
+    }
+
+    @SafePoint(value = SafePointBehavior.ENTER, setBits = STATE_SAFEPOINT_REQUEST_GC | STATE_SAFEPOINT_REQUEST)
+    private static void allocateFailed(ptr<thread_native> gcThread) {
+        // signal to the GC thread that we want a GC
+        requestSafePoint(gcThread, STATE_SAFEPOINT_REQUEST_GC);
     }
 
     @export

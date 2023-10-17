@@ -1,12 +1,12 @@
 package jdk.internal.thread;
 
-import static jdk.internal.sys.linux.Futex.*;
+import static java.lang.Math.abs;
 import static jdk.internal.sys.posix.Errno.*;
 import static jdk.internal.sys.posix.PThread.*;
 import static jdk.internal.sys.posix.Time.*;
 import static org.qbicc.runtime.CNative.*;
-import static org.qbicc.runtime.stdc.Errno.*;
 import static org.qbicc.runtime.stdc.Stdint.*;
+import static org.qbicc.runtime.stdc.Stdio.printf;
 import static org.qbicc.runtime.stdc.Stdlib.*;
 import static org.qbicc.runtime.stdc.Time.*;
 import static org.qbicc.runtime.unwind.LibUnwind.*;
@@ -19,9 +19,10 @@ import org.qbicc.runtime.Build;
 import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.Inline;
 import org.qbicc.runtime.InlineCondition;
-import org.qbicc.runtime.NoSafePoint;
 import org.qbicc.runtime.NoSideEffects;
 import org.qbicc.runtime.NoThrow;
+import org.qbicc.runtime.SafePoint;
+import org.qbicc.runtime.SafePointBehavior;
 import org.qbicc.runtime.ThreadScoped;
 
 /**
@@ -284,24 +285,15 @@ public final class ThreadNative {
         thread_list_terminus.prev = addr_of(thread_list_terminus);
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @NoSideEffects
     @NoThrow
     @Hidden
     public static native ptr<thread_native> currentThreadNativePtr();
 
+    @SafePoint(SafePointBehavior.ALLOWED)
     public static int nextThreadNum() {
         return addr_of(threadNumberCounter).getAndAdd(word(1)).intValue();
-    }
-
-    public static void notifySafePointOutbound(final ptr<thread_native> threadNativePtr) {
-        if (Build.Target.isWasi()) {
-            // TODO
-            //  memory.atomic.notify(statusPtr, 1)
-            abort();
-        } else if (Build.Target.isPosix()) {
-            if (pthread_cond_signal(addr_of(deref(threadNativePtr).outbound_cond)).isNonZero()) abort();
-        }
     }
 
     public static void monitorEnter(Object obj) {
@@ -349,7 +341,9 @@ public final class ThreadNative {
     @export
     @NoThrow
     @Hidden
+    @SafePoint(SafePointBehavior.REQUIRED)
     public static void thread_attach(Thread thread) {
+        pthread_condattr_t cond_attr = auto();
         ThreadAccess ta = cast(thread);
         ptr<thread_native> threadNativePtr = ta.threadNativePtr;
         if (threadNativePtr.isNonNull()) {
@@ -365,9 +359,15 @@ public final class ThreadNative {
         threadNativePtr.storeUnshared(zero());
         if (Build.Target.isPosix()) {
             if (! Build.Target.isWasm()) {
+                if (pthread_condattr_init(addr_of(cond_attr)).isNonZero()) abort();
+                if (! Build.Target.isMacOs()) {
+                    // macos doesn't have this function :(
+                    if (pthread_condattr_setclock(addr_of(cond_attr), CLOCK_MONOTONIC).isNonZero()) abort();
+                }
                 if (pthread_mutex_init(addr_of(deref(threadNativePtr).mutex), zero()).isNonZero()) abort();
-                if (pthread_cond_init(addr_of(deref(threadNativePtr).inbound_cond), zero()).isNonZero()) abort();
-                if (pthread_cond_init(addr_of(deref(threadNativePtr).outbound_cond), zero()).isNonZero()) abort();
+                if (pthread_cond_init(addr_of(deref(threadNativePtr).inbound_cond), addr_of(cond_attr)).isNonZero()) abort();
+                if (pthread_cond_init(addr_of(deref(threadNativePtr).outbound_cond), addr_of(cond_attr)).isNonZero()) abort();
+                if (pthread_condattr_destroy(addr_of(cond_attr)).isNonZero()) abort();
             }
         }
         deref(threadNativePtr).ref = reference.of(thread);
@@ -416,25 +416,17 @@ public final class ThreadNative {
         // manually register the thread count
         addr_of(nonDaemonThreadCount).getAndAdd(word(1));
 
-        // add thread to linked list; note that unlike `start`, we do not safepoint here
         // acquire lock
-        if (Build.Target.isPosix()) {
-            if (pthread_mutex_lock(addr_of(thread_list_mutex)).isNonZero()) abort();
-        } else {
-            // ???
-            abort();
-        }
-        // we hold the big list lock; do ye olde linked list insertion
-        deref(thread_list_terminus.prev).next = threadNativePtr;
-        deref(threadNativePtr).prev = thread_list_terminus.prev;
-        thread_list_terminus.prev = threadNativePtr;
-        deref(threadNativePtr).next = addr_of(thread_list_terminus);
-        // release lock
-        if (Build.Target.isPosix()) {
-            if (pthread_mutex_unlock(addr_of(thread_list_mutex)).isNonZero()) abort();
-        } else {
-            // ???
-            abort();
+        lockThreadList_sp();
+        try {
+            // we hold the big list lock; do ye olde linked list insertion
+            deref(thread_list_terminus.prev).next = threadNativePtr;
+            deref(threadNativePtr).prev = thread_list_terminus.prev;
+            thread_list_terminus.prev = threadNativePtr;
+            deref(threadNativePtr).next = addr_of(thread_list_terminus);
+        } finally {
+            // release lock
+            unlockThreadList();
         }
 
         // The thread is now alive; use the normal execution methodology from now on
@@ -443,13 +435,14 @@ public final class ThreadNative {
         abort();
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.FORBIDDEN)
     @NoThrow
     public static ptr<thread_native> getThreadNativePtr(Thread thread) {
         ThreadAccess ta = cast(thread);
         return ta.threadNativePtr;
     }
 
+    @SafePoint(SafePointBehavior.NONE)
     public static void exitNonDaemonThread() {
         // todo: put the shutdown bit right on the count word?
         int cnt = addr_of(nonDaemonThreadCount).getAndAdd(word(- 1)).intValue();
@@ -462,7 +455,7 @@ public final class ThreadNative {
         }
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     public static void freeThreadNative(ptr<thread_native> threadNativePtr) {
         // assert threadNativePtr != null;
         if (Build.Target.isPosix() && ! Build.Target.isWasm()) {
@@ -476,106 +469,263 @@ public final class ThreadNative {
     }
 
     // intrinsic, but implies Hidden & NoThrow & NoReturn
+    @SafePoint(value = SafePointBehavior.EXIT, setBits = STATE_RUNNABLE)
     public static native void bind(ptr<thread_native> threadPtr);
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     public static long nextThreadID() {
         return addr_of(threadSeqNumber).getAndAdd(word(1)).longValue();
     }
 
-    /**
-     * Park in a safepoint for some amount of time.
-     *
-     * @param millis the number of milliseconds to park for
-     * @param nanos the number of nanos to park for
-     * @param setBits the bits to set while parking
-     * @param clearBits the bits to clear while parking
-     * @param wakeBits the set of bits, any of which should cause the park to return early
-     * @param clearWakeBits the set of bits to clear on unpark and cause the park to return early
-     */
-    @SuppressWarnings("ConstantConditions")
-    @NoSafePoint
-    @Hidden
-    public static void park(long millis, int nanos, int setBits, int clearBits, int wakeBits, int clearWakeBits) {
-        if (millis < 0 || nanos < 0 || nanos > 999_999) {
-            throw new IllegalArgumentException();
-        }
-        // assert
-        final ptr<thread_native> threadNativePtr = currentThreadNativePtr();
-        final ptr<uint32_t> statePtr = addr_of(deref(threadNativePtr).state);
-        // check to see if we should just exit right away
-        if ((statePtr.loadSingleAcquire().intValue() & wakeBits) != 0) {
+    @SafePoint(SafePointBehavior.NONE)
+    public static void park(boolean isAbsolute, long time) {
+        ptr<thread_native> threadNativePtr = currentThreadNativePtr();
+        int state = addr_of(deref(threadNativePtr).state).loadAcquire().intValue();
+        if ((state & (STATE_UNPARK | STATE_INTERRUPTED)) != 0) {
             return;
         }
-        if (Build.Target.isPosix()) {
-            // POSIX park uses seconds not millis...
-            long posixSeconds = millis / 1_000L;
-            int posixNanos = nanos + ((int)millis % 1_000) * 1_000_000;
-            parkPosix(posixSeconds, posixNanos, setBits, clearBits, wakeBits, clearWakeBits);
+        if (isAbsolute) {
+            // absolute timeout in milliseconds
+            long millis = time - System.currentTimeMillis();
+            // check to see if we should exit immediately
+            if (millis <= 0) {
+                return;
+            }
+            // otherwise, enter safepoint and wait
+            park0(millis);
+        } else if (time == 0) {
+            // no timeout
+            park1();
         } else {
-            // todo
+            // relative timeout in nanos
+            int nanos = (int) abs(time % 1_000_000_000);
+            long seconds = Long.divideUnsigned(time, 1_000_000_000);
+            park2(seconds, nanos);
+        }
+    }
+
+    @SafePoint(setBits = STATE_PARKED | STATE_WAITING | STATE_WAITING_WITH_TIMEOUT, clearBits = STATE_RUNNABLE)
+    private static void park0(long time) {
+        lockThread_sp();
+        try {
+            awaitThreadInboundTimed(Long.divideUnsigned(time, 1_000), (int) abs(time % 1_000) * 1_000, STATE_INTERRUPTED | STATE_UNPARK);
+        } finally {
+            unlockThread();
+        }
+        addr_of(deref(currentThreadNativePtr()).state).getAndBitwiseAnd(word(~STATE_UNPARK));
+    }
+
+    @SafePoint(setBits = STATE_PARKED | STATE_WAITING | STATE_WAITING_INDEFINITELY, clearBits = STATE_RUNNABLE)
+    private static void park1() {
+        lockThread_sp();
+        try {
+            awaitThreadInbound(STATE_INTERRUPTED | STATE_UNPARK);
+        } finally {
+            unlockThread();
+        }
+        addr_of(deref(currentThreadNativePtr()).state).getAndBitwiseAnd(word(~STATE_UNPARK));
+    }
+
+    @SafePoint(setBits = STATE_PARKED | STATE_WAITING | STATE_WAITING_WITH_TIMEOUT, clearBits = STATE_RUNNABLE)
+    private static void park2(long seconds, int nanos) {
+        lockThread_sp();
+        try {
+            awaitThreadInboundTimed(seconds, nanos, STATE_INTERRUPTED | STATE_UNPARK);
+        } finally {
+            unlockThread();
+        }
+        addr_of(deref(currentThreadNativePtr()).state).getAndBitwiseAnd(word(~STATE_UNPARK));
+    }
+
+    public static void unpark(ptr<thread_native> threadNativePtr) {
+        if (threadNativePtr.isNull()) {
+            return;
+        }
+        final ptr<uint32_t> statePtr = addr_of(deref(threadNativePtr).state);
+        int oldVal, newVal, witness;
+        oldVal = statePtr.loadSingleAcquire().intValue();
+        for (;;) {
+            if ((oldVal & (STATE_UNPARK | STATE_EXITED)) != 0) {
+                // no op necessary; unpark already pending or the thread is gone
+                return;
+            }
+            newVal = oldVal | STATE_UNPARK;
+            witness = statePtr.compareAndSwap(word(oldVal), word(newVal)).intValue();
+            if (witness == oldVal) {
+                // done; now we just have to signal waiters
+                break;
+            }
+            // retry
+            oldVal = witness;
+        }
+        // signal the waiter
+        notifyThreadInbound(threadNativePtr);
+        return;
+    }
+
+    /**
+     * Lock the current thread's mutex.
+     * May only be called from outside a safepoint.
+     * Enters a safepoint for the duration of the lock operation, if the operation would block.
+     */
+    @SafePoint(SafePointBehavior.NONE)
+    public static void lockThread() {
+        c_int result = pthread_mutex_trylock(addr_of(deref(currentThreadNativePtr()).mutex));
+        if (result == EBUSY) {
+            lockThread_sp();
+        } else if (result.isNonZero()) {
             abort();
         }
     }
 
-    @SuppressWarnings("ConstantConditions")
-    @NoSafePoint
-    @NoThrow
-    @Hidden
-    public static void parkPosix(long seconds, int nanos, int setBits, int clearBits, int wakeBits, int clearWakeBits) {
-        struct_timespec ts = auto();
-        struct_timespec now = auto();
-        final ptr<thread_native> threadNativePtr = currentThreadNativePtr();
-        final ptr<uint32_t> statePtr = addr_of(deref(threadNativePtr).state);
-        enterSafePoint(threadNativePtr, setBits, clearBits);
-        // we are now ready to park
+    /**
+     * Lock the current thread's mutex.
+     * May be called from within or without a safepoint.
+     * Always enters a safepoint for the duration of the lock operation.
+     */
+    @SafePoint
+    public static void lockThread_sp() {
+        lockThread_sp(currentThreadNativePtr());
+    }
 
-        // acquire the mutex
-        if (pthread_mutex_lock(addr_of(deref(threadNativePtr).mutex)).isNonZero()) abort();
-        if (seconds != 0 || nanos != 0) {
-            // get the start time; both Linux and not-linux are absolute but the clock used varies
-            clock_gettime(Build.Target.isLinux() ? CLOCK_MONOTONIC : CLOCK_REALTIME, addr_of(now));
-            // add the base time to the duration
-            nanos += now.tv_nsec.intValue();
-            if (nanos > 1_000_000_000) {
-                // carry the one
-                seconds ++;
-                nanos -= 1_000_000_000;
-            }
-            seconds += now.tv_sec.longValue();
-            // store it back
-            ts.tv_sec = word(seconds);
-            ts.tv_nsec = word(nanos);
+    @SafePoint
+    public static void lockThread_sp(final ptr<thread_native> threadNativePtr) {
+        if (pthread_mutex_lock(addr_of(deref(threadNativePtr).mutex)).isNonZero()) {
+            abort();
         }
-        wakeBits |= clearWakeBits;
-        int oldVal = statePtr.loadSingleAcquire().intValue();
-        while ((oldVal & wakeBits) == 0) {
-            // wait
-            if (seconds != 0 || nanos != 0) {
-                final c_int res = pthread_cond_timedwait(addr_of(deref(threadNativePtr).inbound_cond), addr_of(deref(threadNativePtr).mutex), addr_of(ts));
-                if (res.isNonZero() && res != ETIMEDOUT) abort();
-            } else {
-                if (pthread_cond_wait(addr_of(deref(threadNativePtr).inbound_cond), addr_of(deref(threadNativePtr).mutex)).isNonZero()) abort();
-            }
-            // check the bits
-            oldVal = statePtr.loadSingleAcquire().intValue();
-            if ((oldVal & wakeBits) != 0) {
-                // done (awoken)
-                break;
-            }
-            if (seconds != 0 || nanos != 0) {
-                // check the time
-                clock_gettime(Build.Target.isLinux() ? CLOCK_MONOTONIC : CLOCK_REALTIME, addr_of(now));
-                if (now.tv_sec.longValue() > ts.tv_sec.longValue() || now.tv_sec == ts.tv_sec && now.tv_nsec.intValue() >= ts.tv_nsec.intValue()) {
-                    // done (timeout)
-                    break;
-                }
-            }
+    }
+
+    /**
+     * Unlock the current thread's mutex.
+     * May be called from within or without a safepoint.
+     */
+    @SafePoint(SafePointBehavior.ALLOWED)
+    public static void unlockThread() {
+        unlockThread(currentThreadNativePtr());
+    }
+
+    @SafePoint(SafePointBehavior.ALLOWED)
+    public static void unlockThread(final ptr<thread_native> threadNativePtr) {
+        if (pthread_mutex_unlock(addr_of(deref(threadNativePtr).mutex)).isNonZero()) {
+            abort();
         }
-        // release the mutex
-        if (pthread_mutex_unlock(addr_of(deref(threadNativePtr).mutex)).isNonZero()) abort();
-        // todo: this reacquires the mutex right away; maybe introduce a "locked" version to avoid this
-        exitSafePoint(threadNativePtr, clearBits, setBits | clearWakeBits);
+    }
+
+    @SafePoint
+    public static void awaitThreadInbound() {
+        ptr<thread_native> threadNativePtr = currentThreadNativePtr();
+        if (pthread_cond_wait(addr_of(deref(threadNativePtr).inbound_cond), addr_of(deref(threadNativePtr).mutex)).isNonZero()) {
+            abort();
+        }
+    }
+
+    @SafePoint
+    public static void awaitThreadInbound(int wakeOn) {
+        ptr<thread_native> threadNativePtr = currentThreadNativePtr();
+        int state = addr_of(deref(threadNativePtr).state).loadAcquire().intValue();
+        while ((state & wakeOn) == 0) {
+            awaitThreadInbound();
+            state = addr_of(deref(threadNativePtr).state).loadAcquire().intValue();
+        }
+    }
+
+    /**
+     * Wait for the inbound thread condition for up to the given duration,
+     * waking up early if one of the bits in {@code wakeOn} is set.
+     *
+     * @param seconds the number of seconds to wait
+     * @param nanos the number of nanos to wait
+     * @param wakeOn the bits to wake on
+     * @return {@code true} if one or more of the wake-on bits was set, or {@code false} if the timeout occurred
+     */
+    @SafePoint
+    public static boolean awaitThreadInboundTimed(long seconds, int nanos, int wakeOn) {
+        struct_timespec ts = auto();
+        // get the start time
+        if (Build.Target.isMacOs()) {
+            // less accurate in the face of time changes...
+            clock_gettime(CLOCK_REALTIME, addr_of(ts));
+        } else {
+            clock_gettime(CLOCK_MONOTONIC, addr_of(ts));
+        }
+        // add the base time to the duration
+        nanos += ts.tv_nsec.intValue();
+        if (nanos > 1_000_000_000) {
+            // carry the one
+            seconds ++;
+            nanos -= 1_000_000_000;
+        }
+        seconds += ts.tv_sec.longValue();
+        ts.tv_sec = word(seconds);
+        ts.tv_nsec = word(nanos);
+        ptr<thread_native> threadNativePtr = currentThreadNativePtr();
+        int state = addr_of(deref(threadNativePtr).state).loadAcquire().intValue();
+        while ((state & wakeOn) == 0) {
+            c_int res = pthread_cond_timedwait(addr_of(deref(threadNativePtr).inbound_cond), addr_of(deref(threadNativePtr).mutex), addr_of(ts));
+            if (res == ETIMEDOUT) {
+                return false;
+            } else if (res.isNonZero()) {
+                abort();
+                return false; // not reachable
+            }
+            state = addr_of(deref(threadNativePtr).state).loadAcquire().intValue();
+        }
+        return true;
+    }
+
+    @SafePoint(SafePointBehavior.ALLOWED)
+    public static void notifyThreadInbound(final ptr<thread_native> threadNativePtr) {
+        if (pthread_cond_broadcast(addr_of(deref(threadNativePtr).inbound_cond)).isNonZero()) abort();
+    }
+
+    @SafePoint(SafePointBehavior.ALLOWED)
+    public static void notifyThreadOutbound() {
+        if (pthread_cond_broadcast(addr_of(deref(currentThreadNativePtr()).outbound_cond)).isNonZero()) abort();
+    }
+
+    @SafePoint
+    public static void awaitThreadOutbound(final ptr<thread_native> threadNativePtr) {
+        if (pthread_cond_wait(addr_of(deref(threadNativePtr).outbound_cond), addr_of(deref(threadNativePtr).mutex)).isNonZero()) {
+            abort();
+        }
+    }
+
+    /**
+     * Lock the thread list.
+     * May only be called from outside a safepoint.
+     * Enters a safepoint for the duration of the lock operation, if the operation would block.
+     */
+    @SafePoint(SafePointBehavior.NONE)
+    public static void lockThreadList() {
+        c_int result = pthread_mutex_trylock(addr_of(thread_list_mutex));
+        if (result == EBUSY) {
+            lockThread_sp();
+        } else if (result.isNonZero()) {
+            abort();
+        }
+    }
+
+    /**
+     * Lock the thread list mutex.
+     * May be called from within or without a safepoint.
+     * Always enters a safepoint for the duration of the lock operation.
+     */
+    @SafePoint
+    public static void lockThreadList_sp() {
+        if (pthread_mutex_lock(addr_of(thread_list_mutex)).isNonZero()) {
+            abort();
+        }
+    }
+
+    /**
+     * Unlock the current thread's mutex.
+     * May be called from within or without a safepoint.
+     */
+    @SafePoint(SafePointBehavior.ALLOWED)
+    public static void unlockThreadList() {
+        if (pthread_mutex_unlock(addr_of(thread_list_mutex)).isNonZero()) {
+            abort();
+        }
     }
 
     /**
@@ -585,7 +735,7 @@ public final class ThreadNative {
      *
      * @param setBits the {@code STATE_*} flag that indicates the reason for the safepoint
      */
-    @NoSafePoint
+    @SafePoint
     @Hidden
     @NoThrow
     public static void requestSafePoint(ptr<thread_native> threadNativePtr, int setBits) {
@@ -603,13 +753,7 @@ public final class ThreadNative {
             witness = statusPtr.compareAndSwap(word(oldVal), word(oldVal | setBits)).intValue();
             if (witness == oldVal) {
                 // done; wake it up if it is sleeping
-                if (Build.Target.isWasi()) {
-                    // TODO
-                    //  memory.atomic.notify(statusPtr, 1)
-                    abort();
-                } else if (Build.Target.isPosix()) {
-                    if (pthread_cond_broadcast(addr_of(deref(threadNativePtr).inbound_cond)).isNonZero()) abort();
-                }
+                notifyThreadInbound(threadNativePtr);
                 return;
             }
             oldVal = witness;
@@ -622,7 +766,7 @@ public final class ThreadNative {
      *
      * @param clearBits the {@code STATE_*} flag that indicates the reason for the safepoint
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @Hidden
     @NoThrow
     public static void releaseSafePoint(final ptr<thread_native> threadNativePtr, int clearBits) {
@@ -639,13 +783,7 @@ public final class ThreadNative {
                 witness = statusPtr.compareAndSwap(word(oldVal), word(newVal)).intValue();
                 if (witness == oldVal) {
                     // done; now we must signal the thread so it can exit the safepoint
-                    if (Build.Target.isWasi()) {
-                        // TODO
-                        //  memory.atomic.notify(statusPtr, 1)
-                        abort();
-                    } else if (Build.Target.isPosix()) {
-                        if (pthread_cond_broadcast(addr_of(deref(threadNativePtr).inbound_cond)).isNonZero()) abort();
-                    }
+                    notifyThreadInbound(threadNativePtr);
                     return;
                 }
             } else {
@@ -665,57 +803,38 @@ public final class ThreadNative {
      * Must not be called from within the same thread.
      * May only be called within a safepoint.
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @Hidden
     @NoThrow
     public static void awaitSafePoint(ptr<thread_native> threadNative) {
         awaitStatusWord(threadNative, STATE_IN_SAFEPOINT);
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @Hidden
     @NoThrow
     public static void awaitStatusWord(ptr<thread_native> threadNative, int bits) {
         awaitStatusWord(threadNative, bits, bits);
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @Hidden
     @NoThrow
     public static int awaitStatusWord(ptr<thread_native> threadNative, int mask, int bits) {
         // assert isSafePoint();
         final ptr<uint32_t> statusPtr = addr_of(deref(threadNative).state);
         int state = statusPtr.loadVolatile().intValue();
-        while ((state & mask) != bits) {
-            if (Build.Target.isWasi()) {
-                // TODO
-                //  memory.atomic.wait32(statusPtr, state & mask | bits, -1)
-                abort();
-            } else if (Build.Target.isPosix()) {
-                // double-checked pattern, but using pthread_mutex
-                int res = pthread_mutex_lock(addr_of(deref(threadNative).mutex)).intValue();
-                if (res != 0) {
-                    // fatal error
-                    abort();
-                }
-                state = statusPtr.loadVolatile().intValue();
-                while ((state & mask) != bits) {
-                    res = pthread_cond_wait(addr_of(deref(threadNative).outbound_cond), addr_of(deref(threadNative).mutex)).intValue();
-                    if (res != 0) {
-                        // fatal error
-                        abort();
-                    }
-                    state = statusPtr.loadVolatile().intValue();
-                }
-                res = pthread_mutex_unlock(addr_of(deref(threadNative).mutex)).intValue();
-                if (res != 0) {
-                    // fatal error
-                    abort();
-                }
-                // done by interior loop
-                return state;
-            }
+        if ((state & mask) != bits) {
+            // double-checked pattern, but using pthread_mutex
+            lockThread_sp(threadNative);
             state = statusPtr.loadVolatile().intValue();
+            while ((state & mask) != bits) {
+                awaitThreadOutbound(threadNative);
+                state = statusPtr.loadVolatile().intValue();
+            }
+            unlockThread(threadNative);
+            // done by interior loop
+            return state;
         }
         return state;
     }
@@ -723,29 +842,26 @@ public final class ThreadNative {
     /**
      * Poll for a safepoint.
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.NONE)
     @Hidden
     @Inline(InlineCondition.ALWAYS)
     @NoThrow
     @AutoQueued
     public static void pollSafePoint() {
-        final ptr<thread_native> threadNativePtr = currentThreadNativePtr();
-        final int threadStatus = addr_of(deref(threadNativePtr).state).loadAcquire().intValue();
+        final int threadStatus = addr_of(deref(currentThreadNativePtr()).state).loadAcquire().intValue();
         if (threadStatus < 0) {
-            externalSafePoint(threadNativePtr);
+            externalSafePoint();
         }
     }
 
     /**
-     * Do the work of an externally-triggered safepoint.
+     * Enter and exit the safepointed state.
      */
-    @NoSafePoint
+    @SafePoint
     @Hidden
-    @Inline(InlineCondition.NEVER)
     @NoThrow
-    public static void externalSafePoint(final ptr<thread_native> threadNativePtr) {
-        enterSafePoint(threadNativePtr, 0, 0);
-        exitSafePoint(threadNativePtr, 0, 0);
+    public static void externalSafePoint() {
+        // the @SafePoint annotation does the heavy lifting here
     }
 
     /**
@@ -754,19 +870,19 @@ public final class ThreadNative {
      * However, the interrupt or unpark flags may be asynchronously set on a safepointed thread.
      * The {@code reason} parameter must either be zero or a combination of {@link #STATE_SAFEPOINT_REQUEST} and
      * one or more {@code PARK_SAFEPOINT_REQUEST_*} flags; otherwise, the thread will be trapped in a safepoint indefinitely.
+     * <p>
+     * Normally accessed via the {@link SafePoint} annotation.
      *
-     * @param threadNativePtr the pointer to the thread's native structure (must not be {@code null})
      * @param setBits an optional set of bits to add to the status
      * @param clearBits an optional set of bits to remove from the status
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.NONE)
     @Hidden
     @NoThrow
-    public static void enterSafePoint(ptr<thread_native> threadNativePtr, int setBits, int clearBits) {
-        // XXX WARNING: Thread.currentThread() is INVALID in this method XXX
-        // the reason is that GC may relocate it, but this method is not in the captured context so stack walk will miss it
-
-        final ptr<uint32_t> statusPtr = addr_of(deref(threadNativePtr).state);
+    @AutoQueued
+    public static void enterSafePoint(int setBits, int clearBits) {
+        ptr<thread_native> threadNativePtr = currentThreadNativePtr();
+        ptr<uint32_t> statusPtr = addr_of(deref(threadNativePtr).state);
 
         // capture our state
         // todo: if (Build.Target.isUnwContext) ...
@@ -783,64 +899,43 @@ public final class ThreadNative {
             witness = statusPtr.compareAndSwap(word(oldVal), word(newVal)).intValue();
         } while (witness != oldVal);
         // notify waiters (if any)
-        if (Build.Target.isWasi()) {
-            // TODO
-            //  memory.atomic.notify(statusPtr, Integer.MAX_VALUE)
-            abort();
-        } else if (Build.Target.isPosix()) {
-            // signal after transition
-            if (pthread_cond_broadcast(addr_of(deref(threadNativePtr).outbound_cond)).intValue() != 0) abort();
-        }
+        notifyThreadOutbound();
     }
 
-    @NoSafePoint
+    /**
+     * <p>
+     * Normally accessed via the {@link SafePoint} annotation.
+     *
+     * @param setBits   an optional set of bits to add to the status
+     * @param clearBits an optional set of bits to remove from the status
+     */
+    @SafePoint(SafePointBehavior.REQUIRED)
     @Hidden
-    public static int exitSafePoint(ptr<thread_native> threadNativePtr, int setBits, int clearBits) {
-        // XXX WARNING: Thread.currentThread() is INVALID in this method XXX
-        // the reason is that GC may relocate it, but this method is not in the captured context so stack walk will miss it
-
-        final ptr<uint32_t> statusPtr = addr_of(deref(threadNativePtr).state);
+    @AutoQueued
+    public static void exitSafePoint(int setBits, int clearBits) {
+        ptr<thread_native> threadNativePtr = currentThreadNativePtr();
+        ptr<uint32_t> statusPtr = addr_of(deref(threadNativePtr).state);
         // wait until it's OK to exit the safepoint
-        // assert isSafePoint();
-        if (Build.Target.isPosix() && ! Build.Target.isWasi()) {
-            // double-checked pattern, but using pthread_mutex; also, we need the lock for waiting
-            int res = pthread_mutex_lock(addr_of(deref(threadNativePtr).mutex)).intValue();
-            if (res != 0) {
-                // fatal error
-                abort();
-            }
-        }
-        int oldVal = statusPtr.loadVolatile().intValue();
-        for (;;) {
-            while ((oldVal & STATE_SAFEPOINT_REQUEST) != 0) {
-                if (Build.Target.isWasi()) {
-                    // TODO
-                    //  memory.atomic.wait32(statusPtr, state & ~STATE_SAFEPOINT_REQUEST, -1)
-                    abort();
-                } else if (Build.Target.isPosix()) {
-                    if (pthread_cond_wait(addr_of(deref(threadNativePtr).inbound_cond), addr_of(deref(threadNativePtr).mutex)).isNonZero()) abort();
+        lockThread_sp();
+        try {
+            int witness = statusPtr.loadVolatile().intValue();
+            int oldVal;
+            do {
+                oldVal = witness;
+                while ((oldVal & STATE_SAFEPOINT_REQUEST) != 0) {
+                    awaitThreadInbound();
+                    oldVal = statusPtr.loadVolatile().intValue();
                 }
-                oldVal = statusPtr.loadVolatile().intValue();
-            }
-            // the request is cleared; now, attempt to clear the safepoint state and notify waiters
-            int witness = statusPtr.compareAndSwap(word(oldVal), word(oldVal & ~STATE_IN_SAFEPOINT & ~clearBits | setBits)).intValue();
-            if (witness == oldVal) {
-                // success!
-                break;
-            }
-            // try again
-            oldVal = witness;
+                // the request is cleared; now, attempt to clear the safepoint state and notify waiters
+                witness = statusPtr.compareAndSwap(word(oldVal), word(oldVal & ~STATE_IN_SAFEPOINT & ~clearBits | setBits)).intValue();
+            } while (witness != oldVal);
+            // success!
+        } finally {
+            unlockThread();
         }
+        // (at this point we're actually not in safepoint anymore)
         // done! notify waiters
-        if (Build.Target.isWasi()) {
-            // TODO
-            //  memory.atomic.notify(statusPtr, Integer.MAX_VALUE)
-            abort();
-        } else if (Build.Target.isPosix()) {
-            if (pthread_cond_broadcast(addr_of(deref(threadNativePtr).outbound_cond)).isNonZero()) abort();
-            if (pthread_mutex_unlock(addr_of(deref(threadNativePtr).mutex)).isNonZero()) abort();
-        }
-        return oldVal;
+        notifyThreadOutbound();
     }
 
     // todo: move this to main?
@@ -849,6 +944,32 @@ public final class ThreadNative {
     public static void init_thread_list_mutex() {
         // initialize the mutex at early run time
         pthread_mutex_init(addr_of(thread_list_mutex), zero());
+    }
+
+    @AutoQueued
+    @export
+    @SafePoint(SafePointBehavior.ALLOWED)
+    public static void dump_thread_native(ptr<thread_native> threadNativePtr) {
+        printf(utf8z("Thread at address %p\n"), threadNativePtr);
+        printf(utf8z("  Status:\n"));
+        int state = deref(threadNativePtr).state.intValue();
+        if ((state & STATE_ALIVE) != 0) printf(utf8z("    %s\n"), utf8z("Alive"));
+        if ((state & STATE_TERMINATED) != 0) printf(utf8z("    %s\n"), utf8z("Terminated"));
+        if ((state & STATE_RUNNABLE) != 0) printf(utf8z("    %s\n"), utf8z("Runnable"));
+        if ((state & STATE_WAITING_INDEFINITELY) != 0) printf(utf8z("    %s\n"), utf8z("Waiting indefinitely"));
+        if ((state & STATE_WAITING_WITH_TIMEOUT) != 0) printf(utf8z("    %s\n"), utf8z("Waiting with timeout"));
+        if ((state & STATE_SLEEPING) != 0) printf(utf8z("    %s\n"), utf8z("Sleeping"));
+        if ((state & STATE_WAITING) != 0) printf(utf8z("    %s\n"), utf8z("Waiting"));
+        if ((state & STATE_PARKED) != 0) printf(utf8z("    %s\n"), utf8z("Parking"));
+        if ((state & STATE_BLOCKED_ON_MONITOR_ENTER) != 0) printf(utf8z("    %s\n"), utf8z("Blocked on monitor"));
+        if ((state & STATE_UNPARK) != 0) printf(utf8z("    %s\n"), utf8z("Unparked"));
+        if ((state & STATE_INTERRUPTED) != 0) printf(utf8z("    %s\n"), utf8z("Interrupted"));
+        if ((state & STATE_IN_NATIVE) != 0) printf(utf8z("    %s\n"), utf8z("In native"));
+        if ((state & STATE_EXITED) != 0) printf(utf8z("    %s\n"), utf8z("Exited"));
+        if ((state & STATE_IN_SAFEPOINT) != 0) printf(utf8z("    %s\n"), utf8z("In safepoint"));
+        if ((state & STATE_SAFEPOINT_REQUEST_GC) != 0) printf(utf8z("    %s\n"), utf8z("GC requested"));
+        if ((state & STATE_SAFEPOINT_REQUEST_STACK) != 0) printf(utf8z("    %s\n"), utf8z("Stack requested"));
+        if ((state & STATE_SAFEPOINT_REQUEST) != 0) printf(utf8z("    %s\n"), utf8z("Safepoint requested"));
     }
 
     /**
@@ -894,18 +1015,17 @@ public final class ThreadNative {
         /**
          * Protects {@link #state} (double-checked path) and the two conditions on platforms without lockless waiting.
          */
-        // todo: unless = Build.Target.HasIntegerWait or similar
-        @incomplete(when = { Build.Target.IsLinux.class, Build.Target.IsWasi.class}, unless = Build.Target.IsPosix.class)
+        @incomplete(unless = Build.Target.IsPThreads.class)
         public pthread_mutex_t mutex;
         /**
          * Other threads signal this waiting thread.
          */
-        @incomplete(when = { Build.Target.IsLinux.class, Build.Target.IsWasi.class}, unless = Build.Target.IsPosix.class)
+        @incomplete(unless = Build.Target.IsPThreads.class)
         public pthread_cond_t inbound_cond;
         /**
          * This thread signals other waiting threads.
          */
-        @incomplete(when = { Build.Target.IsLinux.class, Build.Target.IsWasi.class}, unless = Build.Target.IsPosix.class)
+        @incomplete(unless = Build.Target.IsPThreads.class)
         public pthread_cond_t outbound_cond;
 
         /**
@@ -919,6 +1039,7 @@ public final class ThreadNative {
 
         // exception info
         // @incomplete(unless = Build.Target.IsUnwind.class)
+        @incomplete(when = Build.Target.IsWasi.class)
         public struct__Unwind_Exception unwindException;
     }
 }

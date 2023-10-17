@@ -35,6 +35,8 @@ package java.lang;
 import jdk.internal.misc.Unsafe;
 import jdk.internal.thread.ThreadNative;
 import org.qbicc.rt.annotation.Tracking;
+import org.qbicc.runtime.SafePoint;
+import org.qbicc.runtime.SafePointBehavior;
 import org.qbicc.runtime.patcher.PatchClass;
 import org.qbicc.runtime.patcher.Replace;
 
@@ -46,27 +48,13 @@ import org.qbicc.runtime.patcher.Replace;
 final class UnsafeParkUnpark {
 
     @Replace
+    @SafePoint(SafePointBehavior.NONE)
     void park(boolean isAbsolute, long time) {
-        if (isAbsolute) {
-            // absolute timeout in milliseconds
-            long millis = time - System.currentTimeMillis();
-            if (millis <= 0) {
-                return;
-            }
-            ThreadNative.park(millis, 0, ThreadNative.STATE_PARKED | ThreadNative.STATE_WAITING | ThreadNative.STATE_WAITING_WITH_TIMEOUT, ThreadNative.STATE_RUNNABLE, ThreadNative.STATE_INTERRUPTED, ThreadNative.STATE_UNPARK);
-        } else if (time == 0) {
-            // no timeout
-            ThreadNative.park(0, 0, ThreadNative.STATE_PARKED | ThreadNative.STATE_WAITING | ThreadNative.STATE_WAITING_INDEFINITELY, ThreadNative.STATE_RUNNABLE, ThreadNative.STATE_INTERRUPTED, ThreadNative.STATE_UNPARK);
-        } else {
-            // relative timeout in nanos
-            int nanos = (int) (time % 1_000_000);
-            long millis = time / 1_000_000;
-            ThreadNative.park(millis, nanos, ThreadNative.STATE_PARKED | ThreadNative.STATE_WAITING | ThreadNative.STATE_WAITING_WITH_TIMEOUT, ThreadNative.STATE_RUNNABLE, ThreadNative.STATE_INTERRUPTED, ThreadNative.STATE_UNPARK);
-        }
+        ThreadNative.park(isAbsolute, time);
     }
 
     @Replace
     void unpark(Object thread) {
-        ((Thread) thread).unpark(ThreadNative.STATE_UNPARK);
+        ThreadNative.unpark(((Thread)thread).threadNativePtr);
     }
 }

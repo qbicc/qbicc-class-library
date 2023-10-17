@@ -2,7 +2,6 @@ package jdk.internal.gc;
 
 import static jdk.internal.sys.posix.Errno.*;
 
-import static jdk.internal.sys.posix.PThread.*;
 import static jdk.internal.sys.posix.SysMman.*;
 import static jdk.internal.sys.posix.Unistd.*;
 import static jdk.internal.thread.ThreadNative.*;
@@ -22,8 +21,9 @@ import org.qbicc.runtime.Build;
 import org.qbicc.runtime.Hidden;
 import org.qbicc.runtime.Inline;
 import org.qbicc.runtime.InlineCondition;
-import org.qbicc.runtime.NoSafePoint;
 import org.qbicc.runtime.NoThrow;
+import org.qbicc.runtime.SafePoint;
+import org.qbicc.runtime.SafePointBehavior;
 import org.qbicc.runtime.main.CompilerIntrinsics;
 import org.qbicc.runtime.stackwalk.StackWalker;
 
@@ -56,81 +56,66 @@ public final class Gc {
             super.start();
         }
 
-        @NoSafePoint
+        @SafePoint(SafePointBehavior.NONE) // virtual method
         public void run() {
-            // never exit safepoint
+            run0();
+        }
+
+        @SafePoint
+        private static void run0() {
             ptr<thread_native> threadNativePtr = currentThreadNativePtr();
-            enterSafePoint(threadNativePtr, 0, 0);
             // now wait for a GC request
             for (;;) {
                 // TODO: CAS status word atomically with await...?
                 // assert isSafePoint();
                 final ptr<uint32_t> statusPtr = addr_of(deref(threadNativePtr).state);
+                // TODO: Switch to GC command word/queue
                 int state = statusPtr.loadVolatile().intValue();
                 while ((state & STATE_SAFEPOINT_REQUEST_GC) == 0) {
-                    if (Build.Target.isWasi()) {
-                        // TODO
-                        //  memory.atomic.wait32(statusPtr, state & mask | bits, -1)
-                        abort();
-                    } else if (Build.Target.isPosix()) {
-                        // double-checked pattern, but using pthread_mutex
-                        int res = pthread_mutex_lock(addr_of(deref(threadNativePtr).mutex)).intValue();
-                        if (res != 0) {
-                            // fatal error
-                            abort();
-                        }
-                        state = statusPtr.loadVolatile().intValue();
-                        while ((state & STATE_SAFEPOINT_REQUEST_GC) != STATE_SAFEPOINT_REQUEST_GC) {
-                            res = pthread_cond_wait(addr_of(deref(threadNativePtr).inbound_cond), addr_of(deref(threadNativePtr).mutex)).intValue();
-                            if (res != 0) {
-                                // fatal error
-                                abort();
-                            }
-                            state = statusPtr.loadVolatile().intValue();
-                        }
-                        res = pthread_mutex_unlock(addr_of(deref(threadNativePtr).mutex)).intValue();
-                        if (res != 0) {
-                            // fatal error
-                            abort();
-                        }
-                        // done by interior loop
-                        break;
-                    }
+                    // double-checked pattern, but using pthread_mutex
+                    ThreadNative.lockThread_sp();
                     state = statusPtr.loadVolatile().intValue();
+                    while ((state & STATE_SAFEPOINT_REQUEST_GC) != STATE_SAFEPOINT_REQUEST_GC) {
+                        ThreadNative.awaitThreadInbound();
+                        state = statusPtr.loadVolatile().intValue();
+                    }
+                    ThreadNative.unlockThread();
                 }
                 addr_of(deref(threadNativePtr).state).getAndBitwiseAnd(word(~STATE_SAFEPOINT_REQUEST_GC));
                 // a GC was requested; carry it out
-                pthread_mutex_lock(addr_of(thread_list_mutex));
-                // request safepoints of all threads
-                for (ptr<thread_native> current = thread_list_terminus.next; current != addr_of(thread_list_terminus); current = deref(current).next) {
-                    // (don't request our own; we're already there)
-                    if (current != threadNativePtr) {
-                        requestSafePoint(current, STATE_SAFEPOINT_REQUEST_GC);
+                ThreadNative.lockThreadList_sp();
+                try {
+                    // request safepoints of all threads
+                    for (ptr<thread_native> current = thread_list_terminus.next; current != addr_of(thread_list_terminus); current = deref(current).next) {
+                        // (don't request our own; we're already there)
+                        if (current != threadNativePtr) {
+                            requestSafePoint(current, STATE_SAFEPOINT_REQUEST_GC);
+                        }
                     }
-                }
-                // await safepoints of all threads
-                for (ptr<thread_native> current = thread_list_terminus.next; current != addr_of(thread_list_terminus); current = deref(current).next) {
-                    // (don't await ourselves)
-                    if (current != threadNativePtr) {
-                        awaitSafePoint(current);
+                    // await safepoints of all threads
+                    for (ptr<thread_native> current = thread_list_terminus.next; current != addr_of(thread_list_terminus); current = deref(current).next) {
+                        // (don't await ourselves)
+                        if (current != threadNativePtr) {
+                            awaitSafePoint(current);
+                        }
                     }
-                }
-                // now we are paused and free to manipulate the heap
+                    // now we are paused and free to manipulate the heap
 
-                deref(deref(gc).collect).asInvokable().run();
+                    deref(deref(gc).collect).asInvokable().run();
 
-                // release safepoint of all threads
-                for (ptr<thread_native> current = thread_list_terminus.next; current != addr_of(thread_list_terminus); current = deref(current).next) {
-                    // (don't release our own)
-                    if (current != threadNativePtr) {
-                        releaseSafePoint(current, STATE_SAFEPOINT_REQUEST_GC);
+                    // release safepoint of all threads
+                    for (ptr<thread_native> current = thread_list_terminus.next; current != addr_of(thread_list_terminus); current = deref(current).next) {
+                        // (don't release our own)
+                        if (current != threadNativePtr) {
+                            releaseSafePoint(current, STATE_SAFEPOINT_REQUEST_GC);
+                        }
                     }
+                } finally {
+                    ThreadNative.unlockThreadList();
                 }
-                pthread_mutex_unlock(addr_of(thread_list_mutex));
 
                 // todo: reference queues
             }
-
         }
     };
 
@@ -198,19 +183,19 @@ public final class Gc {
     private static final long HEAP_BYTE_PER_BITMAP_WORD_MASK = HEAP_BYTE_PER_BITMAP_WORD - 1L;
     
     @NoThrow
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     public static long getPageSize() {
         return pageSize;
     }
 
     @NoThrow
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     public static long getMinHeapSize() {
         return minHeapSize;
     }
 
     @NoThrow
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     public static long getMaxHeapSize() {
         return maxHeapSize;
     }
@@ -313,14 +298,14 @@ public final class Gc {
 
     @Hidden
     @AutoQueued
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     public static void clear(Object ptr, long size) {
         memset(refToPtr(ptr), word(0), word(size));
     }
 
     @Hidden
     @AutoQueued
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     public static void copy(Object to, Object from, long size) {
         memcpy(refToPtr(to), refToPtr(from), word(size));
     }
@@ -341,7 +326,7 @@ public final class Gc {
         return word(1L << (byteOffset >>> HEAP_BYTE_PER_HEAP_INDEX_SHIFT));
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @NoThrow
     @Hidden
     public static void clearBitmap() {
@@ -505,7 +490,7 @@ public final class Gc {
      * @param iter the iterator pointer, which typically should be stack-allocated (must not be {@code null})
      * @param obj the object reference to iterate
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @NoThrow
     @Hidden
     @export(withScope = ExportScope.LOCAL)
@@ -537,7 +522,7 @@ public final class Gc {
      * @param iter the iterator pointer, which typically should be stack-allocated (must not be {@code null})
      * @return the next reference, or {@code null} if there are no more references reachable from this object
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @NoThrow
     @Hidden
     @export(withScope = ExportScope.LOCAL)
@@ -578,7 +563,7 @@ public final class Gc {
      * @param iter the iterator pointer, which typically should be stack-allocated (must not be {@code null})
      * @param newVal the updated reference value
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @NoThrow
     @Hidden
     @export(withScope = ExportScope.LOCAL)
@@ -593,7 +578,7 @@ public final class Gc {
      * @return {@code true} if the ref was newly marked as a result of this operation, or {@code false}
      *      if it was already marked or is permanent
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @NoThrow
     @Hidden
     static boolean setMark(reference<?> ref) {
@@ -603,7 +588,7 @@ public final class Gc {
         return (observed.longValue() & bitVal.longValue()) == 0;
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @NoThrow
     @Hidden
     static boolean isMarked(reference<?> ref) {
@@ -613,7 +598,7 @@ public final class Gc {
         return (observed.longValue() & bitVal.longValue()) != 0;
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @NoThrow
     @Hidden
     static void setHeaderMovedBit(reference<?> ref) {
@@ -621,7 +606,7 @@ public final class Gc {
         headerPtr.getAndBitwiseOrOpaque(headerMovedBit());
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @NoThrow
     @Hidden
     static boolean getHeaderMovedBit(reference<?> ref) {
@@ -635,7 +620,7 @@ public final class Gc {
      *
      * @return the "object moved" bit, or zero if there is no "object moved" bit
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @NoThrow
     static native header_type headerMovedBit();
 
@@ -645,11 +630,11 @@ public final class Gc {
      *
      * @return the "stack allocated" bit, or zero if there is no "stack allocated" bit
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @NoThrow
     static native header_type headerStackAllocatedBit();
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @NoThrow
     @Hidden
     static boolean isStackAllocated(reference<?> ref) {
@@ -662,7 +647,7 @@ public final class Gc {
      *
      * @param object the object to mark (must not be {@code null})
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @NoThrow
     @export
     static void mark(Object object) {
@@ -675,7 +660,7 @@ public final class Gc {
     /**
      * Mark all the objects which are currently reachable by the stack of this thread.
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @NoThrow
     @export
     static void markCurrentStack() {
@@ -703,7 +688,7 @@ public final class Gc {
      *
      * @param threadNativePtr the safepointed thread native pointer (must not be {@code null})
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @NoThrow
     @export
     static void markStack(ptr<thread_native> threadNativePtr) {
@@ -731,7 +716,7 @@ public final class Gc {
      *
      * @param regionPtr the region pointer (must not be {@code null})
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @NoThrow
     static void markRegion(ptr<struct_region> regionPtr) {
         struct_region_iter iter = auto();
@@ -741,7 +726,7 @@ public final class Gc {
         }
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @NoThrow
     @export
     private static void markBasic0(final reference<?> ref) {
@@ -830,7 +815,7 @@ public final class Gc {
      * @param ptr the pointer to test
      * @return {@code true} if the pointer falls within the region, or {@code false} if it does not
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @NoThrow
     @export
     public static boolean region_contains(ptr<struct_region> region_ptr, ptr<?> ptr) {
@@ -847,7 +832,7 @@ public final class Gc {
      * @return {@code true} if the region was established, or {@code false} if there was an error
      * ({@code errno} will be set accordingly)
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @NoThrow
     @export
     public static boolean region_init(ptr<struct_region> region_ptr, ptr<?> start, long limit) {
@@ -870,9 +855,8 @@ public final class Gc {
      * @param size the number of bytes to allocate
      * @return a pointer to the allocated item, or {@code null} if allocation did not succeed
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @NoThrow
-    @export
     public static <P extends ptr<?>> P region_allocate(ptr<struct_region> region_ptr, long size) {
         final long limit = deref(region_ptr).limit;
         // round up the size so the next allocation is aligned
@@ -905,7 +889,7 @@ public final class Gc {
      *
      * @param region_ptr the region pointer (must not be {@code null})
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @NoThrow
     @export
     public static void region_reset(ptr<struct_region> region_ptr) {
@@ -971,7 +955,7 @@ public final class Gc {
      * @param iter_ptr the iterator pointer (must not be {@code null})
      * @return the size of the last object returned
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @NoThrow
     @export
     @Inline(InlineCondition.ALWAYS)
@@ -985,7 +969,7 @@ public final class Gc {
      * @param obj the object to test (must not be {@code null})
      * @return the size in bytes
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ALLOWED)
     @NoThrow
     @export
     public static long instance_size(Object obj) {
@@ -1025,7 +1009,7 @@ public final class Gc {
      * @param original the original object reference (must not be {@code null})
      * @param destination the region to move the object to (must not be {@code null}, must have sufficient space)
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @NoThrow
     @export
     public static void move_object(reference<?> original, ptr<struct_region> destination) {
@@ -1051,7 +1035,7 @@ public final class Gc {
     /**
      * Update a single reference if the target has been relocated.
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @NoThrow
     @export
     public static void update_reference(ptr<reference<?>> ref_ptr) {
@@ -1065,7 +1049,7 @@ public final class Gc {
      * Update all the reference-typed fields of all the objects within a region with relocated references
      * if their target object has been relocated.
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @NoThrow
     @export
     public static void update_region(ptr<struct_region> region_ptr) {
@@ -1102,7 +1086,7 @@ public final class Gc {
      * Update all the reference-typed fields of all the objects on this thread's stack with relocated references
      * if their target object has been relocated.
      */
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @NoThrow
     public static void update_stack(ptr<thread_native> threadNativePtr) {
         StackWalker sw = new StackWalker(addr_of(deref(threadNativePtr).saved_context));
@@ -1126,7 +1110,7 @@ public final class Gc {
         }
     }
 
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.REQUIRED)
     @NoThrow
     private static void update_stack_allocated(reference<?> ref) {
         clv_iterator clv_iter = auto();

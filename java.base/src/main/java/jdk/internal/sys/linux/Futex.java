@@ -7,8 +7,9 @@ import static org.qbicc.runtime.stdc.Stdint.*;
 import static org.qbicc.runtime.stdc.Time.*;
 
 import org.qbicc.runtime.Inline;
-import org.qbicc.runtime.NoSafePoint;
 import org.qbicc.runtime.NoThrow;
+import org.qbicc.runtime.SafePoint;
+import org.qbicc.runtime.SafePointBehavior;
 
 /**
  * Support for {@code futex(2)} on Linux.  See the manpage for more information.
@@ -17,7 +18,7 @@ import org.qbicc.runtime.NoThrow;
 public class Futex {
 
     @Inline(ALWAYS)
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ENTER)
     @NoThrow
     private static c_long futex(ptr<uint32_t> uaddr, c_int futex_op, uint32_t val, ptr<@c_const struct_timespec> timeout, ptr<uint32_t> uaddr2, uint32_t val3) {
         // no glibc wrapper!
@@ -36,7 +37,7 @@ public class Futex {
      * @return {@code true} on success, or {@code false} on error (in {@code errno})
      */
     @Inline(ALWAYS)
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ENTER)
     @NoThrow
     public static boolean futex_wait(ptr<uint32_t> uaddr, uint32_t val, ptr<@c_const struct_timespec> timeout) {
         return futex(uaddr, word(FUTEX_WAIT.intValue() | FUTEX_PRIVATE_FLAG.intValue()), val, timeout, zero(), zero()).longValue() != -1;
@@ -54,7 +55,7 @@ public class Futex {
      * @return {@code true} on success, or {@code false} on error (in {@code errno})
      */
     @Inline(ALWAYS)
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ENTER)
     @NoThrow
     public static boolean futex_wait_absolute(ptr<uint32_t> uaddr, uint32_t val, ptr<@c_const struct_timespec> timeout) {
         return futex(uaddr, word(FUTEX_WAIT_BITSET.intValue() | FUTEX_PRIVATE_FLAG.intValue()), val, timeout, zero(), FUTEX_BITSET_MATCH_ANY).longValue() != -1;
@@ -73,7 +74,7 @@ public class Futex {
      * @return {@code true} on success, or {@code false} on error (in {@code errno})
      */
     @Inline(ALWAYS)
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ENTER)
     @NoThrow
     public static boolean futex_wait_bits(ptr<uint32_t> uaddr, uint32_t bitMask, uint32_t val, ptr<@c_const struct_timespec> timeout) {
         return futex(uaddr, word(FUTEX_WAIT_BITSET.intValue() | FUTEX_PRIVATE_FLAG.intValue()), val, timeout, zero(), bitMask).longValue() != -1;
@@ -86,7 +87,7 @@ public class Futex {
      * @return {@code true} on success, or {@code false} on error (in {@code errno})
      */
     @Inline(ALWAYS)
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ENTER)
     @NoThrow
     public static boolean futex_wake_single(ptr<uint32_t> uaddr) {
         return futex(uaddr, word(FUTEX_WAKE.intValue() | FUTEX_PRIVATE_FLAG.intValue()), word(1), zero(), zero(), zero()).longValue() != -1;
@@ -99,7 +100,7 @@ public class Futex {
      * @return {@code true} on success, or {@code false} on error (in {@code errno})
      */
     @Inline(ALWAYS)
-    @NoSafePoint
+    @SafePoint(SafePointBehavior.ENTER)
     @NoThrow
     public static boolean futex_wake_all(ptr<uint32_t> uaddr) {
         return futex(uaddr, word(FUTEX_WAKE.intValue() | FUTEX_PRIVATE_FLAG.intValue()), word(Integer.MAX_VALUE), zero(), zero(), zero()).longValue() != -1;
